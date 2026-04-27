@@ -40,24 +40,20 @@ const cards: ReadonlyArray<{
 
 export function Science() {
   return (
-    <section className="relative overflow-hidden border-y border-border-hairline bg-bg-deep py-24 md:py-32">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-noise opacity-50 mix-blend-overlay"
-      />
+    <section className="relative overflow-hidden border-y border-border-hairline bg-background py-24 md:py-32">
       <div
         aria-hidden
         className="pointer-events-none absolute -top-1/2 left-1/2 size-[800px] -translate-x-1/2 rounded-full"
         style={{
           background:
-            "radial-gradient(closest-side, rgba(255,106,0,0.12), transparent 70%)",
+            "radial-gradient(closest-side, rgba(91,33,182,0.06), transparent 70%)",
         }}
       />
 
       <div className="relative mx-auto w-full max-w-7xl px-5 md:px-10">
         <div className="mb-16 grid gap-8 md:mb-20 md:grid-cols-12">
           <div className="md:col-span-6">
-            <p className="text-eyebrow mb-5 text-accent-bright">
+            <p className="text-eyebrow mb-5 text-accent">
               Built on the research
             </p>
             <h2 className="font-display text-display-xl text-text-primary">
@@ -75,14 +71,14 @@ export function Science() {
           {cards.map((card) => (
             <li
               key={card.source}
-              className="group relative flex flex-col rounded-xl border border-border-default bg-bg-elevated p-8 transition-colors hover:bg-bg-raised md:p-10"
+              className="group relative flex flex-col rounded-xl border border-border-default bg-bg-elevated p-8 transition-shadow hover:shadow-[0_4px_16px_rgba(10,10,11,0.06)] md:p-10"
             >
               <div className="flex items-baseline gap-2">
-                <span className="font-display text-[72px] font-extrabold leading-none tracking-[-0.04em] text-accent tabular-nums md:text-[88px]">
+                <span className="font-display text-[72px] font-medium leading-none tracking-[-0.025em] text-accent tabular-nums md:text-[88px]">
                   {card.stat}
                 </span>
                 {card.unit ? (
-                  <span className="font-display text-2xl font-bold text-accent">
+                  <span className="font-display text-2xl font-medium text-accent">
                     {card.unit}
                   </span>
                 ) : null}
@@ -102,7 +98,7 @@ export function Science() {
         <div className="mt-12">
           <Link
             href={routes.science.href}
-            className="group inline-flex items-center gap-2 text-sm font-bold uppercase tracking-[0.08em] text-accent-bright transition-colors hover:text-accent"
+            className="group inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.08em] text-accent transition-colors hover:text-accent-deep"
           >
             Read the full science page
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />

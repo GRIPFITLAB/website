@@ -66,7 +66,7 @@ added as the corresponding build steps land.
 - [x] 2. shadcn/ui init + design-token wiring
 - [x] 3. Shopify Storefront API client (`lib/shopify/`)
 - [x] 4. Site shell — Nav, Footer, MobileMenu, branded 404, sitemap, robots
-- [x] 5. Home page — Hero, Features, HowItWorks, InTheBox, Science, CTA (no athlete-grid social proof per §6)
+- [x] 5. Home page — Hero, Features, HowItWorks, InTheBox, AppShowcase, Science, CTA (no athlete-grid social proof per §6)
 - [x] **Pre-deploy stubs** for `/product`, `/science`, `/setup`, `/contact`,
   `/privacy`, `/terms` so every nav link resolves on Vercel before Shopify
   is wired. The PDP gracefully falls back to `productConfig` when Shopify

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <article className="mx-auto w-full max-w-3xl px-5 py-20 md:px-10 md:py-28">
-      <p className="text-eyebrow mb-6 text-accent-bright">Contact</p>
+      <p className="text-eyebrow mb-6 text-accent">Contact</p>
       <h1 className="font-display text-display-xl text-text-primary">
         Talk to us.
       </h1>
@@ -22,7 +22,7 @@ export default function ContactPage() {
         also email{" "}
         <a
           href={`mailto:${externalLinks.supportEmail}`}
-          className="text-accent-bright underline-offset-4 hover:underline"
+          className="text-accent underline-offset-4 hover:underline"
         >
           {externalLinks.supportEmail}
         </a>

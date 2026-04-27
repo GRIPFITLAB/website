@@ -1,8 +1,8 @@
 /**
  * How it works — vertical step rail with WHOOP "built to be worn 24/7"
  * pacing: each step gets a big numeral, a short imperative title, and
- * one paragraph of supporting copy. The amber rail down the left
- * stitches the steps together.
+ * one paragraph of supporting copy. The hairline purple rail down the
+ * left stitches the steps together.
  */
 const steps = [
   {
@@ -25,15 +25,10 @@ const steps = [
 export function HowItWorks() {
   return (
     <section className="relative overflow-hidden border-y border-border-hairline bg-bg-deep py-24 md:py-32">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-noise opacity-50 mix-blend-overlay"
-      />
-
       <div className="relative mx-auto w-full max-w-7xl px-5 md:px-10">
         <div className="mb-16 grid gap-8 md:mb-20 md:grid-cols-12">
           <div className="md:col-span-5">
-            <p className="text-eyebrow mb-5 text-accent-bright">
+            <p className="text-eyebrow mb-5 text-accent">
               How it works
             </p>
             <h2 className="font-display text-display-xl text-text-primary">
@@ -49,7 +44,7 @@ export function HowItWorks() {
         <ol className="relative">
           <span
             aria-hidden
-            className="pointer-events-none absolute left-[10px] top-2 hidden h-[calc(100%-1rem)] w-px bg-gradient-to-b from-accent/60 via-accent/30 to-transparent md:block"
+            className="pointer-events-none absolute left-[10px] top-2 hidden h-[calc(100%-1rem)] w-px bg-gradient-to-b from-accent/50 via-accent/25 to-transparent md:block"
           />
           {steps.map((step, index) => (
             <li
@@ -59,11 +54,11 @@ export function HowItWorks() {
               <div className="flex items-start gap-5 md:col-span-5">
                 <span
                   aria-hidden
-                  className="relative mt-2 hidden size-[22px] shrink-0 items-center justify-center rounded-full border border-accent bg-bg-deep md:flex"
+                  className="relative mt-2 hidden size-[22px] shrink-0 items-center justify-center rounded-full border border-accent bg-bg-canvas md:flex"
                 >
                   <span className="size-1.5 rounded-full bg-accent" />
                 </span>
-                <span className="font-display text-[80px] font-extrabold leading-none tracking-[-0.04em] text-accent tabular-nums md:text-[112px]">
+                <span className="font-display text-[80px] font-medium leading-none tracking-[-0.025em] text-accent tabular-nums md:text-[112px]">
                   {step.n}
                 </span>
               </div>

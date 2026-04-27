@@ -29,7 +29,7 @@ export function InTheBox() {
     <section className="bg-background py-24 md:py-32">
       <div className="mx-auto w-full max-w-7xl px-5 md:px-10">
         <div className="mb-14 max-w-2xl md:mb-16">
-          <p className="text-eyebrow mb-5 text-accent-bright">
+          <p className="text-eyebrow mb-5 text-accent">
             What you get
           </p>
           <h2 className="font-display text-display-xl text-text-primary">
@@ -47,13 +47,13 @@ export function InTheBox() {
         >
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent opacity-70"
+            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent opacity-60"
           />
           <div className="grid md:grid-cols-2">
             {/* Left — pricing + CTA */}
             <div className="flex flex-col justify-between border-b border-border-hairline p-8 md:border-b-0 md:border-r md:p-12">
               <div>
-                <p className="text-eyebrow mb-5 text-accent-bright">
+                <p className="text-eyebrow mb-5 text-accent">
                   Pre-order
                 </p>
                 <h3 className="font-display text-display-lg text-text-primary">
@@ -61,7 +61,7 @@ export function InTheBox() {
                 </h3>
 
                 <div className="mt-8 flex items-baseline gap-3">
-                  <span className="font-display text-[64px] font-extrabold leading-none tracking-[-0.04em] text-text-primary tabular-nums md:text-[80px]">
+                  <span className="font-display text-[64px] font-medium leading-none tracking-[-0.025em] text-text-primary tabular-nums md:text-[80px]">
                     ${productConfig.base.fallbackPriceUSD}
                   </span>
                   <span className="text-sm text-text-tertiary">
@@ -78,13 +78,13 @@ export function InTheBox() {
                 <Button
                   render={<Link href={routes.product.href} />}
                   size="lg"
-                  className="h-12 w-full px-8 text-sm font-bold uppercase tracking-[0.08em] hover:shadow-[var(--shadow-glow)] sm:w-auto"
+                  className="h-12 w-full px-8 text-sm font-semibold uppercase tracking-[0.08em] hover:shadow-[var(--shadow-glow)] sm:w-auto"
                 >
                   Pre-order now
                 </Button>
                 <Link
                   href={routes.science.href}
-                  className="text-sm font-medium text-text-secondary transition-colors hover:text-accent-bright sm:px-2"
+                  className="text-sm font-medium text-text-secondary transition-colors hover:text-accent sm:px-2"
                 >
                   Read the science →
                 </Link>
@@ -104,7 +104,7 @@ export function InTheBox() {
                   >
                     <span
                       aria-hidden
-                      className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent-bright"
+                      className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent"
                     >
                       <Check className="size-3" strokeWidth={3} />
                     </span>

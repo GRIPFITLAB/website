@@ -27,7 +27,7 @@ export function Footer() {
     <footer className="relative mt-24 overflow-hidden border-t border-border-hairline bg-bg-deep">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
+        className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent"
       />
 
       <div className="mx-auto w-full max-w-7xl px-5 py-16 md:px-10 md:py-20">
@@ -40,7 +40,7 @@ export function Footer() {
             </p>
             <a
               href={`mailto:${externalLinks.supportEmail}`}
-              className="mt-6 inline-block text-sm text-text-tertiary transition-colors hover:text-accent-bright"
+              className="mt-6 inline-block text-sm text-text-tertiary transition-colors hover:text-accent"
             >
               {externalLinks.supportEmail}
             </a>
@@ -63,7 +63,7 @@ export function Footer() {
                       <li key={route.key}>
                         <Link
                           href={route.href}
-                          className="text-sm text-text-primary transition-colors hover:text-accent-bright"
+                          className="text-sm text-text-primary transition-colors hover:text-accent"
                         >
                           {route.label}
                         </Link>

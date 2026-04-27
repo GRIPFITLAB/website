@@ -38,7 +38,7 @@ const steps = [
 export default function SetupPage() {
   return (
     <article className="mx-auto w-full max-w-4xl px-5 py-20 md:px-10 md:py-28">
-      <p className="text-eyebrow mb-6 text-accent-bright">Setup guide</p>
+      <p className="text-eyebrow mb-6 text-accent">Setup guide</p>
       <h1 className="font-display text-display-xl text-text-primary">
         Up and running in five minutes.
       </h1>
@@ -47,7 +47,7 @@ export default function SetupPage() {
         measurement. Stuck anywhere?{" "}
         <a
           href={`mailto:${externalLinks.supportEmail}`}
-          className="text-accent-bright underline-offset-4 hover:underline"
+          className="text-accent underline-offset-4 hover:underline"
         >
           {externalLinks.supportEmail}
         </a>
@@ -60,7 +60,7 @@ export default function SetupPage() {
             key={step.n}
             className="grid gap-6 border-t border-border-hairline py-10 md:grid-cols-12"
           >
-            <span className="font-display text-[56px] font-extrabold leading-none tracking-[-0.04em] text-accent tabular-nums md:col-span-2 md:text-[72px]">
+            <span className="font-display text-[56px] font-medium leading-none tracking-[-0.025em] text-accent tabular-nums md:col-span-2 md:text-[72px]">
               {String(step.n).padStart(2, "0")}
             </span>
             <div className="md:col-span-10">

@@ -9,17 +9,23 @@ usage.
 If a token isn't here, don't invent one in a component. Add it here
 first.
 
+> **Apr 26, 2026 revamp.** GripFit is now a **light-only**, WHOOP-thin
+> editorial site with a **royal deep purple** (`#5B21B6`) accent used
+> sparingly. The previous dark-only / amber direction has been replaced.
+> See `Decisions.md` §3 for history.
+
 ---
 
 ## 1. Brand at a glance
 
 GripFit is a precision hand dynamometer for athletes. The visual brand
-takes its cues from performance-wearable sites (WHOOP-style) but uses
-**warm amber** — not red — as its signature, so it can't be confused
-with the medical / blood / heart-rate space WHOOP occupies.
+takes its cues from performance-wearable sites — light, airy, generous
+white space, thin display typography, single restrained accent — but
+uses **royal deep purple** as its signature.
 
-**Mood:** editorial, dark, cinematic. Bold display type. Generous
-negative space. No glassmorphism, no glow halos, no playful curves.
+**Mood:** clean, editorial, confident, modern. Thin display type. Heavy
+use of white space. Numbers are prominent. No glassmorphism, no glow
+halos, no playful curves, no gradient flood backgrounds.
 
 **Voice:** declarative, second-person, no jargon, no emoji, numbers are
 prominent, sentence case for everything except `eyebrows`/labels which
@@ -30,40 +36,45 @@ are UPPERCASE-TRACKED.
 ## 2. Color tokens
 
 All values are wired into Tailwind through `@theme inline` in
-`app/globals.css` and exposed as CSS custom properties under `.dark`
-(the only theme — the site is dark-only, `<html>` always carries the
-`dark` class).
+`app/globals.css` and exposed as CSS custom properties under `:root`
+(the only theme — the site is **light-only**; `<html>` has no `dark`
+class).
 
 | Token                | Hex / RGBA                       | Use |
 | -------------------- | -------------------------------- | --- |
-| `--bg-canvas`        | `#0A0A0B`                        | Page background |
-| `--bg-elevated`      | `#131316`                        | Cards, panels (tier 1) |
-| `--bg-raised`        | `#1C1C20`                        | Raised surfaces, popovers (tier 2) |
-| `--bg-deep`          | `#050506`                        | Hero / full-bleed dark wells |
-| `--accent`           | `#FF6A00`                        | Brand accent — buy CTAs, links, focus |
-| `--accent-bright`    | `#FF8533`                        | Hover / highlighted state |
-| `--accent-deep`      | `#CC5500`                        | Pressed / active state |
-| `--accent-soft`      | `rgba(255,106,0,0.10)`           | Background tints, chips |
-| `--accent-glow`      | `rgba(255,106,0,0.30)`           | Soft halo on primary CTA hover |
-| `--text-primary`     | `#FFFFFF`                        | Headlines, primary copy |
-| `--text-secondary`   | `rgba(255,255,255,0.62)`         | Body, supporting copy |
-| `--text-tertiary`    | `rgba(255,255,255,0.42)`         | Captions, meta, footer |
-| `--text-disabled`    | `rgba(255,255,255,0.20)`         | Disabled UI |
-| `--border-hairline`  | `rgba(255,255,255,0.06)`         | Subtle dividers |
-| `--border-default`   | `rgba(255,255,255,0.10)`         | Card borders |
-| `--border-strong`    | `rgba(255,255,255,0.18)`         | Active / focused borders |
-| `--state-success`    | `#4ADE80`                        | Positive scores |
-| `--state-warning`    | `#FBBF24`                        | Moderate / caution |
-| `--state-danger`     | `#F87171`                        | Critical scores, errors |
-| `--state-info`       | `#60A5FA`                        | Informational |
+| `--bg-canvas`        | `#FFFFFF`                        | Page background |
+| `--bg-elevated`      | `#FAFAFA`                        | Cards, panels (tier 1) |
+| `--bg-raised`        | `#F4F4F5`                        | Raised surfaces, popovers (tier 2) |
+| `--bg-deep`          | `#EFEFF1`                        | Alternate spotlight section bands |
+| `--accent`           | `#5B21B6`                        | Brand accent — buy CTAs, links, focus |
+| `--accent-bright`    | `#6D28D9`                        | Hover / highlighted state |
+| `--accent-deep`      | `#4C1D95`                        | Pressed / active state |
+| `--accent-soft`      | `rgba(91,33,182,0.08)`           | Background tints, chips, hover surfaces |
+| `--accent-glow`      | `rgba(91,33,182,0.18)`           | Soft halo on primary CTA hover |
+| `--text-primary`     | `#0A0A0B`                        | Headlines, primary copy |
+| `--text-secondary`   | `rgba(10,10,11,0.65)`            | Body, supporting copy |
+| `--text-tertiary`    | `rgba(10,10,11,0.45)`            | Captions, meta, footer |
+| `--text-disabled`    | `rgba(10,10,11,0.25)`            | Disabled UI |
+| `--border-hairline`  | `rgba(10,10,11,0.06)`            | Subtle dividers |
+| `--border-default`   | `rgba(10,10,11,0.10)`            | Card borders |
+| `--border-strong`    | `rgba(10,10,11,0.18)`            | Active / focused borders |
+| `--state-success`    | `#16A34A`                        | Positive scores |
+| `--state-warning`    | `#D97706`                        | Moderate / caution |
+| `--state-danger`     | `#DC2626`                        | Critical scores, errors |
+| `--state-info`       | `#2563EB`                        | Informational |
 
 **Rules:**
+- Purple is **subtle**: buttons, links, focus rings, the logo grip-bar,
+  selected/active dots. **Not** a flood colour. No purple gradient
+  washes on hero or section backgrounds beyond the `bg-purple-wash`
+  utility used at low opacity in narrow areas.
 - The buy CTA is the **only** element that uses solid `--accent` for
-  fill. Everything else uses amber as a hairline accent (border, link,
-  dot).
-- No element should ever sit on `var(--bg-canvas)` without a defined
-  surface above or below it. The page is composed of **stacked dark
-  bands**, not a single floor.
+  fill at full intensity. Everything else uses purple as a hairline
+  accent (border, link, dot).
+- Sections alternate `--bg-canvas` and `--bg-deep` to create visual
+  rhythm. No section relies on photography for contrast.
+- The home page may use the `bg-inverted` (near-black) utility **at
+  most once** — currently only on the final CTA strip.
 
 ---
 
@@ -71,30 +82,31 @@ All values are wired into Tailwind through `@theme inline` in
 
 Two self-hosted variable fonts. **No third font.**
 
-| Family   | Where it ships                                     | Use              |
-| -------- | -------------------------------------------------- | ---------------- |
-| `Geist`  | `/public/fonts/Geist-Variable.woff2` (100–900)     | All display copy |
-| `Inter`  | `/public/fonts/Inter-VariableFont_opsz_wght.ttf`   | All body copy    |
-| `Inter`  | `/public/fonts/Inter-Italic-VariableFont_opsz_wght.ttf` | Body italics |
+| Family       | Where it ships                                          | Use              |
+| ------------ | ------------------------------------------------------- | ---------------- |
+| `Inter Tight`| `/public/fonts/InterTight-Variable.woff2` (100–900)     | All display copy |
+| `Inter Tight`| `/public/fonts/InterTight-Variable-Italic.woff2`        | Display italics  |
+| `Inter`      | `/public/fonts/Inter-VariableFont_opsz_wght.ttf`        | All body copy    |
+| `Inter`      | `/public/fonts/Inter-Italic-VariableFont_opsz_wght.ttf` | Body italics     |
 
 `@font-face` rules live in `app/globals.css`. Tailwind exposes them as
-`font-display` and `font-sans`. Don't reference these family names
-anywhere else.
+`font-display` (Inter Tight) and `font-sans` (Inter). Don't reference
+these family names anywhere else.
 
 ### Display scale
 
-Heavy weights and tight tracking — that's the WHOOP-editorial feel.
-All values are wrapped in `clamp()` and resolve through Tailwind utility
-classes (`text-display-xl` etc.) defined in `globals.css`.
+**Thin and editorial** — the WHOOP-thin look. Display sizes default to
+weight `400` at the largest tiers and step up to `500` for headings.
+Tracking is gently negative.
 
 | Token            | clamp                                | Weight | Tracking | Use |
 | ---------------- | ------------------------------------ | ------ | -------- | --- |
-| `display-3xl`    | `clamp(80px, 12vw, 200px)`           | 800    | -0.045em | Hero only |
-| `display-2xl`    | `clamp(56px, 8vw, 128px)`            | 800    | -0.045em | Alternate hero / section opener |
-| `display-xl`     | `clamp(40px, 5vw, 80px)`             | 700    | -0.035em | Section H1 |
-| `display-lg`     | `clamp(32px, 4vw, 56px)`             | 700    | -0.03em  | Section H2 |
-| `display-md`     | `clamp(24px, 2.5vw, 36px)`           | 600    | -0.025em | Card headline |
-| `display-sm`     | `20px`                               | 600    | -0.02em  | Sub-heading |
+| `display-3xl`    | `clamp(72px, 11vw, 168px)`           | 400    | -0.025em | Hero only |
+| `display-2xl`    | `clamp(52px, 7.5vw, 108px)`          | 400    | -0.022em | Alternate hero / section opener |
+| `display-xl`     | `clamp(40px, 5vw, 72px)`             | 500    | -0.02em  | Section H1 |
+| `display-lg`     | `clamp(30px, 3.6vw, 48px)`           | 500    | -0.018em | Section H2 |
+| `display-md`     | `clamp(22px, 2.2vw, 32px)`           | 500    | -0.014em | Card headline |
+| `display-sm`     | `20px`                               | 500    | -0.01em  | Sub-heading |
 
 ### Body scale
 
@@ -104,7 +116,7 @@ classes (`text-display-xl` etc.) defined in `globals.css`.
 | `body`      | `15px / 1.65`      | Default paragraph |
 | `body-sm`   | `13px / 1.55`      | Card meta, footnotes |
 | `eyebrow`   | `11px / 1` upper / tracking `0.16em` weight `600` | Section labels, kicker text |
-| `mono-data` | `13px / 1.4` Geist mono fallback stack, `tabular-nums` | Stats, numeric displays |
+| `mono-data` | `13px / 1.4` mono fallback stack, `tabular-nums` | Stats, numeric displays |
 
 ---
 
@@ -139,14 +151,15 @@ Sharp, editorial. **Drop the shadcn-default rounded-xl-everywhere look.**
 | `--radius-xl` | `20px`    | Hero cards, big media frames |
 | `--radius-pill` | `9999px` | Pills, badges |
 
-Shadows favour **flat black**, not violet glow:
+Shadows are **soft greys** on a white canvas — never tinted, except the
+purple-glow CTA hover:
 
 | Token              | Value                                              | Use |
 | ------------------ | -------------------------------------------------- | --- |
-| `--shadow-sm`      | `0 1px 2px rgba(0,0,0,0.4)`                        | Hairline lift |
-| `--shadow-md`      | `0 4px 16px rgba(0,0,0,0.45)`                      | Card hover |
-| `--shadow-lg`      | `0 16px 48px rgba(0,0,0,0.55)`                     | Modal, hero card |
-| `--shadow-glow`    | `0 0 32px rgba(255,106,0,0.25)`                    | Primary CTA hover only |
+| `shadow-sm`        | `0 1px 2px rgba(10,10,11,0.04)`                    | Hairline lift |
+| `shadow-md`        | `0 4px 16px rgba(10,10,11,0.06)`                   | Card hover |
+| `shadow-lg`        | `0 16px 48px rgba(10,10,11,0.10)`                  | Modal, hero card |
+| `--shadow-glow`    | `0 0 32px rgba(91,33,182,0.18)`                    | Primary CTA hover only |
 
 ---
 
@@ -154,34 +167,44 @@ Shadows favour **flat black**, not violet glow:
 
 ### Buttons (`components/ui/button.tsx`)
 
-- `default` — `bg-accent text-black`, the only solid-amber surface anywhere on the site. Used **once per section** at most.
-- `outline` — transparent fill, `border-strong`, white text. Used for secondary CTAs.
+- `default` — `bg-accent text-white`, the only solid-purple surface anywhere on the site. Used **once per section** at most.
+- `outline` — transparent fill, `border-strong`, near-black text. Used for secondary CTAs.
 - `ghost` — pure text-link with hover underline.
 - All buttons get `--shadow-glow` on hover; press scales 0.98.
 
 ### Cards
 
 ```
-rounded-lg border border-default bg-elevated p-6 md:p-8
+rounded-lg border border-default bg-card p-6 md:p-8
 ```
 
 No backdrop-blur. No glassmorphism. Cards are solid, slightly raised
-panels. Hover lifts to `bg-raised`.
+panels on the white canvas. Hover lifts to `shadow-md` + faint
+`border-strong`.
 
 ### Section headers
 
 ```
-<eyebrow>   ← uppercase, tracked, amber-tinted
-<display-lg>← bold, white, tight tracking
+<eyebrow>   ← uppercase, tracked, text-accent (purple) for emphasis
+<display-lg>← thin, near-black, slightly tight tracking
 <body-lg>   ← optional, secondary text
 ```
+
+### App-screenshot mockups
+
+Used in `components/marketing/AppShowcase.tsx`. Phone frames are pure
+CSS — no real iPhone bezels, no Apple trade dress. Each phone is a
+rounded rect with a hair border and a deep gradient "screen" inside.
+Three phones per home-page block; on `/product` the spec list lives
+elsewhere.
 
 ---
 
 ## 7. Iconography
 
 Lucide icons (already in `package.json`). Stroke 1.5, size 16/20/24.
-**No filled icons.** Tint defaults to `currentColor`.
+**No filled icons.** Tint defaults to `currentColor`. Active / branded
+icons use `text-accent`.
 
 ---
 
@@ -198,23 +221,25 @@ Lucide icons (already in `package.json`). Stroke 1.5, size 16/20/24.
 
 ## 9. Imagery
 
-**Zero photography.** Per the answers locked in for this revamp:
+**Zero photography in v1.** Per the answers locked in for this revamp:
 
-- Hero and section "imagery slots" are abstract dark gradient meshes
-  (radial gradients on `--bg-deep` with amber bias) plus optional noise
-  texture.
+- Section "imagery slots" are abstract gradient panels (subtle radial
+  washes on `--bg-deep`) plus optional noise texture at very low
+  opacity. No photography.
+- The **app-showcase** section uses pure-CSS phone mockups with
+  abstract gradient screens labelled by feature. They are placeholders
+  — they get replaced when the design team supplies real screenshots.
 - Product placeholders are visible, labelled "Product photography TBD"
   blocks until real photography lands.
-- The iOS app screenshots in `iOS_App_Images/` are reference for app
-  screens, not for web hero imagery.
 
 ---
 
 ## 10. What we explicitly do NOT do
 
-- No light mode. `<html>` always has `.dark`.
+- **No dark mode.** `<html>` has no `dark` class. The site is light-only.
 - No social-proof / athlete grid section on the home page (Decisions §6).
 - No glassmorphism / `backdrop-blur` on cards.
 - No glow halos on body text.
 - No second display font. No third body font.
 - No invented colours in components — extend this file first.
+- No purple flood backgrounds. Purple is hairline-accent only.

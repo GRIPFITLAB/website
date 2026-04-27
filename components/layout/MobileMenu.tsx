@@ -42,7 +42,7 @@ export function MobileMenu() {
       </SheetTrigger>
       <SheetContent
         side="right"
-        className="w-[88vw] max-w-sm border-l border-border-default bg-bg-deep p-0"
+        className="w-[88vw] max-w-sm border-l border-border-default bg-background p-0"
       >
         <SheetHeader className="border-b border-border-hairline px-6 py-5">
           <SheetTitle className="m-0 p-0">
@@ -61,10 +61,10 @@ export function MobileMenu() {
                 href={route.href}
                 onClick={close}
                 className={cn(
-                  "border-b border-border-hairline py-5 font-display text-2xl font-bold uppercase tracking-[-0.01em] transition-colors",
+                  "border-b border-border-hairline py-5 font-display text-2xl font-medium tracking-[-0.01em] transition-colors",
                   active
-                    ? "text-accent-bright"
-                    : "text-text-primary hover:text-accent-bright",
+                    ? "text-accent"
+                    : "text-text-primary hover:text-accent",
                 )}
               >
                 {route.label}
@@ -74,7 +74,7 @@ export function MobileMenu() {
           <Link
             href={routes.contact.href}
             onClick={close}
-            className="border-b border-border-hairline py-5 font-display text-2xl font-bold uppercase tracking-[-0.01em] text-text-primary hover:text-accent-bright"
+            className="border-b border-border-hairline py-5 font-display text-2xl font-medium tracking-[-0.01em] text-text-primary hover:text-accent"
           >
             {routes.contact.label}
           </Link>
@@ -83,7 +83,7 @@ export function MobileMenu() {
         <div className="px-6 pt-10">
           <Button
             render={<Link href={routes.product.href} onClick={close} />}
-            className="h-12 w-full text-sm font-bold uppercase tracking-[0.08em]"
+            className="h-12 w-full text-sm font-semibold uppercase tracking-[0.08em]"
             size="lg"
           >
             Pre-order GripFit

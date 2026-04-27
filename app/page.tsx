@@ -1,3 +1,4 @@
+import { AppShowcase } from "@/components/marketing/AppShowcase";
 import { CTA } from "@/components/marketing/CTA";
 import { Features } from "@/components/marketing/Features";
 import { Hero } from "@/components/marketing/Hero";
@@ -16,6 +17,7 @@ import { Science } from "@/components/marketing/Science";
  *   Features    → "complete picture" feature grid (real-time / bilateral / readiness / trends / hardware)
  *   HowItWorks  → 3-step rail (Squeeze / Curve / Readiness)
  *   InTheBox    → single bold pricing card (replaces 3-tier "Choose a membership")
+ *   AppShowcase → 3 phone mockups (App Store style) — placeholder until real screenshots ship
  *   Science     → research citations (replaces "Backed by PhDs / worn by MVPs"; Decisions.md §6 excludes social proof)
  *   CTA         → final pre-order push
  */
@@ -26,6 +28,7 @@ export default function HomePage() {
       <Features />
       <HowItWorks />
       <InTheBox />
+      <AppShowcase />
       <Science />
       <CTA />
     </>

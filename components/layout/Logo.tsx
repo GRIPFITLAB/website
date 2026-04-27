@@ -15,13 +15,10 @@ interface LogoProps {
 /**
  * GripFit mark + wordmark.
  *
- * Pure inline SVG (no external image asset) — same pattern the old logo
- * used, but rebuilt around the new amber accent and the WHOOP-style
- * editorial wordmark: heavy uppercase Geist, single letter-spaced word,
- * no decorative tagline.
- *
- * The mark is a stylised grip-bar: three horizontal force lines
- * compressing toward the right, hinting at squeeze + release.
+ * Pure inline SVG (no external image asset). Mark is a stylised
+ * grip-bar: three horizontal force lines with the middle bar in the
+ * royal-purple accent — hinting at squeeze + release. Wordmark is
+ * Inter Tight at a medium weight to match the thin editorial display.
  */
 export function Logo({
   className,
@@ -35,7 +32,7 @@ export function Logo({
     <span
       className={cn(
         "inline-flex items-center gap-2.5 text-foreground",
-        asLink && "transition-colors hover:text-accent-bright",
+        asLink && "transition-colors hover:text-accent",
         className,
       )}
     >
@@ -54,7 +51,7 @@ export function Logo({
           height="2.4"
           rx="1.2"
           fill="currentColor"
-          opacity="0.95"
+          opacity="0.85"
         />
         <rect
           x="2"
@@ -71,12 +68,12 @@ export function Logo({
           height="2.4"
           rx="1.2"
           fill="currentColor"
-          opacity="0.55"
+          opacity="0.45"
         />
       </svg>
       {!iconOnly && (
         <span
-          className="font-display font-extrabold uppercase leading-none tracking-[0.04em]"
+          className="font-display font-medium uppercase leading-none tracking-[0.06em]"
           style={{ fontSize: size }}
         >
           GripFit

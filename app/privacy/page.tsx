@@ -12,7 +12,7 @@ const updated = "April 26, 2026";
 export default function PrivacyPage() {
   return (
     <article className="mx-auto w-full max-w-3xl px-5 py-20 md:px-10 md:py-28">
-      <p className="text-eyebrow mb-6 text-accent-bright">Privacy</p>
+      <p className="text-eyebrow mb-6 text-accent">Privacy</p>
       <h1 className="font-display text-display-xl text-text-primary">
         Privacy policy
       </h1>
@@ -62,7 +62,7 @@ export default function PrivacyPage() {
             personal data by emailing{" "}
             <a
               href={`mailto:${externalLinks.supportEmail}`}
-              className="text-accent-bright underline-offset-4 hover:underline"
+              className="text-accent underline-offset-4 hover:underline"
             >
               {externalLinks.supportEmail}
             </a>
@@ -75,7 +75,7 @@ export default function PrivacyPage() {
             Questions about this policy? Email{" "}
             <a
               href={`mailto:${externalLinks.supportEmail}`}
-              className="text-accent-bright underline-offset-4 hover:underline"
+              className="text-accent underline-offset-4 hover:underline"
             >
               {externalLinks.supportEmail}
             </a>

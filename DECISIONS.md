@@ -32,7 +32,7 @@ drives them to purchase the GripFit device, and links them to the iOS app.
 | Language | TypeScript 5 (strict mode + `noUncheckedIndexedAccess`) | Type safety on Shopify API responses |
 | Styling | Tailwind CSS **v4** (via `@tailwindcss/postcss`) | Tokens defined in CSS via `@theme`; raw values live in `app/globals.css`, prose in `design.md` |
 | UI primitives | shadcn/ui — `style: base-nova`, base library: **`@base-ui/react`** (the new shadcn default, replacing Radix in `new-york`). Components are copy-paste in `components/ui/`. | Custom branding without theme lock-in. If we later add AI Elements (which require Radix APIs), re-init with `npx shadcn@latest init -d --base radix -f`. |
-| Fonts | Self-hosted `@font-face` in `app/globals.css` pointing at `/public/fonts/` (Geist Variable for display, Inter Variable + Inter Italic Variable for body). **Not** `next/font/local`. | `@theme inline` resolves at parse time, so it cannot read the runtime CSS variable that `next/font/local` injects. Using literal `"Geist"` / `"Inter"` family names plus self-hosted `@font-face` makes Tailwind utilities (`font-sans`, `font-display`) work and avoids the documented shadcn × Tailwind v4 font gotcha. |
+| Fonts | Self-hosted `@font-face` in `app/globals.css` pointing at `/public/fonts/` (Inter Tight Variable for display, Inter Variable + Inter Italic Variable for body). **Not** `next/font/local`. | `@theme inline` resolves at parse time, so it cannot read the runtime CSS variable that `next/font/local` injects. Using literal `"Inter Tight"` / `"Inter"` family names plus self-hosted `@font-face` makes Tailwind utilities (`font-sans`, `font-display`) work and avoids the documented shadcn × Tailwind v4 font gotcha. Inter Tight ships via the `@fontsource-variable/inter-tight` package; the Latin variable woff2 is copied into `/public/fonts/`. |
 | Commerce | Shopify Basic ($39/mo) | Commerce platform, not just payments |
 | Commerce API | Shopify Storefront API (GraphQL) | Headless-supported, public-token-safe |
 | GraphQL client | Native `fetch` + typed wrappers in `lib/shopify/` | Avoid Apollo overhead |
@@ -58,27 +58,38 @@ Authoritative files:
 
 - `design.md` — visual philosophy, token table, type scale, motion rules
 - `app/globals.css` — the implementation: `@font-face`, `@theme inline`,
-  and the `.dark` token block
-- `public/fonts/` — `Geist-Variable.woff2` (display), Inter Variable +
-  Inter Italic Variable (body)
+  and the `:root` token block
+- `public/fonts/` — `InterTight-Variable.woff2` + `InterTight-Variable-Italic.woff2`
+  (display), `Inter-VariableFont_opsz_wght.ttf` + `Inter-Italic-VariableFont_opsz_wght.ttf`
+  (body)
 
 Implementation rules:
 
-- **WHOOP-style editorial direction** with a warm amber accent
-  (`#FF6A00`) as the brand colour. Replaces the original placeholder
-  "Ethereal Tech" violet identity, which was deleted along with the
-  `DESIGN_SYSTEM/` folder during the Apr 26, 2026 UI revamp.
-- **Dark-only.** `<html>` always carries the `dark` class; there is no
-  light-mode color set.
-- **Zero photography in v1.** All "imagery slots" are abstract dark
-  gradient meshes + noise overlay + SVG glyphs (`design.md` §9). Product
-  photography lands later and replaces visible "Product photography
-  TBD" placeholder blocks.
+- **Light-only WHOOP-thin direction** with **royal deep purple
+  (`#5B21B6`)** as the accent, used *subtly*: buttons, links, focus
+  rings, the logo bar, key dot accents. **Not** a flood colour. (Locked
+  in Apr 26, 2026; supersedes the dark-only / amber direction below.)
+- **Light-only.** `<html>` carries no `dark` class; tokens live under
+  `:root`. There is no dark-mode toggle.
+- **Display font: Inter Tight** at light weights (400 for the largest
+  display sizes, 500 for headings). **Body font: Inter.** No third
+  font; Geist was deleted in the Apr 26, 2026 revamp.
+- **Zero photography in v1.** Section "imagery slots" are abstract
+  light-canvas gradient panels + SVG glyphs (`design.md` §9). The home
+  page also includes an `AppShowcase` section with three pure-CSS phone
+  mockups whose abstract gradient screens are placeholders for real
+  app screenshots.
 - **No social-proof / athlete grid on the home page** (§6). The
   analogous visual slot is the `Science` research-citation section.
 - Final logo and tagline are **TBD** — see §16. The current wordmark is
   inline SVG inside `components/layout/Logo.tsx`; replace when the
   final mark lands.
+
+> **Revision history.** The previous identity was a dark-only,
+> amber-accent (`#FF6A00`) direction (locked Apr 26, 2026 morning,
+> reversed Apr 26, 2026 afternoon). The original placeholder identity
+> was a violet "Ethereal Tech" set deleted along with the
+> `DESIGN_SYSTEM/` folder during the same-day revamp.
 
 ---
 
@@ -270,13 +281,13 @@ lib/
   utils.ts                    # cn() — shadcn
 
 public/
-  fonts/                      # self-hosted Geist Variable + Inter Variable + Inter Italic Variable
+  fonts/                      # self-hosted Inter Tight Variable + Inter Variable + Inter Italic Variable
   …
 
 design.md                     # visual identity (tokens, type, motion) — see §3
 iOS_App_Images/               # untouched — reference imagery only
 Decisions.md                  # this doc
-AGENTS.md                     # agent rules (Decisions first, dark-only, …)
+AGENTS.md                     # agent rules (Decisions first, light-only, …)
 README.md
 ```
 
@@ -299,8 +310,8 @@ Stop for review after each step. Do not proceed to the next step without explici
 - [x] **1. Project scaffold** — Next.js 16.2.4 + React 19.2.4 + TS strict (`noUncheckedIndexedAccess` on) + Tailwind v4 + App Router. `.nvmrc` pinned to 22. ESLint flat config, `npm run typecheck`.
 - [x] **2. shadcn/ui init + design-token wiring** —
   - `npx shadcn@latest init -d` (style `base-nova`, base `@base-ui/react`, baseColor `neutral`).
-  - `app/globals.css` rewritten: literal-name fonts in `@theme inline`, `@font-face` for Geist Variable (display) + Inter Variable / Inter Italic Variable (body) from `/public/fonts/`, all shadcn semantic tokens mapped to GripFit values under `.dark { … }`, radii overridden to absolute pixel values from `design.md`.
-  - `app/layout.tsx` rewritten: dark mode forced on `<html>`, Geist Variable preloaded as the LCP-critical display font, GripFit `Metadata` + `Viewport`.
+  - `app/globals.css` rewritten: literal-name fonts in `@theme inline`, `@font-face` for Inter Tight Variable (display) + Inter Variable / Inter Italic Variable (body) from `/public/fonts/`, all shadcn semantic tokens mapped to GripFit values under `:root { … }` (light-only), radii overridden to absolute pixel values from `design.md`. (The Apr 26, 2026 afternoon revamp flipped the theme from dark-only to light-only and replaced Geist with Inter Tight as the display font.)
+  - `app/layout.tsx` rewritten: light theme is the default (no `dark` class on `<html>`), Inter Tight Variable preloaded as the LCP-critical display font, GripFit `Metadata` + `Viewport`.
   - `lib/env.ts` (Zod-validated `NEXT_PUBLIC_SHOPIFY_*`, `SHOPIFY_*`, `RESEND_*`, `CONTACT_EMAIL_*`).
   - `lib/config.ts` (`siteConfig`, `productConfig`, `externalLinks`). The earlier `brandConfig` was removed during the Apr 26 UI revamp — the wordmark is rendered inline in `components/layout/Logo.tsx`.
   - `.env.example` template.
@@ -373,9 +384,10 @@ uses this string — bumping it requires a touch in
 
 **Q6 — Logo.** The placeholder `DESIGN_SYSTEM/assets/logo.svg` was
 deleted with the rest of the placeholder identity. The current wordmark
-is inline SVG inside `components/layout/Logo.tsx` — bold uppercase
-"GRIPFIT" with a three-bar grip glyph in amber. Replace this single file
-when the final mark lands; no other component references the logo asset
+is inline SVG inside `components/layout/Logo.tsx` — uppercase "GRIPFIT"
+in Inter Tight medium with a three-bar grip glyph whose middle bar is
+the royal-purple accent. Replace this single file when the final mark
+lands; no other component references the logo asset
 directly.
 
 **Q7 — Domain + Shopify store URL (§4).** Both still TBD. Not blocking
@@ -384,4 +396,13 @@ scaffold, but blocking deployment and Storefront token setup.
 **Q8 — App Store link target.** Several sections will want a "Get the app"
 or "Pair your device" CTA pointing to the iOS app. Provide the App Store
 URL (or confirm "TBD — link disabled until App Store approval").
+
+**Q9 — App screenshots for `AppShowcase`.** The home page now includes a
+3-phone "App Store style" `components/marketing/AppShowcase.tsx` section
+(Apr 26, 2026 PM revamp). The phone screens are abstract gradient
+mockups labelled *Strength / Readiness / History*. Drop the real iOS
+screenshots into `public/app/` and swap the abstract `<PhoneScreen>`
+graphics for `next/image` references when the design team supplies
+them. Until then the phones are intentionally generic to avoid mocking
+real Apple trade dress.
 

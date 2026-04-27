@@ -12,23 +12,34 @@ Project-specific rules for AI assistants. Read these before the Next.js notes be
    extend `design.md` first, then mirror into `globals.css`. The old
    `DESIGN_SYSTEM/` folder was the placeholder "Ethereal Tech" identity
    and has been deleted.
-3. **The site is dark-only.** `<html>` always carries the `dark` class. Do not
-   add a light-mode color set.
+3. **The site is light-only.** `<html>` carries no `dark` class — tokens
+   live under `:root`. Royal-purple (`#5B21B6`) is the accent, used
+   *subtly* (buttons, links, focus rings, the logo bar). Do not add a
+   dark-mode toggle and do not flood sections with purple. The previous
+   dark-only / amber direction was reversed in the Apr 26, 2026 revamp;
+   see Decisions.md §3.
 4. **Single product, single CTA model.** v1 sells the GripFit base unit as a
    Shopify pre-order SKU. No waitlist, no customer accounts, no promo codes
    in custom UI (Decisions.md §5, §7, §8, §16 Q3).
 5. **No social-proof / athlete grid on the home page** (Decisions.md §6).
    The analogous visual slot is the `Science` research-citation section.
-6. **Zero photography in v1.** All "imagery slots" are abstract dark
-   gradients + noise + SVG glyphs (design.md §9). Product-photo placeholders
-   are explicitly labelled "TBD".
-7. **Server Components by default.** Add `"use client"` only when the file
+6. **Zero photography in v1.** Section "imagery slots" are abstract
+   gradient panels + SVG glyphs on the light canvas (design.md §9). The
+   `AppShowcase` section uses pure-CSS phone mockups with abstract
+   gradient screens — these are placeholders that get swapped for real
+   screenshots when the design team supplies them. Product-photo
+   placeholders are explicitly labelled "TBD".
+7. **Display font is Inter Tight, body is Inter.** Both are self-hosted
+   variable fonts under `/public/fonts`. Display weights stay light (400
+   for the largest sizes, 500 for headings) — this is the WHOOP-thin
+   look. No third font, no Geist (deleted in the Apr 26, 2026 revamp).
+8. **Server Components by default.** Add `"use client"` only when the file
    actually needs interactivity, browser APIs, or hooks. State management is
    React Context + cookie for the cart only — no Redux / Zustand / SWR.
-8. **No hardcoded prices, product handles, API endpoints, or env values
+9. **No hardcoded prices, product handles, API endpoints, or env values
    in components.** They live in `lib/config.ts` or `lib/env.ts`.
-9. **Skills to consult:** `nextjs`, `shadcn`, `vercel-functions`, `auth` (if
-   we ever add accounts — currently disallowed in v1).
+10. **Skills to consult:** `nextjs`, `shadcn`, `vercel-functions`, `auth` (if
+    we ever add accounts — currently disallowed in v1).
 <!-- END:gripfit-project-rules -->
 
 <!-- BEGIN:nextjs-agent-rules -->

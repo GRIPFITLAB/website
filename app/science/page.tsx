@@ -28,7 +28,7 @@ const items = [
 export default function SciencePage() {
   return (
     <article className="mx-auto w-full max-w-4xl px-5 py-20 md:px-10 md:py-28">
-      <p className="text-eyebrow mb-6 text-accent-bright">The science</p>
+      <p className="text-eyebrow mb-6 text-accent">The science</p>
       <h1 className="font-display text-display-xl mb-16 text-text-primary">
         Why grip predicts readiness.
       </h1>

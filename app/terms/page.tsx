@@ -12,7 +12,7 @@ const updated = "April 26, 2026";
 export default function TermsPage() {
   return (
     <article className="mx-auto w-full max-w-3xl px-5 py-20 md:px-10 md:py-28">
-      <p className="text-eyebrow mb-6 text-accent-bright">Terms</p>
+      <p className="text-eyebrow mb-6 text-accent">Terms</p>
       <h1 className="font-display text-display-xl text-text-primary">
         Terms of service
       </h1>
@@ -39,7 +39,7 @@ export default function TermsPage() {
             refund by emailing{" "}
             <a
               href={`mailto:${externalLinks.supportEmail}`}
-              className="text-accent-bright underline-offset-4 hover:underline"
+              className="text-accent underline-offset-4 hover:underline"
             >
               {externalLinks.supportEmail}
             </a>
@@ -79,7 +79,7 @@ export default function TermsPage() {
             Questions? Email{" "}
             <a
               href={`mailto:${externalLinks.supportEmail}`}
-              className="text-accent-bright underline-offset-4 hover:underline"
+              className="text-accent underline-offset-4 hover:underline"
             >
               {externalLinks.supportEmail}
             </a>

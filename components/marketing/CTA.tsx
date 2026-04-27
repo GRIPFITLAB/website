@@ -21,20 +21,16 @@ export function CTA() {
         className="pointer-events-none absolute inset-x-0 -top-1/3 mx-auto h-[600px] w-[1000px] max-w-[140vw] rounded-[50%]"
         style={{
           background:
-            "radial-gradient(ellipse, rgba(255,106,0,0.22), transparent 65%)",
+            "radial-gradient(ellipse, rgba(91,33,182,0.10), transparent 65%)",
         }}
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-noise opacity-40 mix-blend-overlay"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
       />
 
       <div className="relative mx-auto flex w-full max-w-7xl flex-col items-start px-5 md:px-10">
-        <p className="text-eyebrow mb-7 text-accent-bright">
+        <p className="text-eyebrow mb-7 text-accent">
           Pre-order ${productConfig.base.fallbackPriceUSD}
         </p>
 
@@ -51,7 +47,7 @@ export function CTA() {
           <Button
             render={<Link href={routes.product.href} />}
             size="lg"
-            className="h-12 px-9 text-sm font-bold uppercase tracking-[0.08em] hover:shadow-[var(--shadow-glow-lg)]"
+            className="h-12 px-9 text-sm font-semibold uppercase tracking-[0.08em] hover:shadow-[var(--shadow-glow-lg)]"
           >
             Pre-order GripFit
           </Button>
@@ -59,7 +55,7 @@ export function CTA() {
             render={<Link href={routes.contact.href} />}
             variant="outline"
             size="lg"
-            className="h-12 border-border-strong bg-transparent px-9 text-sm font-bold uppercase tracking-[0.08em] text-text-primary hover:border-accent hover:bg-transparent hover:text-accent-bright"
+            className="h-12 border-border-strong bg-transparent px-9 text-sm font-semibold uppercase tracking-[0.08em] text-text-primary hover:border-accent hover:bg-accent-soft hover:text-accent"
           >
             Talk to us
           </Button>

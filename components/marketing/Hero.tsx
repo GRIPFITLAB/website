@@ -5,12 +5,11 @@ import { productConfig } from "@/lib/config";
 import { routes } from "@/lib/routes";
 
 /**
- * Hero — cinematic editorial section in the WHOOP "wear daily" mould.
+ * Hero — light editorial section in the WHOOP-thin mould.
  *
  * Composition:
- *   - Full-bleed deep-canvas background with stacked radial bloom +
- *     noise overlay (no photography, per design.md §9).
- *   - Single-eyebrow / massive display H1 / short body / two CTAs.
+ *   - White canvas with a subtle purple radial wash bottom-center.
+ *   - Single-eyebrow / massive thin display H1 / short body / two CTAs.
  *   - Stat strip across the bottom acts as the "compass" that orients
  *     the visitor on the device's spec story before they scroll.
  *   - Decorative force-curve SVG in the top-right corner echoes the
@@ -28,34 +27,30 @@ const stats: ReadonlyArray<{ value: string; label: string }> = [
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-bg-deep">
-      {/* Background layers — see design.md §9. */}
+    <section className="relative overflow-hidden bg-background">
+      {/* Background layers — subtle purple wash + faint noise. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-amber-bloom opacity-90"
+        className="pointer-events-none absolute inset-0 bg-purple-wash opacity-90"
       />
       <div
         aria-hidden
         className="pointer-events-none absolute -bottom-[40%] left-1/2 h-[700px] w-[1200px] max-w-[180vw] -translate-x-1/2 rounded-[50%]"
         style={{
           background:
-            "radial-gradient(ellipse, rgba(255, 106, 0, 0.18) 0%, transparent 60%)",
+            "radial-gradient(ellipse, rgba(91, 33, 182, 0.10) 0%, transparent 60%)",
         }}
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-noise opacity-50 mix-blend-overlay"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent"
       />
 
       {/* Decorative force-curve glyph */}
-      <ForceCurve className="pointer-events-none absolute right-[-4%] top-[18%] hidden w-[44%] max-w-[640px] text-accent/35 lg:block" />
+      <ForceCurve className="pointer-events-none absolute right-[-4%] top-[18%] hidden w-[44%] max-w-[640px] text-accent/25 lg:block" />
 
       <div className="relative mx-auto flex w-full max-w-7xl flex-col items-start justify-center px-5 pb-24 pt-28 md:px-10 md:pb-32 md:pt-40 lg:min-h-[88vh]">
-        <span className="text-eyebrow mb-8 inline-flex items-center gap-3 text-accent-bright">
+        <span className="text-eyebrow mb-8 inline-flex items-center gap-3 text-accent">
           <span
             aria-hidden
             className="inline-block size-1.5 rounded-full bg-accent"
@@ -77,7 +72,7 @@ export function Hero() {
           <Button
             render={<Link href={routes.product.href} />}
             size="lg"
-            className="h-12 px-8 text-sm font-bold uppercase tracking-[0.08em] hover:shadow-[var(--shadow-glow)]"
+            className="h-12 px-8 text-sm font-semibold uppercase tracking-[0.08em] hover:shadow-[var(--shadow-glow)]"
           >
             Pre-order now
           </Button>
@@ -85,7 +80,7 @@ export function Hero() {
             render={<Link href={routes.science.href} />}
             variant="outline"
             size="lg"
-            className="h-12 border-border-strong bg-transparent px-8 text-sm font-bold uppercase tracking-[0.08em] text-text-primary hover:border-accent hover:bg-transparent hover:text-accent-bright"
+            className="h-12 border-border-strong bg-transparent px-8 text-sm font-semibold uppercase tracking-[0.08em] text-text-primary hover:border-accent hover:bg-accent-soft hover:text-accent"
           >
             The science
           </Button>
@@ -94,7 +89,7 @@ export function Hero() {
         <ul className="mt-20 grid w-full max-w-3xl grid-cols-2 gap-y-8 sm:grid-cols-4">
           {stats.map((stat) => (
             <li key={stat.label}>
-              <div className="font-display text-[44px] font-extrabold leading-none tracking-[-0.04em] text-text-primary tabular-nums sm:text-[56px]">
+              <div className="font-display text-[44px] font-medium leading-none tracking-[-0.025em] text-text-primary tabular-nums sm:text-[56px]">
                 {stat.value}
               </div>
               <div className="text-eyebrow mt-3 text-text-tertiary">
@@ -122,7 +117,6 @@ function ForceCurve({ className }: { className?: string }) {
           <stop offset="100%" stopColor="currentColor" stopOpacity="1" />
         </linearGradient>
       </defs>
-      {/* Vertical grid lines */}
       {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
         <line
           key={i}
@@ -134,7 +128,6 @@ function ForceCurve({ className }: { className?: string }) {
           strokeOpacity="0.1"
         />
       ))}
-      {/* Horizontal grid lines */}
       {[0, 1, 2, 3, 4, 5].map((i) => (
         <line
           key={i}
@@ -146,7 +139,6 @@ function ForceCurve({ className }: { className?: string }) {
           strokeOpacity="0.08"
         />
       ))}
-      {/* Force curve — sharp rise, plateau, fatigue tail */}
       <path
         d="M 0 380 L 70 380 L 110 320 L 160 110 L 220 50 L 290 60 L 360 90 L 430 140 L 500 220 L 600 290"
         stroke="url(#hero-curve)"

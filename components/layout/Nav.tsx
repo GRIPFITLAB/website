@@ -9,9 +9,9 @@ import { primaryNavRoutes, routes } from "@/lib/routes";
  * Sticky top navigation. Server component — interactivity (mobile menu,
  * cart drawer when it lands in Step 7) is delegated to small client islands.
  *
- * Style follows the WHOOP editorial nav: pure dark canvas, hairline bottom
- * border, single bright amber CTA on the right, generous horizontal
- * padding so the wordmark + nav links breathe at any width.
+ * Light editorial nav: white canvas, hairline bottom border, single
+ * royal-purple Pre-order CTA on the right, generous horizontal padding
+ * so the wordmark + nav links breathe at any width.
  */
 export function Nav() {
   return (
@@ -40,7 +40,7 @@ export function Nav() {
           <Button
             render={<Link href={routes.product.href} />}
             size="sm"
-            className="hidden h-9 px-5 text-[13px] font-bold uppercase tracking-[0.08em] hover:shadow-[0_0_24px_var(--accent-glow)] md:inline-flex"
+            className="hidden h-9 px-5 text-[13px] font-semibold uppercase tracking-[0.08em] hover:shadow-[0_0_24px_var(--accent-glow)] md:inline-flex"
           >
             Pre-order
           </Button>

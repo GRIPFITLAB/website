@@ -7,9 +7,9 @@ import { routes } from "@/lib/routes";
  *
  * One large featured card on top spanning full width (the "headline"
  * feature), then a 2x2 grid of smaller feature cards below. Each card
- * is a solid dark surface with an abstract amber-tinted graphic, a
- * small eyebrow / large display H3 / short body. Imagery is abstract
- * SVG only — no photography, per design.md §9.
+ * is a light off-white surface with an abstract purple-tinted graphic
+ * (text-accent), a small eyebrow / large display H3 / short body.
+ * Imagery is abstract SVG only — no photography, per design.md §9.
  */
 type FeatureGraphic = "force-curve" | "asymmetry" | "ring" | "spark" | "device";
 
@@ -59,7 +59,7 @@ export function Features() {
     <section className="bg-background py-24 md:py-32">
       <div className="mx-auto w-full max-w-7xl px-5 md:px-10">
         <div className="mb-16 max-w-3xl md:mb-20">
-          <p className="text-eyebrow mb-5 text-accent-bright">
+          <p className="text-eyebrow mb-5 text-accent">
             What you measure
           </p>
           <h2 className="font-display text-display-xl text-text-primary">
@@ -81,7 +81,7 @@ export function Features() {
           Want the research?{" "}
           <Link
             href={routes.science.href}
-            className="text-accent-bright underline-offset-4 hover:underline"
+            className="text-accent underline-offset-4 hover:underline"
           >
             Read the science behind grip-as-readiness →
           </Link>
@@ -104,7 +104,7 @@ function FeatureCard({
   return (
     <article
       className={[
-        "group relative overflow-hidden rounded-xl border border-border-default bg-bg-elevated transition-colors hover:bg-bg-raised",
+        "group relative overflow-hidden rounded-xl border border-border-default bg-bg-elevated transition-shadow hover:shadow-[0_4px_16px_rgba(10,10,11,0.06)]",
         isHeadline
           ? "grid md:grid-cols-2 md:min-h-[420px]"
           : "flex flex-col min-h-[360px]",
@@ -120,7 +120,7 @@ function FeatureCard({
             : "flex flex-1 flex-col justify-end p-7 md:p-9"
         }
       >
-        <p className="text-eyebrow mb-4 text-accent-bright">{feature.eyebrow}</p>
+        <p className="text-eyebrow mb-4 text-accent">{feature.eyebrow}</p>
         <h3
           className={
             isHeadline
@@ -141,7 +141,7 @@ function FeatureCard({
         </p>
       </div>
 
-      {/* Graphic well */}
+      {/* Graphic well — light grey panel; SVGs use text-accent (purple). */}
       <div
         className={
           isHeadline
@@ -151,7 +151,7 @@ function FeatureCard({
       >
         <div
           aria-hidden
-          className="absolute inset-0 bg-amber-bloom opacity-40"
+          className="absolute inset-0 bg-purple-wash opacity-50"
         />
         <FeatureGraphicSvg name={feature.graphic} />
       </div>

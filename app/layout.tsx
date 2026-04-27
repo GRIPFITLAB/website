@@ -22,8 +22,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0b",
-  colorScheme: "dark",
+  themeColor: "#ffffff",
+  colorScheme: "light",
 };
 
 export default function RootLayout({
@@ -32,13 +32,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark h-full" suppressHydrationWarning>
+    <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
-        {/* Preload the variable Geist file — it's the LCP-critical display
-            font on the hero. Inter Variable loads asynchronously for body. */}
+        {/* Preload the Inter Tight variable file — it's the LCP-critical
+            display font on the hero. Inter Variable (body) loads
+            asynchronously. */}
         <link
           rel="preload"
-          href="/fonts/Geist-Variable.woff2"
+          href="/fonts/InterTight-Variable.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"
