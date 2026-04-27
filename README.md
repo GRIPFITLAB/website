@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GripFit Web
 
-## Getting Started
+Customer-facing marketing and commerce site for GripFit — a precision hand
+dynamometer that pairs with iOS. Built as a headless Shopify storefront on
+Next.js 16 + Vercel.
 
-First, run the development server:
+## Source of truth
+
+- **[`Decisions.md`](./Decisions.md)** — every architectural and stack
+  decision, plus open questions in §16. Read this before changing anything
+  non-trivial.
+- **[`DESIGN_SYSTEM/`](./DESIGN_SYSTEM)** — visual identity (colors, type,
+  spacing, components). The CSS tokens in
+  [`DESIGN_SYSTEM/colors_and_type.css`](./DESIGN_SYSTEM/colors_and_type.css)
+  are mirrored into [`app/globals.css`](./app/globals.css). Keep them in
+  sync.
+- **[`AGENTS.md`](./AGENTS.md)** — Next.js 16 has breaking changes vs older
+  training data; consult `node_modules/next/dist/docs/` before assuming an
+  API.
+
+## Stack at a glance
+
+- Next.js `16.2.4` (App Router) · React `19.2.4`
+- TypeScript 5, strict + `noUncheckedIndexedAccess`
+- Tailwind CSS v4 via `@tailwindcss/postcss`
+- shadcn/ui (style: `base-nova`, base: `@base-ui/react`)
+- Zod for env + form validation
+- Shopify Storefront API (typed `fetch` wrapper — Step 3)
+- Resend for the contact form (Step 9)
+- Vercel hosting + Vercel Analytics
+
+## Local development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+nvm use            # Node 22 LTS, see .nvmrc
+cp .env.example .env.local   # fill in Shopify + Resend keys
+npm install
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Useful scripts:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Command            | What it does                          |
+| ------------------ | -------------------------------------- |
+| `npm run dev`      | Next.js dev server (Turbopack)         |
+| `npm run build`    | Production build                       |
+| `npm run start`    | Run production build locally           |
+| `npm run lint`     | ESLint (Next.js core-web-vitals + TS)  |
+| `npm run typecheck`| `tsc --noEmit`                         |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Repository layout
 
-## Learn More
+The `Decisions.md` §14 / §16 Q2 layout is the canonical structure. Today
+only `app/`, `components/`, `lib/`, and `public/` exist; the rest will be
+added as the corresponding build steps land.
 
-To learn more about Next.js, take a look at the following resources:
+## What's NOT in this repo
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- The iOS app — separate codebase. Reference imagery in `iOS_App_Images/`.
+- Customer accounts — none in v1 (Decisions.md §8).
+- A CMS — marketing copy lives in TSX/MDX (Decisions.md §10).
+- Shopify checkout UI — hosted by Shopify on `checkout.gripfit.com`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Build status (per Decisions.md §15)
 
-## Deploy on Vercel
+- [x] 1. Project scaffold (Next.js + TS + Tailwind v4 + App Router)
+- [x] 2. shadcn/ui init + design-token wiring
+- [x] 3. Shopify Storefront API client (`lib/shopify/`)
+- [x] 4. Site shell — Nav, Footer, MobileMenu, branded 404, sitemap, robots
+- [x] 5. Home page — Hero, Features, HowItWorks, CTA (no social-proof per Q1)
+- [x] **Pre-deploy stubs** for `/product`, `/science`, `/setup`, `/contact`,
+  `/privacy`, `/terms` so every nav link resolves on Vercel before Shopify
+  is wired. The PDP gracefully falls back to `productConfig` when Shopify
+  env is missing; the contact form's Server Action accepts and logs
+  submissions until Resend lands in Step 9.
+- [ ] 6. PDP with live add-to-cart (Shopify required)
+- [ ] 7. Cart drawer + Context + cookie persistence
+- [ ] 8. Marketing-page polish (`/science`, `/setup`)
+- [ ] 9. Contact form backend (replace Step-4 stub with Resend send)
+- [ ] 10. SEO polish — structured data, OG images
+- [ ] 11. Performance and accessibility audit
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The site is **deploy-ready to Vercel right now** with no env vars set. The
+build is `npm run build` clean; all 12 routes statically prerender. Once a
+custom domain is attached, set `NEXT_PUBLIC_SITE_URL` so `sitemap.xml` and
+`robots.txt` can resolve absolute URLs.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Stop for review at the end of each step (per Decisions.md §15).
+# gripfit-web
