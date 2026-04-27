@@ -42,15 +42,15 @@ export function MobileMenu() {
       </SheetTrigger>
       <SheetContent
         side="right"
-        className="w-[88vw] max-w-sm border-l border-border bg-popover p-0"
+        className="w-[88vw] max-w-sm border-l border-border-default bg-bg-deep p-0"
       >
-        <SheetHeader className="border-b border-border px-5 py-4">
+        <SheetHeader className="border-b border-border-hairline px-6 py-5">
           <SheetTitle className="m-0 p-0">
-            <Logo size={24} asLink={false} />
+            <Logo size={16} asLink={false} />
           </SheetTitle>
         </SheetHeader>
 
-        <nav className="flex flex-col px-5 pt-6">
+        <nav className="flex flex-col px-6 pt-8">
           {primaryNavRoutes.map((route) => {
             const active =
               pathname === route.href ||
@@ -61,10 +61,10 @@ export function MobileMenu() {
                 href={route.href}
                 onClick={close}
                 className={cn(
-                  "border-b border-border py-4 text-base font-medium transition-colors",
+                  "border-b border-border-hairline py-5 font-display text-2xl font-bold uppercase tracking-[-0.01em] transition-colors",
                   active
-                    ? "text-primary"
-                    : "text-foreground hover:text-primary",
+                    ? "text-accent-bright"
+                    : "text-text-primary hover:text-accent-bright",
                 )}
               >
                 {route.label}
@@ -74,22 +74,22 @@ export function MobileMenu() {
           <Link
             href={routes.contact.href}
             onClick={close}
-            className="border-b border-border py-4 text-base font-medium text-foreground hover:text-primary"
+            className="border-b border-border-hairline py-5 font-display text-2xl font-bold uppercase tracking-[-0.01em] text-text-primary hover:text-accent-bright"
           >
             {routes.contact.label}
           </Link>
         </nav>
 
-        <div className="px-5 pt-8">
+        <div className="px-6 pt-10">
           <Button
             render={<Link href={routes.product.href} onClick={close} />}
-            className="w-full"
+            className="h-12 w-full text-sm font-bold uppercase tracking-[0.08em]"
             size="lg"
           >
             Pre-order GripFit
           </Button>
-          <p className="mt-3 text-center text-xs text-muted-foreground">
-            Free shipping in the US during pre-order.
+          <p className="mt-4 text-center text-xs text-text-tertiary">
+            Free US shipping during pre-order.
           </p>
         </div>
       </SheetContent>

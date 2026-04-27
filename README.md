@@ -9,11 +9,10 @@ Next.js 16 + Vercel.
 - **[`Decisions.md`](./Decisions.md)** — every architectural and stack
   decision, plus open questions in §16. Read this before changing anything
   non-trivial.
-- **[`DESIGN_SYSTEM/`](./DESIGN_SYSTEM)** — visual identity (colors, type,
-  spacing, components). The CSS tokens in
-  [`DESIGN_SYSTEM/colors_and_type.css`](./DESIGN_SYSTEM/colors_and_type.css)
-  are mirrored into [`app/globals.css`](./app/globals.css). Keep them in
-  sync.
+- **[`design.md`](./design.md)** — visual identity (colors, type,
+  spacing, components, motion, voice). The implementation lives in
+  [`app/globals.css`](./app/globals.css). Extend `design.md` before
+  inventing tokens in components.
 - **[`AGENTS.md`](./AGENTS.md)** — Next.js 16 has breaking changes vs older
   training data; consult `node_modules/next/dist/docs/` before assuming an
   API.
@@ -67,7 +66,7 @@ added as the corresponding build steps land.
 - [x] 2. shadcn/ui init + design-token wiring
 - [x] 3. Shopify Storefront API client (`lib/shopify/`)
 - [x] 4. Site shell — Nav, Footer, MobileMenu, branded 404, sitemap, robots
-- [x] 5. Home page — Hero, Features, HowItWorks, CTA (no social-proof per Q1)
+- [x] 5. Home page — Hero, Features, HowItWorks, InTheBox, Science, CTA (no athlete-grid social proof per §6)
 - [x] **Pre-deploy stubs** for `/product`, `/science`, `/setup`, `/contact`,
   `/privacy`, `/terms` so every nav link resolves on Vercel before Shopify
   is wired. The PDP gracefully falls back to `productConfig` when Shopify

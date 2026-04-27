@@ -32,5 +32,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "DESIGN_SYSTEM", "iOS_App_Images"]
+  "exclude": ["node_modules", "iOS_App_Images"]
 }

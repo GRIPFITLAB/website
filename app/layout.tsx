@@ -9,19 +9,20 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: siteConfig.url ? new URL(siteConfig.url) : undefined,
   title: {
-    default: siteConfig.name,
+    default: `${siteConfig.name} — ${siteConfig.tagline}`,
     template: `%s — ${siteConfig.name}`,
   },
   description: siteConfig.description,
   applicationName: siteConfig.name,
-  // TODO(brand): final OG image, twitter handle, manifest icons once logo + tagline are locked.
+  // TODO(brand): final OG image, twitter handle, manifest icons once the
+  // first photographic assets land. For now metadata uses tagline + description.
   icons: {
     icon: "/favicon.ico",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0d0914",
+  themeColor: "#0a0a0b",
   colorScheme: "dark",
 };
 
@@ -33,13 +34,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark h-full" suppressHydrationWarning>
       <head>
-        {/* Preload the variable Inter file — it's the LCP-critical body font.
-            Self-hosted TTF; if we ever convert to woff2, update href + type. */}
+        {/* Preload the variable Geist file — it's the LCP-critical display
+            font on the hero. Inter Variable loads asynchronously for body. */}
         <link
           rel="preload"
-          href="/fonts/Inter-VariableFont_opsz_wght.ttf"
+          href="/fonts/Geist-Variable.woff2"
           as="font"
-          type="font/ttf"
+          type="font/woff2"
           crossOrigin="anonymous"
         />
       </head>

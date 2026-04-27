@@ -1,60 +1,83 @@
 /**
- * Visual reference: DESIGN_SYSTEM/ui_kits/website/HowItWorksSection.jsx.
+ * How it works — vertical step rail with WHOOP "built to be worn 24/7"
+ * pacing: each step gets a big numeral, a short imperative title, and
+ * one paragraph of supporting copy. The amber rail down the left
+ * stitches the steps together.
  */
-
 const steps = [
   {
     n: "01",
-    title: "Connect your device",
-    body: "Power on GripFit and open the iOS app. It pairs via Bluetooth in seconds — no account required to start measuring.",
+    title: "Squeeze.",
+    body: "Grip the device with a comfortable full-palm hold and apply maximum force for 5–10 seconds. The strain-gauge load cell captures every Newton.",
   },
   {
     n: "02",
-    title: "Squeeze and measure",
-    body: "Grip the device and apply max force for 5–10 seconds. The app captures your full force curve in real time, both hands separately.",
+    title: "See the curve.",
+    body: "Bluetooth streams 100 samples per second to your iPhone. Peak force, rate of force development, and fatigue tail render in real time on the iOS app.",
   },
   {
     n: "03",
-    title: "Track your readiness",
-    body: "View fatigue index, endurance score, and daily readiness output. Build your baseline over time for precision insight.",
+    title: "Read your readiness.",
+    body: "After seven daily measurements GripFit builds your baseline and turns each session into a 0–100 readiness score. Drift below your baseline; train above it.",
   },
 ];
 
 export function HowItWorks() {
   return (
-    <section className="border-y border-border/40 bg-background/40 px-5 py-20 md:px-8 md:py-24">
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-14 text-center">
-          <div className="mb-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-primary/80">
-            How it works
+    <section className="relative overflow-hidden border-y border-border-hairline bg-bg-deep py-24 md:py-32">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-noise opacity-50 mix-blend-overlay"
+      />
+
+      <div className="relative mx-auto w-full max-w-7xl px-5 md:px-10">
+        <div className="mb-16 grid gap-8 md:mb-20 md:grid-cols-12">
+          <div className="md:col-span-5">
+            <p className="text-eyebrow mb-5 text-accent-bright">
+              How it works
+            </p>
+            <h2 className="font-display text-display-xl text-text-primary">
+              Three motions to a baseline.
+            </h2>
           </div>
-          <h2 className="font-display text-[clamp(24px,3vw,38px)] font-extrabold leading-[1.2] tracking-[-0.03em] text-foreground">
-            Three steps to clarity.
-          </h2>
+          <p className="max-w-md text-[17px] leading-[1.7] text-text-secondary md:col-span-6 md:col-start-7 md:self-end">
+            GripFit is built to be effortless. Squeeze, look, decide — the
+            full loop is under 30 seconds, twice a day, every day.
+          </p>
         </div>
 
-        <ol className="grid gap-x-12 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-          {steps.map((step) => (
-            <li key={step.n} className="flex gap-4">
-              <span className="mt-1 shrink-0 font-display text-xs font-bold uppercase tracking-[0.04em] text-primary/80">
-                {step.n}
-              </span>
-              <div>
+        <ol className="relative">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-[10px] top-2 hidden h-[calc(100%-1rem)] w-px bg-gradient-to-b from-accent/60 via-accent/30 to-transparent md:block"
+          />
+          {steps.map((step, index) => (
+            <li
+              key={step.n}
+              className="relative grid gap-8 border-t border-border-hairline py-12 last:border-b md:grid-cols-12 md:py-16"
+            >
+              <div className="flex items-start gap-5 md:col-span-5">
                 <span
                   aria-hidden
-                  className="mb-3.5 block h-0.5 w-8 rounded-full"
-                  style={{
-                    background:
-                      "linear-gradient(90deg, var(--color-primary), var(--color-chart-5))",
-                  }}
-                />
-                <h3 className="mb-2 font-display text-lg font-bold leading-snug text-foreground">
+                  className="relative mt-2 hidden size-[22px] shrink-0 items-center justify-center rounded-full border border-accent bg-bg-deep md:flex"
+                >
+                  <span className="size-1.5 rounded-full bg-accent" />
+                </span>
+                <span className="font-display text-[80px] font-extrabold leading-none tracking-[-0.04em] text-accent tabular-nums md:text-[112px]">
+                  {step.n}
+                </span>
+              </div>
+              <div className="md:col-span-6 md:col-start-7">
+                <h3 className="font-display text-display-lg text-text-primary">
                   {step.title}
                 </h3>
-                <p className="text-sm leading-[1.7] text-muted-foreground">
+                <p className="mt-4 max-w-md text-[16px] leading-[1.7] text-text-secondary">
                   {step.body}
                 </p>
               </div>
+              <span className="absolute right-0 top-12 text-eyebrow text-text-tertiary md:top-16">
+                Step {index + 1}/{steps.length}
+              </span>
             </li>
           ))}
         </ol>

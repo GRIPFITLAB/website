@@ -5,11 +5,18 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================================
-   GripFit fonts — self-hosted from DESIGN_SYSTEM/fonts.
+   GripFit fonts — self-hosted from /public/fonts.
    We do NOT use next/font/local because @theme inline below
    resolves at parse time and cannot read runtime CSS variables
    that next/font injects. Literal family names work.
    ============================================================ */
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/Geist-Variable.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 @font-face {
   font-family: "Inter";
   src: url("/fonts/Inter-VariableFont_opsz_wght.ttf") format("truetype-variations");
@@ -24,59 +31,16 @@
   font-style: italic;
   font-display: swap;
 }
-@font-face {
-  font-family: "Poppins";
-  src: url("/fonts/Poppins-Light.ttf") format("truetype");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Poppins";
-  src: url("/fonts/Poppins-Regular.ttf") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Poppins";
-  src: url("/fonts/Poppins-Medium.ttf") format("truetype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Poppins";
-  src: url("/fonts/Poppins-SemiBold.ttf") format("truetype");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Poppins";
-  src: url("/fonts/Poppins-Bold.ttf") format("truetype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Poppins";
-  src: url("/fonts/Poppins-ExtraBold.ttf") format("truetype");
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-}
 
 /* ============================================================
-   Tailwind v4 theme — shadcn semantic tokens wired to GripFit
-   DESIGN_SYSTEM values defined under .dark below.
-   Tokens mirrored from DESIGN_SYSTEM/colors_and_type.css.
-   Keep this in sync with that file.
+   Tailwind v4 theme — shadcn semantic tokens wired to GripFit.
+   Tokens defined under `.dark` below; this block exposes the
+   project-specific design.md tokens to Tailwind utilities.
    ============================================================ */
 @theme inline {
   /* Fonts: literal names (the next/font @theme-inline gotcha) */
   --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-display: "Poppins", "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Geist", "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, "JetBrains Mono", "Fira Mono", "SF Mono", Menlo, monospace;
   --font-heading: var(--font-display);
 
@@ -113,91 +77,162 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* GripFit-specific tokens (Tailwind utilities: bg-bg-tertiary, text-accent-strong, etc.) */
-  --color-bg-tertiary: var(--bg-tertiary);
-  --color-accent-strong: var(--accent-strong);
-  --color-accent-muted: var(--accent-muted);
+  /* GripFit-specific tokens — see design.md §2.
+     Available as bg-bg-elevated, text-accent-bright, border-border-strong, etc. */
+  --color-bg-canvas: var(--bg-canvas);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-raised: var(--bg-raised);
+  --color-bg-deep: var(--bg-deep);
+  --color-accent-bright: var(--accent-bright);
+  --color-accent-deep: var(--accent-deep);
+  --color-accent-soft: var(--accent-soft);
   --color-accent-glow: var(--accent-glow);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-info: var(--info);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-disabled: var(--text-disabled);
+  --color-border-hairline: var(--border-hairline);
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+  --color-state-success: var(--state-success);
+  --color-state-warning: var(--state-warning);
+  --color-state-danger: var(--state-danger);
+  --color-state-info: var(--state-info);
 
-  /* Radii — absolute pixel values from DESIGN_SYSTEM (overrides shadcn calc() scale) */
-  --radius: 12px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
+  /* Radii — sharper, more editorial than the shadcn default scale.
+     Values per design.md §5. */
+  --radius: 8px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
   --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 24px;
-  --radius-3xl: 32px;
-  --radius-4xl: 40px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+  --radius-3xl: 36px;
 
-  /* GripFit shadows — exposed as Tailwind shadow-* utilities */
-  --shadow-glow-sm: 0 0 12px rgba(181, 123, 255, 0.25);
-  --shadow-glow-md: 0 0 24px rgba(181, 123, 255, 0.35);
-  --shadow-glow-lg: 0 0 48px rgba(181, 123, 255, 0.45);
+  /* GripFit shadows — exposed as Tailwind shadow-* utilities. */
+  --shadow-glow: 0 0 32px rgba(255, 106, 0, 0.25);
+  --shadow-glow-lg: 0 0 64px rgba(255, 106, 0, 0.35);
+
+  /* Display type scale — utility names text-display-{size}.
+     Wrapped in clamp() for fluid sizing. */
+  --text-display-3xl: clamp(80px, 12vw, 200px);
+  --text-display-3xl--line-height: 0.92;
+  --text-display-3xl--letter-spacing: -0.05em;
+  --text-display-3xl--font-weight: 800;
+
+  --text-display-2xl: clamp(56px, 8vw, 128px);
+  --text-display-2xl--line-height: 0.95;
+  --text-display-2xl--letter-spacing: -0.045em;
+  --text-display-2xl--font-weight: 800;
+
+  --text-display-xl: clamp(40px, 5vw, 80px);
+  --text-display-xl--line-height: 1;
+  --text-display-xl--letter-spacing: -0.035em;
+  --text-display-xl--font-weight: 700;
+
+  --text-display-lg: clamp(32px, 4vw, 56px);
+  --text-display-lg--line-height: 1.05;
+  --text-display-lg--letter-spacing: -0.03em;
+  --text-display-lg--font-weight: 700;
+
+  --text-display-md: clamp(24px, 2.5vw, 36px);
+  --text-display-md--line-height: 1.1;
+  --text-display-md--letter-spacing: -0.025em;
+  --text-display-md--font-weight: 600;
+
+  --text-display-sm: 20px;
+  --text-display-sm--line-height: 1.2;
+  --text-display-sm--letter-spacing: -0.02em;
+  --text-display-sm--font-weight: 600;
+
+  --text-eyebrow: 11px;
+  --text-eyebrow--line-height: 1;
+  --text-eyebrow--letter-spacing: 0.16em;
+  --text-eyebrow--font-weight: 600;
 }
 
 /* ============================================================
-   GripFit dark theme (the only theme — DESIGN_SYSTEM is dark-only).
+   GripFit dark theme (the only theme — we are dark-only).
    <html> always carries the .dark class.
+   Tokens map 1:1 to the table in design.md §2.
    ============================================================ */
 .dark {
-  /* Backgrounds */
-  --background: #0d0914;
-  --bg-tertiary: #231d30;
+  /* === GripFit raw tokens (read by design.md and components) === */
+  --bg-canvas: #0a0a0b;
+  --bg-elevated: #131316;
+  --bg-raised: #1c1c20;
+  --bg-deep: #050506;
 
-  /* Surfaces */
-  --card: #1a1625;
-  --card-foreground: rgba(255, 255, 255, 0.95);
-  --popover: #1a1625;
-  --popover-foreground: rgba(255, 255, 255, 0.95);
+  --accent: #ff6a00;
+  --accent-bright: #ff8533;
+  --accent-deep: #cc5500;
+  --accent-soft: rgba(255, 106, 0, 0.1);
+  --accent-glow: rgba(255, 106, 0, 0.3);
 
-  /* Text */
-  --foreground: rgba(255, 255, 255, 0.95);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.62);
+  --text-tertiary: rgba(255, 255, 255, 0.42);
+  --text-disabled: rgba(255, 255, 255, 0.2);
 
-  /* Brand */
-  --primary: #b57bff;
-  --primary-foreground: #0d0914;
-  --accent-strong: #c99bff;
-  --accent-muted: #7a4fbf;
-  --accent-glow: rgba(181, 123, 255, 0.35);
+  --border-hairline: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
 
-  /* shadcn secondary/muted/accent — all map to DESIGN_SYSTEM elevation tiers */
-  --secondary: #231d30;
-  --secondary-foreground: rgba(255, 255, 255, 0.95);
-  --muted: #231d30;
-  --muted-foreground: rgba(255, 255, 255, 0.6);
-  --accent: rgba(181, 123, 255, 0.15);
-  --accent-foreground: #c99bff;
+  --state-success: #4ade80;
+  --state-warning: #fbbf24;
+  --state-danger: #f87171;
+  --state-info: #60a5fa;
 
-  /* States */
-  --destructive: #f87171;
-  --success: #4ade80;
-  --warning: #fbbf24;
-  --info: #60a5fa;
+  /* === shadcn semantic tokens — point everything at GripFit raw tokens === */
+  --background: var(--bg-canvas);
+  --foreground: var(--text-primary);
+  --card: var(--bg-elevated);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-raised);
+  --popover-foreground: var(--text-primary);
 
-  /* Borders */
-  --border: rgba(255, 255, 255, 0.1);
+  /* `primary` is the buy-CTA fill. Foreground is BLACK on amber for
+     maximum contrast and the "performance product" feel. */
+  --primary: var(--accent);
+  --primary-foreground: #000000;
+
+  --secondary: var(--bg-raised);
+  --secondary-foreground: var(--text-primary);
+
+  --muted: var(--bg-elevated);
+  --muted-foreground: var(--text-secondary);
+
+  /* shadcn `accent` is the *interactive* surface (hover, focus rings),
+     not the brand accent. We point it at the soft amber tint so
+     hovers feel branded without being garish. */
+  --accent: var(--accent-soft);
+  --accent-foreground: var(--accent-bright);
+
+  --destructive: var(--state-danger);
+  --success: var(--state-success);
+  --warning: var(--state-warning);
+  --info: var(--state-info);
+
+  --border: var(--border-default);
   --input: rgba(255, 255, 255, 0.04);
-  --ring: rgba(181, 123, 255, 0.55);
+  --ring: rgba(255, 106, 0, 0.45);
 
-  /* Charts (semantic state palette) */
-  --chart-1: #b57bff;
-  --chart-2: #4ade80;
-  --chart-3: #fbbf24;
-  --chart-4: #f87171;
-  --chart-5: #60a5fa;
+  /* Charts (semantic state palette). */
+  --chart-1: var(--accent);
+  --chart-2: var(--state-success);
+  --chart-3: var(--state-warning);
+  --chart-4: var(--state-danger);
+  --chart-5: var(--state-info);
 
-  /* Sidebar (unused in v1 — single-product marketing site has no app shell — kept for shadcn parity) */
-  --sidebar: #1a1625;
-  --sidebar-foreground: rgba(255, 255, 255, 0.95);
-  --sidebar-primary: #b57bff;
-  --sidebar-primary-foreground: #0d0914;
-  --sidebar-accent: rgba(181, 123, 255, 0.15);
-  --sidebar-accent-foreground: #c99bff;
-  --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: rgba(181, 123, 255, 0.55);
+  /* Sidebar tokens — unused in v1 marketing site; kept for shadcn parity. */
+  --sidebar: var(--bg-elevated);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--accent);
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: var(--accent-soft);
+  --sidebar-accent-foreground: var(--accent-bright);
+  --sidebar-border: var(--border-default);
+  --sidebar-ring: rgba(255, 106, 0, 0.45);
 }
 
 @layer base {
@@ -209,15 +244,59 @@
     color-scheme: dark;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Lock the page bg to the deep canvas so overscroll on iOS / macOS
+       doesn't reveal a brighter shell color. */
+    background-color: var(--bg-canvas);
   }
   body {
     @apply min-h-full;
+    /* Slight tabular numbers everywhere — performance product, numbers
+       are the hero content. */
+    font-feature-settings: "ss01", "cv11", "tnum" 0;
   }
   h1,
   h2,
   h3,
   h4,
   h5 {
-    @apply font-display tracking-tight;
+    @apply font-display;
+    font-feature-settings: "ss01", "cv11";
+  }
+  /* Selection — branded amber tint. */
+  ::selection {
+    background-color: var(--accent);
+    color: #000;
+  }
+}
+
+/* ============================================================
+   GripFit utilities — referenced from design.md.
+   Keep the surface area small; if you find yourself reaching
+   for something that's not here, prefer extending design.md.
+   ============================================================ */
+@layer utilities {
+  /* Eyebrow / kicker label above section headlines. */
+  .text-eyebrow {
+    font-size: var(--text-eyebrow);
+    line-height: 1;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* Subtle SVG noise overlay — used on full-bleed dark sections to
+     give the canvas texture without resorting to photography. */
+  .bg-noise {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-size: 200px 200px;
+  }
+
+  /* The 'amber bloom' radial — used in hero / CTA backgrounds. */
+  .bg-amber-bloom {
+    background-image: radial-gradient(
+      ellipse at top,
+      var(--accent-glow) 0%,
+      transparent 60%
+    );
   }
 }

@@ -1,6 +1,5 @@
 # Reference-only assets — not needed by the deployed app and would slow
 # down `vercel deploy` upload step.
-DESIGN_SYSTEM
 iOS_App_Images
 
 # Local notes and source-control metadata.

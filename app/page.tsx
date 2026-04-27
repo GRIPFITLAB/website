@@ -2,14 +2,22 @@ import { CTA } from "@/components/marketing/CTA";
 import { Features } from "@/components/marketing/Features";
 import { Hero } from "@/components/marketing/Hero";
 import { HowItWorks } from "@/components/marketing/HowItWorks";
+import { InTheBox } from "@/components/marketing/InTheBox";
+import { Science } from "@/components/marketing/Science";
 
 /**
  * Home page composition.
  *
- * Sections per Decisions.md §6 Page Inventory:
- *   Hero → Features → HowItWorks → CTA
+ * Section order mirrors WHOOP's "wear daily → complete picture →
+ * choose a membership → backed by PhDs / worn by MVPs → final CTA"
+ * pacing, adapted for GripFit:
  *
- * Explicitly NO social-proof block (Q1 resolution: "all, except social proof").
+ *   Hero        → editorial headline + stat strip
+ *   Features    → "complete picture" feature grid (real-time / bilateral / readiness / trends / hardware)
+ *   HowItWorks  → 3-step rail (Squeeze / Curve / Readiness)
+ *   InTheBox    → single bold pricing card (replaces 3-tier "Choose a membership")
+ *   Science     → research citations (replaces "Backed by PhDs / worn by MVPs"; Decisions.md §6 excludes social proof)
+ *   CTA         → final pre-order push
  */
 export default function HomePage() {
   return (
@@ -17,6 +25,8 @@ export default function HomePage() {
       <Hero />
       <Features />
       <HowItWorks />
+      <InTheBox />
+      <Science />
       <CTA />
     </>
   );

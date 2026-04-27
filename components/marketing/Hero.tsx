@@ -1,103 +1,104 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { productConfig } from "@/lib/config";
 import { routes } from "@/lib/routes";
 
 /**
- * Visual reference: DESIGN_SYSTEM/ui_kits/website/HeroSection.jsx.
+ * Hero — cinematic editorial section in the WHOOP "wear daily" mould.
  *
- * Copy is *placeholder* per Decisions.md §16 Q5 — once a tagline lands
- * we'll replace these strings. The mock app card is intentionally a
- * stylized SVG, not a real `<Image>`, until brand photography lands.
+ * Composition:
+ *   - Full-bleed deep-canvas background with stacked radial bloom +
+ *     noise overlay (no photography, per design.md §9).
+ *   - Single-eyebrow / massive display H1 / short body / two CTAs.
+ *   - Stat strip across the bottom acts as the "compass" that orients
+ *     the visitor on the device's spec story before they scroll.
+ *   - Decorative force-curve SVG in the top-right corner echoes the
+ *     measurement metaphor without simulating an app screen.
+ *
+ * Copy follows Decisions.md §16 Q5 placeholder direction
+ * ("Force is data."). Replace once final tagline is locked.
  */
-const stats: Array<[value: string, label: string]> = [
-  ["±0.5 lbs", "Accuracy"],
-  ["6h", "Battery"],
-  ["< 3s", "BT pairing"],
-  ["iOS 16+", "Compatible"],
+const stats: ReadonlyArray<{ value: string; label: string }> = [
+  { value: "±0.5", label: "lbs accuracy" },
+  { value: "100", label: "Hz sampling" },
+  { value: "<3s", label: "BT pairing" },
+  { value: "6h", label: "battery" },
 ];
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[92vh] items-center justify-center overflow-hidden px-5 py-20 md:px-8 md:py-28">
-      {/* Ambient glows */}
+    <section className="relative overflow-hidden bg-bg-deep">
+      {/* Background layers — see design.md §9. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-[10%] left-1/2 h-[500px] w-[700px] -translate-x-1/2 max-w-[140vw] rounded-full"
+        className="pointer-events-none absolute inset-0 bg-amber-bloom opacity-90"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-[40%] left-1/2 h-[700px] w-[1200px] max-w-[180vw] -translate-x-1/2 rounded-[50%]"
         style={{
           background:
-            "radial-gradient(ellipse, color-mix(in oklab, var(--color-primary) 18%, transparent) 0%, transparent 65%)",
+            "radial-gradient(ellipse, rgba(255, 106, 0, 0.18) 0%, transparent 60%)",
         }}
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute right-[5%] top-[20%] h-[400px] w-[400px] max-w-[60vw] rounded-full"
-        style={{
-          background:
-            "radial-gradient(ellipse, color-mix(in oklab, var(--color-chart-5) 12%, transparent) 0%, transparent 65%)",
-        }}
+        className="pointer-events-none absolute inset-0 bg-noise opacity-50 mix-blend-overlay"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
       />
 
-      <div className="relative flex w-full max-w-5xl flex-col items-center gap-7 text-center">
-        <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.04em] text-primary">
+      {/* Decorative force-curve glyph */}
+      <ForceCurve className="pointer-events-none absolute right-[-4%] top-[18%] hidden w-[44%] max-w-[640px] text-accent/35 lg:block" />
+
+      <div className="relative mx-auto flex w-full max-w-7xl flex-col items-start justify-center px-5 pb-24 pt-28 md:px-10 md:pb-32 md:pt-40 lg:min-h-[88vh]">
+        <span className="text-eyebrow mb-8 inline-flex items-center gap-3 text-accent-bright">
           <span
             aria-hidden
-            className="size-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--color-accent-glow)]"
+            className="inline-block size-1.5 rounded-full bg-accent"
           />
-          Smart hand dynamometer · Pre-order open
+          Pre-order open · ${productConfig.base.fallbackPriceUSD}
         </span>
 
-        <h1 className="text-balance font-display text-[clamp(40px,5.5vw,76px)] font-extrabold leading-[1.05] tracking-[-0.04em] text-foreground">
-          Measure your grip.{" "}
-          <span
-            className="block"
-            style={{
-              background:
-                "linear-gradient(135deg, var(--color-accent-strong) 0%, var(--color-primary) 40%, var(--color-chart-5) 100%)",
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              color: "transparent",
-            }}
-          >
-            Know your readiness.
-          </span>
+        <h1 className="font-display text-text-primary text-display-2xl max-w-[15ch]">
+          Force is data.
         </h1>
 
-        <p className="max-w-xl text-balance text-base leading-relaxed text-muted-foreground sm:text-lg">
-          GripFit pairs a precision hand dynamometer with iOS to track peak
-          force, endurance, and fatigue in real time — turning grip data into
-          actionable readiness intelligence.
+        <p className="mt-7 max-w-xl text-balance text-[17px] leading-[1.7] text-text-secondary md:text-[19px]">
+          GripFit measures every squeeze with strain-gauge precision and
+          turns it into the readiness intelligence elite athletes use to
+          plan, train, and recover.
         </p>
 
-        <div className="flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-10 flex flex-wrap items-center gap-4">
           <Button
             render={<Link href={routes.product.href} />}
             size="lg"
-            className="px-8 shadow-[0_0_36px_var(--color-accent-glow)]"
+            className="h-12 px-8 text-sm font-bold uppercase tracking-[0.08em] hover:shadow-[var(--shadow-glow)]"
           >
-            Pre-order GripFit
+            Pre-order now
           </Button>
           <Button
             render={<Link href={routes.science.href} />}
-            size="lg"
             variant="outline"
-            className="px-8"
+            size="lg"
+            className="h-12 border-border-strong bg-transparent px-8 text-sm font-bold uppercase tracking-[0.08em] text-text-primary hover:border-accent hover:bg-transparent hover:text-accent-bright"
           >
-            The science →
+            The science
           </Button>
         </div>
 
-        <HeroAppCard />
-
-        <ul className="mt-2 flex flex-wrap justify-center gap-x-10 gap-y-4">
-          {stats.map(([value, label]) => (
-            <li key={label} className="text-center">
-              <div className="font-display text-2xl font-bold tracking-tight text-foreground">
-                {value}
+        <ul className="mt-20 grid w-full max-w-3xl grid-cols-2 gap-y-8 sm:grid-cols-4">
+          {stats.map((stat) => (
+            <li key={stat.label}>
+              <div className="font-display text-[44px] font-extrabold leading-none tracking-[-0.04em] text-text-primary tabular-nums sm:text-[56px]">
+                {stat.value}
               </div>
-              <div className="mt-1 text-xs text-muted-foreground/70">
-                {label}
+              <div className="text-eyebrow mt-3 text-text-tertiary">
+                {stat.label}
               </div>
             </li>
           ))}
@@ -107,109 +108,54 @@ export function Hero() {
   );
 }
 
-function HeroAppCard() {
+function ForceCurve({ className }: { className?: string }) {
   return (
-    <div
-      className="mt-6 w-full max-w-xl overflow-hidden rounded-3xl border border-border bg-card/70 shadow-[0_40px_80px_rgba(0,0,0,0.5)] backdrop-blur-xl"
-      style={{
-        boxShadow:
-          "0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px color-mix(in oklab, var(--color-primary) 6%, transparent)",
-      }}
-      aria-label="GripFit iOS app preview"
+    <svg
+      viewBox="0 0 600 400"
+      fill="none"
+      aria-hidden
+      className={className}
     >
-      <div className="flex justify-between border-b border-border/60 bg-background/50 px-5 py-2.5 text-[11px] font-medium text-muted-foreground">
-        <span>9:41</span>
-        <span>◉ Dashboard</span>
-        <span>70%</span>
-      </div>
-      <div className="px-6 pb-6 pt-5">
-        <div className="mb-4 flex items-end justify-between">
-          <div>
-            <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/60">
-              Today&apos;s best
-            </div>
-            <div className="font-display text-4xl font-extrabold leading-none tracking-[-0.03em] text-foreground">
-              84{" "}
-              <span className="text-lg font-normal text-muted-foreground">
-                lbs
-              </span>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/60">
-              Readiness
-            </div>
-            <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden>
-              <circle
-                cx="28"
-                cy="28"
-                r="22"
-                fill="none"
-                stroke="rgba(255,255,255,0.08)"
-                strokeWidth="5"
-              />
-              <circle
-                cx="28"
-                cy="28"
-                r="22"
-                fill="none"
-                stroke="var(--color-success)"
-                strokeWidth="5"
-                strokeDasharray="138.2"
-                strokeDashoffset="13.8"
-                strokeLinecap="round"
-                transform="rotate(-90 28 28)"
-                style={{
-                  filter:
-                    "drop-shadow(0 0 6px color-mix(in oklab, var(--color-success) 60%, transparent))",
-                }}
-              />
-              <text
-                x="28"
-                y="33"
-                textAnchor="middle"
-                fontSize="15"
-                fontWeight="700"
-                fill="var(--color-success)"
-              >
-                91
-              </text>
-            </svg>
-          </div>
-        </div>
-        <svg
-          width="100%"
-          height="60"
-          viewBox="0 0 552 60"
-          preserveAspectRatio="none"
-          aria-hidden
-        >
-          <defs>
-            <linearGradient id="hero-fill" x1="0" y1="0" x2="0" y2="1">
-              <stop
-                offset="0%"
-                stopColor="var(--color-chart-5)"
-                stopOpacity="0.4"
-              />
-              <stop
-                offset="100%"
-                stopColor="var(--color-chart-5)"
-                stopOpacity="0"
-              />
-            </linearGradient>
-          </defs>
-          <path
-            d="M0,55 C60,55 80,50 120,35 C160,20 190,5 220,2 C250,-1 280,15 310,30 C340,45 380,52 440,54 L552,55 Z"
-            fill="url(#hero-fill)"
-          />
-          <path
-            d="M0,55 C60,55 80,50 120,35 C160,20 190,5 220,2 C250,-1 280,15 310,30 C340,45 380,52 440,54"
-            fill="none"
-            stroke="var(--color-chart-5)"
-            strokeWidth="2"
-          />
-        </svg>
-      </div>
-    </div>
+      <defs>
+        <linearGradient id="hero-curve" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stopColor="currentColor" stopOpacity="0" />
+          <stop offset="100%" stopColor="currentColor" stopOpacity="1" />
+        </linearGradient>
+      </defs>
+      {/* Vertical grid lines */}
+      {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+        <line
+          key={i}
+          x1={i * 75}
+          y1={20}
+          x2={i * 75}
+          y2={380}
+          stroke="currentColor"
+          strokeOpacity="0.1"
+        />
+      ))}
+      {/* Horizontal grid lines */}
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <line
+          key={i}
+          x1={0}
+          y1={20 + i * 72}
+          x2={600}
+          y2={20 + i * 72}
+          stroke="currentColor"
+          strokeOpacity="0.08"
+        />
+      ))}
+      {/* Force curve — sharp rise, plateau, fatigue tail */}
+      <path
+        d="M 0 380 L 70 380 L 110 320 L 160 110 L 220 50 L 290 60 L 360 90 L 430 140 L 500 220 L 600 290"
+        stroke="url(#hero-curve)"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="220" cy="50" r="6" fill="currentColor" />
+      <circle cx="220" cy="50" r="14" fill="currentColor" fillOpacity="0.2" />
+    </svg>
   );
 }

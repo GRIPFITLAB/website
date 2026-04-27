@@ -15,41 +15,25 @@ export const siteConfig = {
   name: "GripFit",
   /**
    * TODO(Decisions.md §16 Q5): final tagline.
-   * Two candidates so far:
-   *   "Quantify your strength. Optimize your readiness." (earlier draft)
-   *   "The future of human readiness."                   (DESIGN_SYSTEM)
-   * Both are placeholders per user note.
+   * Current placeholder reflects the WHOOP-style editorial hero brief —
+   * short, declarative, performance-coded.
    */
-  tagline: "TAGLINE TBD",
+  tagline: "Force is data.",
   description:
-    "GripFit pairs a precision hand dynamometer with iOS to track peak force, endurance, and fatigue in real time.",
+    "GripFit is a precision hand dynamometer that pairs with iOS to track peak force, endurance, and fatigue in real time.",
   url: env.NEXT_PUBLIC_SITE_URL ?? null,
-} as const;
-
-export const brandConfig = {
-  /**
-   * Wordmark split used by the inline SVG nav from
-   * DESIGN_SYSTEM/ui_kits/website/Nav.jsx. The "Fit" portion is rendered at
-   * lighter weight in the brand accent color.
-   */
-  wordmark: { strong: "Grip", light: "Fit" },
-  /**
-   * TODO(Decisions.md §16 Q6): confirm SVGs in DESIGN_SYSTEM/assets/ are final.
-   */
-  logoMarkPath: "/brand/logo-mark.svg",
-  logoFullPath: "/brand/logo.svg",
 } as const;
 
 export const productConfig = {
   /**
    * The single product in v1. (Decisions.md §5)
-   * TODO(Decisions.md §16 Q4): canonical product name.
+   * Q4 RESOLVED — canonical product name is "GripFit". No "Pro" suffix in v1.
    * `handle` must match the Shopify admin handle exactly — set both sides
    * once the Shopify store is created.
    */
   base: {
     name: "GripFit",
-    handle: "gripfit-base",
+    handle: "gripfit",
     fallbackPriceUSD: 95,
     /** Decisions.md §16 Q3: v1 is sold as a Shopify pre-order SKU. */
     preorder: true,

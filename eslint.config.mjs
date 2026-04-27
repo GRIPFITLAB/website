@@ -10,7 +10,6 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    "DESIGN_SYSTEM/**",
     "iOS_App_Images/**",
   ]),
 ]);

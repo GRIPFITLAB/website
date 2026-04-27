@@ -27,34 +27,36 @@ const items = [
 
 export default function SciencePage() {
   return (
-    <article className="mx-auto w-full max-w-3xl px-5 py-16 md:px-8 md:py-24">
-      <div className="mb-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-primary/80">
-        The science
-      </div>
-      <h1 className="mb-12 font-display text-[clamp(28px,4vw,48px)] font-extrabold leading-[1.1] tracking-[-0.04em] text-foreground">
+    <article className="mx-auto w-full max-w-4xl px-5 py-20 md:px-10 md:py-28">
+      <p className="text-eyebrow mb-6 text-accent-bright">The science</p>
+      <h1 className="font-display text-display-xl mb-16 text-text-primary">
         Why grip predicts readiness.
       </h1>
 
-      <div className="flex flex-col gap-9">
-        {items.map((item) => (
+      <div className="flex flex-col gap-12">
+        {items.map((item, index) => (
           <section
             key={item.title}
-            className="border-l-2 border-primary/40 pl-6"
+            className="grid gap-6 border-t border-border-hairline pt-10 md:grid-cols-12"
           >
-            <h2 className="mb-2.5 font-display text-lg font-bold text-foreground">
-              {item.title}
-            </h2>
-            <p className="text-[15px] leading-[1.8] text-muted-foreground">
-              {item.body}
-            </p>
+            <span className="text-eyebrow text-text-tertiary tabular-nums md:col-span-2">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <div className="md:col-span-10">
+              <h2 className="font-display text-display-md text-text-primary">
+                {item.title}
+              </h2>
+              <p className="mt-4 max-w-2xl text-[17px] leading-[1.75] text-text-secondary">
+                {item.body}
+              </p>
+            </div>
           </section>
         ))}
       </div>
 
-      <p className="mt-12 border-t border-border pt-6 text-xs text-muted-foreground/60">
-        Citations and full references — TODO. Decisions.md §16 Q1 lists this
-        page as in-scope; long-form research notes are placeholder until the
-        copywriting pass.
+      <p className="mt-16 border-t border-border-hairline pt-6 text-xs leading-[1.6] text-text-tertiary">
+        Long-form citations — TODO. Decisions.md §15 Step 8 owns the
+        copywriting + reference pass for this page.
       </p>
     </article>
   );

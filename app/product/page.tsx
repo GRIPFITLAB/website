@@ -20,7 +20,7 @@ export const metadata: Metadata = {
  *
  * For now this page renders:
  *   • Live Shopify data when env is configured.
- *   • Static fallback (productConfig + the design-system specs grid)
+ *   • Static fallback (productConfig + the design.md specs grid)
  *     when env is missing — so the site can deploy to Vercel before the
  *     Shopify store exists.
  */
@@ -81,65 +81,82 @@ export default async function ProductPage() {
   const product = await loadProduct();
 
   return (
-    <article className="mx-auto w-full max-w-4xl px-5 py-16 md:px-8 md:py-24">
-      <div className="mb-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-primary/80">
-        Technical specs
-      </div>
-      <h1 className="mb-4 font-display text-[clamp(30px,4vw,52px)] font-extrabold leading-[1.1] tracking-[-0.04em] text-foreground">
-        {product.title}{" "}
-        {productConfig.base.preorder && (
-          <span className="align-middle text-base font-medium text-primary">
-            · Pre-order
-          </span>
-        )}
-      </h1>
-      <p className="mb-2 max-w-xl text-base leading-[1.7] text-muted-foreground">
-        {product.description}
-      </p>
-      <p className="mb-10 font-display text-2xl font-bold text-foreground">
-        {product.formattedPrice}
-      </p>
+    <article className="mx-auto w-full max-w-7xl px-5 py-20 md:px-10 md:py-28">
+      <header className="grid gap-12 md:grid-cols-12">
+        {/* Left — title + price + buy box */}
+        <div className="md:col-span-7">
+          <p className="text-eyebrow mb-6 text-accent-bright">
+            {productConfig.base.preorder ? "Pre-order" : "Available now"}
+          </p>
+          <h1 className="font-display text-display-xl text-text-primary">
+            {product.title}
+          </h1>
+          <p className="mt-6 max-w-xl text-[17px] leading-[1.65] text-text-secondary">
+            {product.description}
+          </p>
+          <p className="mt-8 font-display text-[56px] font-extrabold leading-none tracking-[-0.04em] text-text-primary tabular-nums md:text-[72px]">
+            {product.formattedPrice}
+          </p>
 
-      {/* Buy box — disabled until Step 6 + Shopify env. */}
-      <div className="mb-12 flex flex-col gap-3 sm:max-w-md">
-        <Button
-          size="lg"
-          disabled
-          aria-label="Pre-order GripFit (wired in Step 6)"
-        >
-          {productConfig.base.preorder ? "Pre-order GripFit" : "Add to cart"}
-        </Button>
-        <p className="text-xs text-muted-foreground/70">
-          {product.source === "shopify"
-            ? "Add-to-cart wires up to the Shopify cart in Build Order Step 6."
-            : "Configure NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN + NEXT_PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN to enable checkout."}
-        </p>
-      </div>
+          {/* Buy box — disabled until Step 6 + Shopify env. */}
+          <div className="mt-10 flex flex-col gap-3 sm:max-w-md">
+            <Button
+              size="lg"
+              disabled
+              aria-label="Pre-order GripFit (wired in Step 6)"
+              className="h-12 px-8 text-sm font-bold uppercase tracking-[0.08em]"
+            >
+              {productConfig.base.preorder ? "Pre-order GripFit" : "Add to cart"}
+            </Button>
+            <p className="text-xs leading-[1.6] text-text-tertiary">
+              {product.source === "shopify"
+                ? "Add-to-cart wires up to the Shopify cart in Build Order Step 6."
+                : "Configure NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN + NEXT_PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN to enable checkout."}
+            </p>
+          </div>
+        </div>
 
-      <h2 className="mb-4 font-display text-xl font-bold text-foreground">
-        Specs
-      </h2>
-      <ul className="mb-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {FALLBACK_SPECS.map((spec) => (
-          <li
-            key={spec.label}
-            className="rounded-2xl border border-border bg-card/70 p-5"
-          >
-            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.09em] text-muted-foreground/70">
-              {spec.label}
-            </div>
-            <div className="font-display text-lg font-bold text-foreground">
-              {spec.value}
-            </div>
-          </li>
-        ))}
-      </ul>
+        {/* Right — placeholder photography slot */}
+        <div className="md:col-span-5">
+          <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-xl border border-border-default bg-bg-elevated">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-amber-bloom opacity-60"
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-noise opacity-40 mix-blend-overlay"
+            />
+            <p className="relative text-eyebrow text-text-tertiary">
+              Product photography · TBD
+            </p>
+          </div>
+        </div>
+      </header>
 
-      <div className="flex h-56 items-center justify-center rounded-3xl border border-primary/10 bg-card/40">
-        <p className="text-sm text-muted-foreground/50">
-          Product photography placeholder · TBD
-        </p>
-      </div>
+      {/* Specs */}
+      <section className="mt-24 md:mt-32">
+        <p className="text-eyebrow mb-5 text-accent-bright">Hardware</p>
+        <h2 className="font-display text-display-lg mb-12 text-text-primary">
+          Built like the equipment elite athletes already trust.
+        </h2>
+
+        <ul className="grid gap-px overflow-hidden rounded-xl bg-border-hairline sm:grid-cols-2 lg:grid-cols-4">
+          {FALLBACK_SPECS.map((spec) => (
+            <li
+              key={spec.label}
+              className="bg-bg-elevated p-7 transition-colors hover:bg-bg-raised"
+            >
+              <div className="text-eyebrow mb-3 text-text-tertiary">
+                {spec.label}
+              </div>
+              <div className="font-display text-2xl font-bold text-text-primary tabular-nums">
+                {spec.value}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
     </article>
   );
 }

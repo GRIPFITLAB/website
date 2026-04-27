@@ -11,7 +11,7 @@ const steps = [
   {
     n: 1,
     title: "Charge the device",
-    body: "Plug the included USB-C cable into the side of your GripFit. The status LED pulses violet while charging and turns solid when full. A full charge takes about 45 minutes and lasts ~6 hours of active use.",
+    body: "Plug the included USB-C cable into the side of your GripFit. The status LED pulses amber while charging and turns solid when full. A full charge takes about 45 minutes and lasts ~6 hours of active use.",
   },
   {
     n: 2,
@@ -37,39 +37,37 @@ const steps = [
 
 export default function SetupPage() {
   return (
-    <article className="mx-auto w-full max-w-3xl px-5 py-16 md:px-8 md:py-24">
-      <div className="mb-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-primary/80">
-        Setup guide
-      </div>
-      <h1 className="mb-4 font-display text-[clamp(28px,4vw,48px)] font-extrabold leading-[1.1] tracking-[-0.04em] text-foreground">
-        Get up and running in five minutes.
+    <article className="mx-auto w-full max-w-4xl px-5 py-20 md:px-10 md:py-28">
+      <p className="text-eyebrow mb-6 text-accent-bright">Setup guide</p>
+      <h1 className="font-display text-display-xl text-text-primary">
+        Up and running in five minutes.
       </h1>
-      <p className="mb-12 max-w-xl text-muted-foreground">
-        These steps walk through unboxing, pairing, and your first measurement.
-        Need help?{" "}
+      <p className="mt-6 max-w-xl text-[17px] leading-[1.7] text-text-secondary">
+        These steps walk through unboxing, pairing, and your first
+        measurement. Stuck anywhere?{" "}
         <a
           href={`mailto:${externalLinks.supportEmail}`}
-          className="text-primary underline-offset-4 hover:underline"
+          className="text-accent-bright underline-offset-4 hover:underline"
         >
           {externalLinks.supportEmail}
         </a>
         .
       </p>
 
-      <ol className="flex flex-col gap-8">
+      <ol className="mt-16 flex flex-col">
         {steps.map((step) => (
-          <li key={step.n} className="flex gap-5">
-            <span
-              aria-hidden
-              className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border border-primary/30 bg-primary/10 font-display text-sm font-bold text-primary"
-            >
-              {step.n}
+          <li
+            key={step.n}
+            className="grid gap-6 border-t border-border-hairline py-10 md:grid-cols-12"
+          >
+            <span className="font-display text-[56px] font-extrabold leading-none tracking-[-0.04em] text-accent tabular-nums md:col-span-2 md:text-[72px]">
+              {String(step.n).padStart(2, "0")}
             </span>
-            <div>
-              <h2 className="mb-1.5 font-display text-lg font-bold text-foreground">
+            <div className="md:col-span-10">
+              <h2 className="font-display text-display-md text-text-primary">
                 {step.title}
               </h2>
-              <p className="text-[15px] leading-[1.75] text-muted-foreground">
+              <p className="mt-3 max-w-2xl text-[16px] leading-[1.75] text-text-secondary">
                 {step.body}
               </p>
             </div>
@@ -77,7 +75,7 @@ export default function SetupPage() {
         ))}
       </ol>
 
-      <p className="mt-12 border-t border-border pt-6 text-xs text-muted-foreground/60">
+      <p className="mt-12 border-t border-border-hairline pt-6 text-xs leading-[1.6] text-text-tertiary">
         Setup copy is placeholder — final wording will be aligned with the
         in-app onboarding once the iOS app is locked.
       </p>

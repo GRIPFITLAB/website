@@ -30,9 +30,9 @@ drives them to purchase the GripFit device, and links them to the iOS app.
 | React | **React 19** — installed `19.2.4` | Bundled by Next.js 16. |
 | Hosting | Vercel | Zero-config Next.js, preview deployments, fast |
 | Language | TypeScript 5 (strict mode + `noUncheckedIndexedAccess`) | Type safety on Shopify API responses |
-| Styling | Tailwind CSS **v4** (via `@tailwindcss/postcss`) | Tokens defined in CSS via `@theme`; mirror `DESIGN_SYSTEM/colors_and_type.css` |
+| Styling | Tailwind CSS **v4** (via `@tailwindcss/postcss`) | Tokens defined in CSS via `@theme`; raw values live in `app/globals.css`, prose in `design.md` |
 | UI primitives | shadcn/ui — `style: base-nova`, base library: **`@base-ui/react`** (the new shadcn default, replacing Radix in `new-york`). Components are copy-paste in `components/ui/`. | Custom branding without theme lock-in. If we later add AI Elements (which require Radix APIs), re-init with `npx shadcn@latest init -d --base radix -f`. |
-| Fonts | Self-hosted `@font-face` in `app/globals.css` pointing at `/public/fonts/` (Inter VF, Inter Italic VF, Poppins 300/400/500/600/700/800). **Not** `next/font/local`. | `@theme inline` resolves at parse time, so it cannot read the runtime CSS variable that `next/font/local` injects. Using literal `"Inter"` / `"Poppins"` family names plus self-hosted `@font-face` makes Tailwind utilities (`font-sans`, `font-display`) work and avoids the documented shadcn × Tailwind v4 font gotcha. |
+| Fonts | Self-hosted `@font-face` in `app/globals.css` pointing at `/public/fonts/` (Geist Variable for display, Inter Variable + Inter Italic Variable for body). **Not** `next/font/local`. | `@theme inline` resolves at parse time, so it cannot read the runtime CSS variable that `next/font/local` injects. Using literal `"Geist"` / `"Inter"` family names plus self-hosted `@font-face` makes Tailwind utilities (`font-sans`, `font-display`) work and avoids the documented shadcn × Tailwind v4 font gotcha. |
 | Commerce | Shopify Basic ($39/mo) | Commerce platform, not just payments |
 | Commerce API | Shopify Storefront API (GraphQL) | Headless-supported, public-token-safe |
 | GraphQL client | Native `fetch` + typed wrappers in `lib/shopify/` | Avoid Apollo overhead |
@@ -50,33 +50,35 @@ drives them to purchase the GripFit device, and links them to the iOS app.
 
 **All visual brand decisions (colors, typography, spacing, radii, shadows,
 component styles, motion, iconography, voice & tone) live in
-[`DESIGN_SYSTEM/`](./DESIGN_SYSTEM).** Do not duplicate or override them in code or in this doc.
+[`design.md`](./design.md).** Tokens are implemented in
+[`app/globals.css`](./app/globals.css) and consumed via Tailwind v4
+utilities. Do not duplicate or override them in code or in this doc.
 
 Authoritative files:
 
-- `DESIGN_SYSTEM/README.md` — voice, tone, visual foundations, component conventions
-- `DESIGN_SYSTEM/colors_and_type.css` — CSS custom properties (the source of truth for tokens)
-- `DESIGN_SYSTEM/assets/` — `logo.svg`, `logo-mark.svg`, `noise-texture.svg`
-- `DESIGN_SYSTEM/fonts/` — Inter (variable) + Poppins (full weight set)
-- `DESIGN_SYSTEM/ui_kits/website/` — reference markup for Nav, Hero,
-  Features, HowItWorks, SocialProof, CTA, Footer, InnerPages
+- `design.md` — visual philosophy, token table, type scale, motion rules
+- `app/globals.css` — the implementation: `@font-face`, `@theme inline`,
+  and the `.dark` token block
+- `public/fonts/` — `Geist-Variable.woff2` (display), Inter Variable +
+  Inter Italic Variable (body)
 
 Implementation rules:
 
-- The design system was generated using a placeholder brand identity ("Ethereal Tech").
-  Visual tokens (colors, type, spacing, components) are authoritative for GripFit web.
-  **Copy in those files (taglines, slogans, eyebrow text) is reference, not final.**
-- Mirror the CSS tokens from `colors_and_type.css` into the Tailwind theme
-  (and/or expose them via CSS variables) so Tailwind utilities and shadcn
-  components inherit the design system. No hardcoded color hexes or font
-  names anywhere except in this one mirror. The mirror lives in
-  `app/globals.css` (variables) plus `@theme inline` (Tailwind utilities).
+- **WHOOP-style editorial direction** with a warm amber accent
+  (`#FF6A00`) as the brand colour. Replaces the original placeholder
+  "Ethereal Tech" violet identity, which was deleted along with the
+  `DESIGN_SYSTEM/` folder during the Apr 26, 2026 UI revamp.
 - **Dark-only.** `<html>` always carries the `dark` class; there is no
-  light-mode color set. The matching `colors_and_type.css` is also
-  dark-only.
-- Some UI kit files reference iOS app screens. **This repo is web only.**
-  Use those for visual styling cues only; do not port app screens to web.
-- Final logo, wordmark, and tagline are **TBD** — see §16.
+  light-mode color set.
+- **Zero photography in v1.** All "imagery slots" are abstract dark
+  gradient meshes + noise overlay + SVG glyphs (`design.md` §9). Product
+  photography lands later and replaces visible "Product photography
+  TBD" placeholder blocks.
+- **No social-proof / athlete grid on the home page** (§6). The
+  analogous visual slot is the `Science` research-citation section.
+- Final logo and tagline are **TBD** — see §16. The current wordmark is
+  inline SVG inside `components/layout/Logo.tsx`; replace when the
+  final mark lands.
 
 ---
 
@@ -241,12 +243,12 @@ app/
   not-found.tsx               # branded 404 (Step 4)
   sitemap.ts                  # auto-generated from lib/routes.ts (Step 4)
   robots.ts                   # /robots.txt generator (Step 4)
-  globals.css                 # Tailwind base + DESIGN_SYSTEM token mirror
+  globals.css                 # Tailwind base + design.md token implementation
   favicon.ico
 
 components/
-  layout/                     # Nav, Footer, MobileMenu
-  marketing/                  # Hero, Features, HowItWorks, CTA  (NO SocialProof — Q1)
+  layout/                     # Nav, Footer, MobileMenu, Logo
+  marketing/                  # Hero, Features, HowItWorks, InTheBox, Science, CTA  (NO athlete grid — §6)
   product/                    # Gallery, Specs, BuyBox, AddToCartButton
   cart/                       # CartDrawer, CartItem, CartButton, CartProvider
   forms/                      # ContactForm + colocated Server Action
@@ -263,16 +265,15 @@ lib/
     context.tsx               # React Context provider (client component) — Step 7
     cookies.ts                # cart-id cookie helpers (server-only) — Step 7
   env.ts                      # Zod-validated process.env + isShopifyConfigured / isResendConfigured
-  config.ts                   # siteConfig, brandConfig, productConfig, externalLinks
+  config.ts                   # siteConfig, productConfig, externalLinks
   routes.ts                   # typed nav + footer + sitemap route map (Step 4)
   utils.ts                    # cn() — shadcn
 
 public/
-  fonts/                      # self-hosted Inter + Poppins
-  brand/                      # logo, OG images (Step 4)
+  fonts/                      # self-hosted Geist Variable + Inter Variable + Inter Italic Variable
   …
 
-DESIGN_SYSTEM/                # untouched — visual source of truth
+design.md                     # visual identity (tokens, type, motion) — see §3
 iOS_App_Images/               # untouched — reference imagery only
 Decisions.md                  # this doc
 AGENTS.md                     # agent rules (Decisions first, dark-only, …)
@@ -298,10 +299,10 @@ Stop for review after each step. Do not proceed to the next step without explici
 - [x] **1. Project scaffold** — Next.js 16.2.4 + React 19.2.4 + TS strict (`noUncheckedIndexedAccess` on) + Tailwind v4 + App Router. `.nvmrc` pinned to 22. ESLint flat config, `npm run typecheck`.
 - [x] **2. shadcn/ui init + design-token wiring** —
   - `npx shadcn@latest init -d` (style `base-nova`, base `@base-ui/react`, baseColor `neutral`).
-  - `app/globals.css` rewritten: literal-name fonts in `@theme inline`, `@font-face` for Inter + Poppins from `/public/fonts/`, all shadcn semantic tokens mapped to GripFit values under `.dark { … }`, radii overridden to absolute pixel values from `DESIGN_SYSTEM`.
-  - `app/layout.tsx` rewritten: dark mode forced on `<html>`, Inter VF preloaded, Geist removed, GripFit `Metadata` + `Viewport`.
+  - `app/globals.css` rewritten: literal-name fonts in `@theme inline`, `@font-face` for Geist Variable (display) + Inter Variable / Inter Italic Variable (body) from `/public/fonts/`, all shadcn semantic tokens mapped to GripFit values under `.dark { … }`, radii overridden to absolute pixel values from `design.md`.
+  - `app/layout.tsx` rewritten: dark mode forced on `<html>`, Geist Variable preloaded as the LCP-critical display font, GripFit `Metadata` + `Viewport`.
   - `lib/env.ts` (Zod-validated `NEXT_PUBLIC_SHOPIFY_*`, `SHOPIFY_*`, `RESEND_*`, `CONTACT_EMAIL_*`).
-  - `lib/config.ts` (`siteConfig`, `brandConfig`, `productConfig`, `externalLinks`).
+  - `lib/config.ts` (`siteConfig`, `productConfig`, `externalLinks`). The earlier `brandConfig` was removed during the Apr 26 UI revamp — the wordmark is rendered inline in `components/layout/Logo.tsx`.
   - `.env.example` template.
   - `components/ui/button.tsx` shipped by shadcn init; further components added on demand.
 - [x] **3. Shopify Storefront API client** —
@@ -316,10 +317,12 @@ Stop for review after each step. Do not proceed to the next step without explici
   - `components/layout/{Logo,Nav,MobileMenu,Footer}.tsx` — sticky nav with translucent backdrop, shadcn-Sheet mobile menu, footer link grid.
   - `app/layout.tsx` wires Nav + `<main>` + Footer.
   - `app/not-found.tsx` — branded 404.
-  - Build prep: `.vercelignore` (excludes `DESIGN_SYSTEM/`, `iOS_App_Images/`, agent transcripts), `app/sitemap.ts`, `app/robots.ts`.
+  - Build prep: `.vercelignore` (excludes `iOS_App_Images/`, agent transcripts), `app/sitemap.ts`, `app/robots.ts`.
 - [x] **5. Home page static structure** —
-  - `components/marketing/{Hero,Features,HowItWorks,CTA}.tsx` rebuilt from `DESIGN_SYSTEM/ui_kits/website/*.jsx` references using GripFit tokens. Explicitly NO `SocialProofSection` per Q1.
-  - `app/page.tsx` composes the four sections.
+  - `components/marketing/{Hero,Features,HowItWorks,InTheBox,Science,CTA}.tsx` — WHOOP-style editorial sections (revamped Apr 26, 2026). Section order is Hero → Features → HowItWorks → InTheBox → Science → CTA.
+  - Explicitly NO athlete grid / member-quote section per §6. The analogous visual slot is `Science` (grip-strength research citations).
+  - `InTheBox` replaces the typical 3-tier "Choose a membership" pricing grid with a single bold pricing card — GripFit is a single-SKU pre-order (§5).
+  - `app/page.tsx` composes the six sections.
   - Hero CTAs route to `/product` (pre-order) and `/science` (educational); both link-only — no Shopify dependency.
 - [x] **Pre-deploy stubs** (so Vercel preview shows every route) —
   - `app/product/page.tsx` — graceful fallback to `productConfig.base` + design-system specs grid when Shopify env is missing; live Shopify product when configured. Add-to-cart deliberately disabled until Step 6 / 7.
@@ -359,18 +362,21 @@ Shopify (continue-selling-when-out-of-stock + expected-ship-date messaging).
 button copy is fine; the design-system CTA section's waitlist email form is
 **replaced** by a final pre-order CTA that opens the cart drawer.
 
-**Q4 — Product naming.** Design-system InnerPages calls it "GripFit Pro".
-§5 of this doc calls it "GripFit (base device)". Pick one canonical name
-to use in all copy and Shopify product handles.
+**Q4 — Product naming. ✅ RESOLVED.** Canonical name is **"GripFit"**
+(no "Pro" suffix). Used in all copy, hero, PDP H1, and Shopify product
+handle (`gripfit`). Resolved during the Apr 26, 2026 UI revamp.
 
-**Q5 — Tagline.** Design system uses *"The future of human readiness."*
-Earlier draft of this doc had *"Quantify your strength. Optimize your
-readiness."* Both are placeholders per your note. Confirm one or supply
-the final tagline before hero copy is written.
+**Q5 — Tagline.** Current placeholder in `siteConfig.tagline` is
+*"Force is data."* Confirm or replace before launch. The hero H1 also
+uses this string — bumping it requires a touch in
+`components/marketing/Hero.tsx` and `components/marketing/CTA.tsx`.
 
-**Q6 — Logo.** `DESIGN_SYSTEM/assets/logo.svg` and `logo-mark.svg` exist
-but the wordmark in the UI-kit files is rendered inline as SVG. Confirm
-whether the SVG asset files are the final logo or placeholders to replace.
+**Q6 — Logo.** The placeholder `DESIGN_SYSTEM/assets/logo.svg` was
+deleted with the rest of the placeholder identity. The current wordmark
+is inline SVG inside `components/layout/Logo.tsx` — bold uppercase
+"GRIPFIT" with a three-bar grip glyph in amber. Replace this single file
+when the final mark lands; no other component references the logo asset
+directly.
 
 **Q7 — Domain + Shopify store URL (§4).** Both still TBD. Not blocking
 scaffold, but blocking deployment and Storefront token setup.
