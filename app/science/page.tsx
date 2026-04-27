@@ -33,28 +33,28 @@ export default function SciencePage() {
         Why grip predicts readiness.
       </h1>
 
-      <div className="flex flex-col gap-12">
+      <ol className="flex flex-col">
         {items.map((item, index) => (
-          <section
+          <li
             key={item.title}
-            className="grid gap-6 border-t border-border-hairline pt-10 md:grid-cols-12"
+            className="grid gap-6 border-t border-border-hairline py-10 md:grid-cols-12"
           >
-            <span className="text-eyebrow text-text-tertiary tabular-nums md:col-span-2">
+            <span className="font-display text-[56px] font-medium leading-none tracking-[-0.025em] text-accent tabular-nums md:col-span-2 md:text-[72px]">
               {String(index + 1).padStart(2, "0")}
             </span>
             <div className="md:col-span-10">
               <h2 className="font-display text-display-md text-text-primary">
                 {item.title}
               </h2>
-              <p className="mt-4 max-w-2xl text-[17px] leading-[1.75] text-text-secondary">
+              <p className="mt-3 max-w-2xl text-[16px] leading-[1.75] text-text-secondary">
                 {item.body}
               </p>
             </div>
-          </section>
+          </li>
         ))}
-      </div>
+      </ol>
 
-      <p className="mt-16 border-t border-border-hairline pt-6 text-xs leading-[1.6] text-text-tertiary">
+      <p className="mt-12 border-t border-border-hairline pt-6 text-xs leading-[1.6] text-text-tertiary">
         Long-form citations — TODO. Decisions.md §15 Step 8 owns the
         copywriting + reference pass for this page.
       </p>

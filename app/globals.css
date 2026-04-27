@@ -207,11 +207,15 @@
   --muted: var(--bg-elevated);
   --muted-foreground: var(--text-secondary);
 
-  /* shadcn `accent` is the *interactive* surface (hover, focus rings),
-     not the brand accent. We point it at the soft purple tint so
-     hovers feel branded without being garish. */
-  --accent: var(--accent-soft);
-  --accent-foreground: var(--accent-deep);
+  /* `--accent` is the brand royal-purple (defined above). DO NOT
+     reassign it to the soft tint — `text-accent` / `bg-accent` /
+     `bg-primary` all resolve through this token, and overwriting it
+     with an 8% alpha makes every accent on the site invisible. The
+     shadcn-stock components in this repo (button.tsx) use `bg-muted`
+     for hover surfaces, not `bg-accent`, so we don't need to overload
+     this slot. Reach for `bg-accent-soft` directly when you want the
+     soft tint hover. */
+  --accent-foreground: #ffffff;
 
   --destructive: var(--state-danger);
   --success: var(--state-success);
