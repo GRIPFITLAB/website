@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GripFit — iOS App UI Kit</title>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+@font-face{font-family:'Inter';src:url('../../fonts/Inter-VariableFont_opsz_wght.ttf')format('truetype');font-weight:100 900;font-style:normal;font-display:swap;}
+@font-face{font-family:'Inter';src:url('../../fonts/Inter-Italic-VariableFont_opsz_wght.ttf')format('truetype');font-weight:100 900;font-style:italic;font-display:swap;}
+@font-face{font-family:'Poppins';src:url('../../fonts/Poppins-Light.ttf')format('truetype');font-weight:300;font-style:normal;font-display:swap;}
+@font-face{font-family:'Poppins';src:url('../../fonts/Poppins-Regular.ttf')format('truetype');font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:'Poppins';src:url('../../fonts/Poppins-Medium.ttf')format('truetype');font-weight:500;font-style:normal;font-display:swap;}
+@font-face{font-family:'Poppins';src:url('../../fonts/Poppins-SemiBold.ttf')format('truetype');font-weight:600;font-style:normal;font-display:swap;}
+@font-face{font-family:'Poppins';src:url('../../fonts/Poppins-Bold.ttf')format('truetype');font-weight:700;font-style:normal;font-display:swap;}
+@font-face{font-family:'Poppins';src:url('../../fonts/Poppins-ExtraBold.ttf')format('truetype');font-weight:800;font-style:normal;font-display:swap;}
+@font-face{font-family:'Poppins';src:url('../../fonts/Poppins-Black.ttf')format('truetype');font-weight:900;font-style:normal;font-display:swap;}
+</style>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+  html, body { height: 100%; background: #080E1A; display: flex; align-items: center; justify-content: center; }
+  .phone {
+    width: 375px; height: 780px;
+    background: #0B1020;
+    border-radius: 44px;
+    border: 1px solid rgba(255,255,255,0.10);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    position: relative;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.04);
+  }
+  /* Status bar */
+  .sbar { display:flex; justify-content:space-between; align-items:center; padding:14px 24px 0; flex-shrink:0; }
+  .sbar-time { font-family:'Inter',sans-serif; font-size:15px; font-weight:600; color:#fff; }
+  .sbar-right { display:flex; gap:5px; align-items:center; }
+  .island { width:110px; height:28px; background:#000; border-radius:20px; margin:8px auto 0; flex-shrink:0; }
+  /* Scrollable screen area */
+  .screen { flex:1; overflow-y:auto; overflow-x:hidden; }
+  .screen::-webkit-scrollbar { display:none; }
+  /* Bottom nav pill */
+  .tabnav { flex-shrink:0; padding:10px 16px 20px; display:flex; justify-content:center; background:transparent; }
+  .tabnav-pill { display:flex; background:#141E30; border-radius:40px; padding:5px; gap:2px; }
+  .tab-btn { display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 18px; border-radius:32px; border:none; cursor:pointer; background:transparent; transition:background 200ms; }
+  .tab-btn.active { background:#232E45; }
+  .tab-icon { font-size:18px; line-height:1; }
+  .tab-label { font-family:'Inter',sans-serif; font-size:10px; font-weight:500; white-space:nowrap; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="sbar">
+    <span class="sbar-time">6:35</span>
+    <div style="width:110px;height:28px;background:#000;border-radius:14px"></div>
+    <div class="sbar-right" style="font-size:11px;color:rgba(255,255,255,0.8)">
+      <span>▐▐▐</span><span>⌾</span><span style="background:rgba(255,255,255,0.15);border-radius:4px;padding:1px 5px;font-weight:600">70</span>
+    </div>
+  </div>
+  <div class="app-root screen" id="root" style="overflow:hidden;display:flex;flex-direction:column"></div>
+  <div class="tabnav" id="tabnav"></div>
+</div>
+
+<script type="text/babel" src="DashboardScreen.jsx"></script>
+<script type="text/babel" src="DeviceScreen.jsx"></script>
+<script type="text/babel" src="SettingsScreen.jsx"></script>
+<script type="text/babel" src="AppShell.jsx"></script>
+
+<script type="text/babel">
+  function App() {
+    const [screen, setScreen] = React.useState(
+      () => localStorage.getItem('gf2_screen') || 'dashboard'
+    );
+    const navigate = s => { setScreen(s); localStorage.setItem('gf2_screen', s); };
+    return <AppShell screen={screen} onNavigate={navigate} />;
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

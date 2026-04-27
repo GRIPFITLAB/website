@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+@font-face{font-family:'Inter';src:url('../../fonts/Inter-VariableFont_opsz_wght.ttf')format('truetype');font-weight:100 900;font-style:normal;font-display:swap;}
+@font-face{font-family:'Inter';src:url('../../fonts/Inter-Italic-VariableFont_opsz_wght.ttf')format('truetype');font-weight:100 900;font-style:italic;font-display:swap;}
+@font-face{font-family:'Poppins';src:url('../../fonts/Poppins-Light.ttf')format('truetype');font-weight:300;font-style:normal;font-display:swap;}
+@font-face{font-family:'Poppins';src:url('../../fonts/Poppins-Regular.ttf')format('truetype');font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:'Poppins';src:url('../../fonts/Poppins-Medium.ttf')format('truetype');font-weight:500;font-style:normal;font-display:swap;}
+@font-face{font-family:'Poppins';src:url('../../fonts/Poppins-SemiBold.ttf')format('truetype');font-weight:600;font-style:normal;font-display:swap;}
+@font-face{font-family:'Poppins';src:url('../../fonts/Poppins-Bold.ttf')format('truetype');font-weight:700;font-style:normal;font-display:swap;}
+@font-face{font-family:'Poppins';src:url('../../fonts/Poppins-ExtraBold.ttf')format('truetype');font-weight:800;font-style:normal;font-display:swap;}
+@font-face{font-family:'Poppins';src:url('../../fonts/Poppins-Black.ttf')format('truetype');font-weight:900;font-style:normal;font-display:swap;}
+</style>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--color-bg-primary); font-family: var(--font-body); padding: 24px; display: flex; gap: 16px; }
+.col { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.field-wrap { display: flex; flex-direction: column; gap: 6px; }
+label { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+input, select, textarea {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 10px;
+  color: rgba(255,255,255,0.9);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 200ms, box-shadow 200ms;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(181,123,255,0.5);
+  box-shadow: 0 0 0 3px rgba(181,123,255,0.12);
+  background: rgba(181,123,255,0.05);
+}
+input::placeholder { color: rgba(255,255,255,0.25); }
+textarea { resize: none; height: 70px; line-height: 1.5; }
+select { appearance: none; }
+.input-error { border-color: rgba(248,113,113,0.5) !important; }
+.helper { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+.helper-error { color: #F87171; }
+</style>
+</head>
+<body>
+  <div class="col">
+    <div class="field-wrap">
+      <label>Name</label>
+      <input type="text" placeholder="Enter your name">
+    </div>
+    <div class="field-wrap">
+      <label>Email</label>
+      <input type="email" placeholder="you@ethereal.tech">
+      <span class="helper">Used for session sync</span>
+    </div>
+    <div class="field-wrap">
+      <label>Email (error)</label>
+      <input type="email" value="invalid-email" class="input-error">
+      <span class="helper helper-error">Enter a valid email address</span>
+    </div>
+  </div>
+  <div class="col">
+    <div class="field-wrap">
+      <label>Device type</label>
+      <select>
+        <option>Wearable sensor</option>
+        <option>Manual input</option>
+        <option>Integrated app</option>
+      </select>
+    </div>
+    <div class="field-wrap">
+      <label>Session notes</label>
+      <textarea placeholder="Describe today's conditions..."></textarea>
+    </div>
+    <div class="field-wrap">
+      <label>Focused input</label>
+      <input type="text" placeholder="Active / focused state" style="border-color:rgba(181,123,255,0.5);box-shadow:0 0 0 3px rgba(181,123,255,0.12);background:rgba(181,123,255,0.05)">
+    </div>
+  </div>
+</body>
+</html>

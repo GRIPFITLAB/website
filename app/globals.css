@@ -1,26 +1,223 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================
+   GripFit fonts — self-hosted from DESIGN_SYSTEM/fonts.
+   We do NOT use next/font/local because @theme inline below
+   resolves at parse time and cannot read runtime CSS variables
+   that next/font injects. Literal family names work.
+   ============================================================ */
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-VariableFont_opsz_wght.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-Italic-VariableFont_opsz_wght.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/Poppins-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/Poppins-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/Poppins-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/Poppins-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/Poppins-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/Poppins-ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
 }
 
+/* ============================================================
+   Tailwind v4 theme — shadcn semantic tokens wired to GripFit
+   DESIGN_SYSTEM values defined under .dark below.
+   Tokens mirrored from DESIGN_SYSTEM/colors_and_type.css.
+   Keep this in sync with that file.
+   ============================================================ */
 @theme inline {
+  /* Fonts: literal names (the next/font @theme-inline gotcha) */
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Poppins", "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", "Fira Mono", "SF Mono", Menlo, monospace;
+  --font-heading: var(--font-display);
+
+  /* shadcn semantic color tokens */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* GripFit-specific tokens (Tailwind utilities: bg-bg-tertiary, text-accent-strong, etc.) */
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-muted: var(--accent-muted);
+  --color-accent-glow: var(--accent-glow);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+
+  /* Radii — absolute pixel values from DESIGN_SYSTEM (overrides shadcn calc() scale) */
+  --radius: 12px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
+  --radius-4xl: 40px;
+
+  /* GripFit shadows — exposed as Tailwind shadow-* utilities */
+  --shadow-glow-sm: 0 0 12px rgba(181, 123, 255, 0.25);
+  --shadow-glow-md: 0 0 24px rgba(181, 123, 255, 0.35);
+  --shadow-glow-lg: 0 0 48px rgba(181, 123, 255, 0.45);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ============================================================
+   GripFit dark theme (the only theme — DESIGN_SYSTEM is dark-only).
+   <html> always carries the .dark class.
+   ============================================================ */
+.dark {
+  /* Backgrounds */
+  --background: #0d0914;
+  --bg-tertiary: #231d30;
+
+  /* Surfaces */
+  --card: #1a1625;
+  --card-foreground: rgba(255, 255, 255, 0.95);
+  --popover: #1a1625;
+  --popover-foreground: rgba(255, 255, 255, 0.95);
+
+  /* Text */
+  --foreground: rgba(255, 255, 255, 0.95);
+
+  /* Brand */
+  --primary: #b57bff;
+  --primary-foreground: #0d0914;
+  --accent-strong: #c99bff;
+  --accent-muted: #7a4fbf;
+  --accent-glow: rgba(181, 123, 255, 0.35);
+
+  /* shadcn secondary/muted/accent — all map to DESIGN_SYSTEM elevation tiers */
+  --secondary: #231d30;
+  --secondary-foreground: rgba(255, 255, 255, 0.95);
+  --muted: #231d30;
+  --muted-foreground: rgba(255, 255, 255, 0.6);
+  --accent: rgba(181, 123, 255, 0.15);
+  --accent-foreground: #c99bff;
+
+  /* States */
+  --destructive: #f87171;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --info: #60a5fa;
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.04);
+  --ring: rgba(181, 123, 255, 0.55);
+
+  /* Charts (semantic state palette) */
+  --chart-1: #b57bff;
+  --chart-2: #4ade80;
+  --chart-3: #fbbf24;
+  --chart-4: #f87171;
+  --chart-5: #60a5fa;
+
+  /* Sidebar (unused in v1 — single-product marketing site has no app shell — kept for shadcn parity) */
+  --sidebar: #1a1625;
+  --sidebar-foreground: rgba(255, 255, 255, 0.95);
+  --sidebar-primary: #b57bff;
+  --sidebar-primary-foreground: #0d0914;
+  --sidebar-accent: rgba(181, 123, 255, 0.15);
+  --sidebar-accent-foreground: #c99bff;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: rgba(181, 123, 255, 0.55);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  html {
+    @apply bg-background text-foreground font-sans antialiased;
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    @apply min-h-full;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    @apply font-display tracking-tight;
+  }
 }
