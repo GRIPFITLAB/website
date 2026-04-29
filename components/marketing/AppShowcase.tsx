@@ -1,93 +1,201 @@
+"use client";
+
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { cn } from "@/lib/utils";
+
 /**
- * AppShowcase — three phone mockups in the App Store marketing-screen
- * pattern. Each "phone" is a rounded rect with hairline border, a
- * notch / pill, and a deep gradient screen with abstract content.
+ * AppShowcase — swipe gallery (Apr 29, 2026 revamp).
  *
- * Per design.md §9 + §6: real screenshots replace these mockups when
- * they're produced. No photography or real iPhone trade dress is used
- * — the bezel is a generic minimal phone shape.
+ * Layout per page: paragraph on the left, phone mockup on the right.
+ * Pages are stacked horizontally inside a `scroll-snap` container, so
+ * the gallery is keyboard-accessible (tab moves through arrow buttons,
+ * the slides themselves are static landmarks) AND swipeable on touch
+ * devices via native horizontal scroll. We sync `currentIndex` to
+ * scroll position via an IntersectionObserver so the dot pagination
+ * always reflects what the visitor is looking at.
  *
- * Section sits between InTheBox and Science on the home page.
+ * Images / phone screens are pure-CSS placeholders — Decisions.md §16
+ * Q9 owns the swap-in.
  */
 
-interface Screen {
+interface Slide {
   eyebrow: string;
   title: string;
   body: string;
-  /** Identifier for the abstract screen content rendered inside the
-   *  phone. */
   graphic: "strength" | "recovery" | "history";
-  /** Tilt for the phone in the trio — the middle one stands tall, the
-   *  outer two lean in. */
-  tilt: "left" | "center" | "right";
 }
 
-const screens: ReadonlyArray<Screen> = [
+const slides: ReadonlyArray<Slide> = [
   {
-    eyebrow: "Today",
-    title: "Strength",
-    body: "Live force curve, peak hold, and rate-of-force-development per squeeze.",
+    eyebrow: "Live force",
+    title: "Watch the curve climb.",
+    body: "The Strength screen streams 100 samples per second as you squeeze. Peak force, rate-of-force-development, and hold time fall out automatically — same dataset coaches and physical-therapy clinics already use, just at consumer accessibility.",
     graphic: "strength",
-    tilt: "left",
   },
   {
-    eyebrow: "Now",
-    title: "Readiness",
-    body: "0–100 score from grip, sleep, and load history. The number you train against.",
+    eyebrow: "Today's score",
+    title: "One number you can act on.",
+    body: "Readiness compresses your last 24 hours of grip, sleep, and load history into a 0–100 score. Above 80, train hard. Below 60, deload. The thresholds shift with your baseline, not someone else's.",
     graphic: "recovery",
-    tilt: "center",
   },
   {
     eyebrow: "Trends",
-    title: "History",
-    body: "Seven-day, 30-day, and seasonal views. Drift early; confirm progress later.",
+    title: "See the season, not the day.",
+    body: "Twelve weeks of rolling readiness reveal the shape of an arc — the climb into camp, the dip during a meet block, the rebuild. Drift early, confirm progress later.",
     graphic: "history",
-    tilt: "right",
   },
 ];
 
 export function AppShowcase() {
+  const trackRef = useRef<HTMLOListElement | null>(null);
+  const [index, setIndex] = useState(0);
+
+  const scrollToIndex = useCallback((i: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const target = track.children[i] as HTMLElement | undefined;
+    if (!target) return;
+    track.scrollTo({
+      left: target.offsetLeft,
+      behavior: "smooth",
+    });
+  }, []);
+
+  const goPrev = useCallback(() => {
+    scrollToIndex(Math.max(0, index - 1));
+  }, [index, scrollToIndex]);
+
+  const goNext = useCallback(() => {
+    scrollToIndex(Math.min(slides.length - 1, index + 1));
+  }, [index, scrollToIndex]);
+
+  // Sync `index` to whichever slide is most-visible. Using
+  // IntersectionObserver here keeps native horizontal scroll feeling
+  // organic without us having to debounce a `scroll` listener.
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const items = Array.from(track.children) as HTMLElement[];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Pick the entry with the largest intersection ratio.
+        let max = entries[0];
+        if (!max) return;
+        for (const entry of entries) {
+          if (entry.intersectionRatio > max.intersectionRatio) max = entry;
+        }
+        if (max.isIntersecting) {
+          const i = items.indexOf(max.target as HTMLElement);
+          if (i !== -1) setIndex(i);
+        }
+      },
+      {
+        root: track,
+        threshold: [0.3, 0.6, 0.9],
+      },
+    );
+    items.forEach((it) => observer.observe(it));
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="relative overflow-hidden bg-bg-deep py-24 md:py-32">
-      <div className="relative mx-auto w-full max-w-7xl px-5 md:px-10">
-        <div className="mb-16 grid gap-8 md:mb-20 md:grid-cols-12">
-          <div className="md:col-span-6">
-            <p className="text-eyebrow mb-5 text-accent">In your pocket</p>
+    <section className="bg-bg-canvas py-24 md:py-32">
+      <div className="mx-auto w-full max-w-7xl px-5 md:px-10">
+        <div className="mb-14 grid gap-8 md:mb-20 md:grid-cols-12">
+          <div className="md:col-span-7">
+            <p className="text-eyebrow mb-5 text-text-tertiary">
+              In your pocket
+            </p>
             <h2 className="font-display text-display-xl text-text-primary">
               Built for iPhone, designed to disappear.
             </h2>
           </div>
-          <p className="max-w-md text-[17px] leading-[1.7] text-text-secondary md:col-span-5 md:col-start-8 md:self-end">
+          <p className="max-w-md text-[17px] leading-[1.7] text-text-secondary md:col-span-4 md:col-start-9 md:self-end">
             The GripFit app does the math so you can do the work. Three
-            screens, no settings menus to dig through. Open, squeeze,
-            decide.
+            screens, no settings menus to dig through.
           </p>
         </div>
 
-        {/* Phone trio — desktop tilt, mobile stack */}
-        <ul className="grid items-end gap-6 sm:grid-cols-3">
-          {screens.map((screen) => (
-            <li
-              key={screen.title}
-              className="flex flex-col items-center sm:items-start"
-            >
-              <PhoneMockup screen={screen} />
-              <div className="mt-7 max-w-[260px] text-center sm:mt-9 sm:text-left">
-                <p className="text-eyebrow mb-2.5 text-text-tertiary">
-                  {screen.eyebrow}
-                </p>
-                <h3 className="font-display text-display-md text-text-primary">
-                  {screen.title}
-                </h3>
-                <p className="mt-3 text-[15px] leading-[1.6] text-text-secondary">
-                  {screen.body}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {/* Gallery */}
+        <div className="relative">
+          <ol
+            ref={trackRef}
+            aria-label="App screen gallery"
+            className="flex snap-x snap-mandatory gap-6 overflow-x-auto rounded-3xl bg-bg-elevated [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {slides.map((slide, i) => (
+              <li
+                key={slide.title}
+                aria-roledescription="slide"
+                aria-label={`${i + 1} of ${slides.length}: ${slide.title}`}
+                className="grid w-full shrink-0 snap-center grid-cols-1 items-center gap-10 px-6 py-10 md:grid-cols-12 md:gap-14 md:px-12 md:py-14"
+              >
+                <div className="md:col-span-6 md:order-1">
+                  <p className="text-eyebrow mb-4 text-text-tertiary">
+                    {slide.eyebrow} · {String(i + 1).padStart(2, "0")} /{" "}
+                    {String(slides.length).padStart(2, "0")}
+                  </p>
+                  <h3 className="font-display text-display-lg text-text-primary">
+                    {slide.title}
+                  </h3>
+                  <p className="mt-5 max-w-md text-[16px] leading-[1.7] text-text-secondary">
+                    {slide.body}
+                  </p>
+                </div>
+                <div className="flex justify-center md:col-span-6 md:order-2 md:justify-end">
+                  <PhoneMockup graphic={slide.graphic} title={slide.title} />
+                </div>
+              </li>
+            ))}
+          </ol>
 
-        <p className="mt-16 text-sm text-text-tertiary">
+          {/* Controls */}
+          <div className="mt-8 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              {slides.map((slide, i) => (
+                <button
+                  key={slide.title}
+                  type="button"
+                  aria-label={`Go to slide ${i + 1}`}
+                  aria-current={i === index ? "true" : undefined}
+                  onClick={() => scrollToIndex(i)}
+                  className={cn(
+                    "h-1.5 rounded-full transition-all",
+                    i === index
+                      ? "w-8 bg-accent"
+                      : "w-4 bg-accent-soft hover:bg-border-strong",
+                  )}
+                />
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={goPrev}
+                disabled={index === 0}
+                aria-label="Previous slide"
+                className="inline-flex size-11 items-center justify-center rounded-full border border-border-strong bg-transparent text-text-primary transition-colors hover:border-accent hover:bg-accent-soft disabled:opacity-30 disabled:hover:border-border-strong disabled:hover:bg-transparent"
+              >
+                <ArrowLeft className="size-4" strokeWidth={1.75} />
+              </button>
+              <button
+                type="button"
+                onClick={goNext}
+                disabled={index === slides.length - 1}
+                aria-label="Next slide"
+                className="inline-flex size-11 items-center justify-center rounded-full border border-border-strong bg-transparent text-text-primary transition-colors hover:border-accent hover:bg-accent-soft disabled:opacity-30 disabled:hover:border-border-strong disabled:hover:bg-transparent"
+              >
+                <ArrowRight className="size-4" strokeWidth={1.75} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-10 text-[13px] text-text-tertiary">
           App preview screens shown above are illustrative — final
           screenshots ship with the device.
         </p>
@@ -97,65 +205,48 @@ export function AppShowcase() {
 }
 
 /* ============================================================
-   Pure-CSS phone mockup. The frame is a single rounded rect with a
-   hairline border and a subtle inner shadow. The "screen" is a deep
-   gradient surface whose content is the per-feature SVG below.
+   Pure-CSS phone mockup — same generic frame as the prior version,
+   warm-cream-aware. No real iPhone bezels, no Apple trade dress.
    ============================================================ */
-function PhoneMockup({ screen }: { screen: Screen }) {
-  const tiltClass =
-    screen.tilt === "left"
-      ? "sm:rotate-[-3deg] sm:translate-y-3"
-      : screen.tilt === "right"
-        ? "sm:rotate-[3deg] sm:translate-y-3"
-        : "sm:translate-y-0";
-
+function PhoneMockup({
+  graphic,
+  title,
+}: {
+  graphic: Slide["graphic"];
+  title: string;
+}) {
   return (
-    <div
-      className={`relative w-[260px] max-w-full transition-transform duration-500 ease-out ${tiltClass}`}
-    >
-      {/* Soft shadow well behind the phone — gives it lift on the
-          off-white band without resorting to a real drop-shadow. */}
+    <div className="relative w-[260px] max-w-full md:w-[280px]">
       <div
         aria-hidden
-        className="pointer-events-none absolute -inset-x-6 bottom-2 top-10 -z-10 rounded-[40px]"
+        className="pointer-events-none absolute -inset-x-6 bottom-2 top-10 -z-10 rounded-[44px]"
         style={{
           background:
-            "radial-gradient(closest-side, rgba(10,10,11,0.10), transparent 70%)",
+            "radial-gradient(closest-side, rgba(28,26,23,0.10), transparent 70%)",
         }}
       />
-
-      {/* Phone bezel */}
-      <div className="relative aspect-[9/19.5] overflow-hidden rounded-[40px] border border-border-strong bg-[#0a0a0b] p-2 shadow-[0_24px_60px_-24px_rgba(10,10,11,0.30)]">
-        {/* Notch / pill */}
+      <div className="relative aspect-[9/19.5] overflow-hidden rounded-[44px] border border-border-strong bg-[#0f0d0a] p-2 shadow-[0_24px_60px_-24px_rgba(28,26,23,0.30)]">
         <div
           aria-hidden
           className="absolute left-1/2 top-3 z-20 h-[18px] w-[80px] -translate-x-1/2 rounded-full bg-black"
         />
-
-        {/* Screen */}
-        <div className="relative h-full w-full overflow-hidden rounded-[32px] bg-gradient-to-b from-[#15141a] via-[#0d0c12] to-[#080709]">
-          <PhoneScreen graphic={screen.graphic} title={screen.title} />
+        <div className="relative h-full w-full overflow-hidden rounded-[36px] bg-gradient-to-b from-[#15140f] via-[#0d0c08] to-[#080706]">
+          <PhoneScreen graphic={graphic} title={title} />
         </div>
       </div>
     </div>
   );
 }
 
-/* ============================================================
-   Abstract per-screen content. Pure SVG, no real data, no real iOS
-   widgets — generic enough to be read as "an app" without violating
-   Apple trade dress. Tinted with text-accent (royal purple).
-   ============================================================ */
 function PhoneScreen({
   graphic,
   title,
 }: {
-  graphic: Screen["graphic"];
+  graphic: Slide["graphic"];
   title: string;
 }) {
   return (
     <div className="absolute inset-0 flex flex-col px-5 pb-6 pt-12 text-white">
-      {/* Status row */}
       <div className="mb-6 flex items-center justify-between text-[10px] font-medium tracking-[0.06em] text-white/55">
         <span>9:41</span>
         <span className="flex items-center gap-1">
@@ -165,8 +256,6 @@ function PhoneScreen({
           <span className="ml-2 block h-2 w-3 rounded-[1px] border border-white/55" />
         </span>
       </div>
-
-      {/* Title */}
       <p
         className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45"
         style={{ fontFamily: "Inter Tight, Inter, sans-serif" }}
@@ -180,20 +269,18 @@ function PhoneScreen({
         {title}
       </h4>
 
-      {/* Graphic well */}
       <div className="relative mt-5 flex-1">
         {graphic === "strength" ? <StrengthScreen /> : null}
         {graphic === "recovery" ? <RecoveryScreen /> : null}
         {graphic === "history" ? <HistoryScreen /> : null}
       </div>
 
-      {/* Bottom tab row — minimal, abstract */}
-      <div className="mt-4 flex items-center justify-around border-t border-white/8 pt-3">
+      <div className="mt-4 flex items-center justify-around border-t border-white/10 pt-3">
         {[0, 1, 2, 3].map((i) => (
           <span
             key={i}
             className={`block size-[6px] rounded-full ${
-              i === 1 ? "bg-[#7c3aed]" : "bg-white/22"
+              i === 1 ? "bg-[#f3ece2]" : "bg-white/22"
             }`}
           />
         ))}
@@ -219,12 +306,12 @@ function StrengthScreen() {
       <p className="mb-3 text-[10px] uppercase tracking-[0.16em] text-white/45">
         Live force curve
       </p>
-      <div className="relative flex-1 rounded-[12px] border border-white/8 bg-white/2 p-2">
+      <div className="relative flex-1 rounded-[12px] border border-white/10 bg-white/[0.02] p-2">
         <svg viewBox="0 0 240 140" className="h-full w-full" aria-hidden>
           <defs>
             <linearGradient id="ps-fill" x1="0" y1="1" x2="0" y2="0">
-              <stop offset="0%" stopColor="#7c3aed" stopOpacity="0" />
-              <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.45" />
+              <stop offset="0%" stopColor="#f3ece2" stopOpacity="0" />
+              <stop offset="100%" stopColor="#f3ece2" stopOpacity="0.35" />
             </linearGradient>
           </defs>
           {[0, 1, 2, 3, 4].map((i) => (
@@ -245,43 +332,19 @@ function StrengthScreen() {
           <path
             d="M 0 130 L 30 128 L 50 110 L 70 38 L 100 22 L 140 28 L 170 50 L 200 78 L 240 110"
             fill="none"
-            stroke="#a78bfa"
+            stroke="#f3ece2"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <circle cx="100" cy="22" r="3" fill="#a78bfa" />
-          <circle cx="100" cy="22" r="7" fill="#a78bfa" fillOpacity="0.3" />
+          <circle cx="100" cy="22" r="3" fill="#f3ece2" />
+          <circle cx="100" cy="22" r="7" fill="#f3ece2" fillOpacity="0.3" />
         </svg>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2 text-[9px] uppercase tracking-[0.1em] text-white/55">
-        <div>
-          <p>Peak</p>
-          <p
-            className="mt-0.5 text-[12px] font-medium normal-case tracking-tight text-white"
-            style={{ fontFamily: "Inter Tight, Inter, sans-serif" }}
-          >
-            112 lbs
-          </p>
-        </div>
-        <div>
-          <p>RFD</p>
-          <p
-            className="mt-0.5 text-[12px] font-medium normal-case tracking-tight text-white"
-            style={{ fontFamily: "Inter Tight, Inter, sans-serif" }}
-          >
-            386 N/s
-          </p>
-        </div>
-        <div>
-          <p>Hold</p>
-          <p
-            className="mt-0.5 text-[12px] font-medium normal-case tracking-tight text-white"
-            style={{ fontFamily: "Inter Tight, Inter, sans-serif" }}
-          >
-            6.3 s
-          </p>
-        </div>
+        <Stat label="Peak" value="112 lbs" />
+        <Stat label="RFD" value="386 N/s" />
+        <Stat label="Hold" value="6.3 s" />
       </div>
     </div>
   );
@@ -309,7 +372,7 @@ function RecoveryScreen() {
             cy="100"
             r="78"
             fill="none"
-            stroke="#a78bfa"
+            stroke="#f3ece2"
             strokeWidth="10"
             strokeLinecap="round"
             strokeDasharray={`${2 * Math.PI * 78 * 0.86} ${2 * Math.PI * 78}`}
@@ -329,21 +392,9 @@ function RecoveryScreen() {
         </div>
       </div>
       <div className="mt-2 grid w-full grid-cols-3 gap-2 text-[9px] uppercase tracking-[0.1em] text-white/55">
-        {[
-          { label: "Grip", value: "+4%" },
-          { label: "Sleep", value: "7h 24m" },
-          { label: "Load", value: "Mod" },
-        ].map((row) => (
-          <div key={row.label} className="text-center">
-            <p>{row.label}</p>
-            <p
-              className="mt-1 text-[12px] font-medium normal-case tracking-tight text-white"
-              style={{ fontFamily: "Inter Tight, Inter, sans-serif" }}
-            >
-              {row.value}
-            </p>
-          </div>
-        ))}
+        <Stat label="Grip" value="+4%" center />
+        <Stat label="Sleep" value="7h 24m" center />
+        <Stat label="Load" value="Mod" center />
       </div>
     </div>
   );
@@ -367,7 +418,7 @@ function HistoryScreen() {
       <p className="mb-3 text-[10px] uppercase tracking-[0.16em] text-white/45">
         Rolling readiness
       </p>
-      <div className="flex flex-1 items-end gap-1.5 rounded-[12px] border border-white/8 bg-white/2 p-3">
+      <div className="flex flex-1 items-end gap-1.5 rounded-[12px] border border-white/10 bg-white/[0.02] p-3">
         {bars.map((h, i) => (
           <span
             key={i}
@@ -376,9 +427,9 @@ function HistoryScreen() {
               height: `${h}%`,
               background:
                 i >= 8
-                  ? "#a78bfa"
+                  ? "#f3ece2"
                   : i >= 4
-                    ? "rgba(167,139,250,0.55)"
+                    ? "rgba(243,236,226,0.55)"
                     : "rgba(255,255,255,0.18)",
             }}
           />
@@ -389,6 +440,28 @@ function HistoryScreen() {
         <span>Wk 6</span>
         <span>Wk 12</span>
       </div>
+    </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  center,
+}: {
+  label: string;
+  value: string;
+  center?: boolean;
+}) {
+  return (
+    <div className={center ? "text-center" : ""}>
+      <p>{label}</p>
+      <p
+        className="mt-0.5 text-[12px] font-medium normal-case tracking-tight text-white"
+        style={{ fontFamily: "Inter Tight, Inter, sans-serif" }}
+      >
+        {value}
+      </p>
     </div>
   );
 }

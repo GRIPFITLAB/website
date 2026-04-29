@@ -1,15 +1,14 @@
-import Link from "next/link";
-
-import { routes } from "@/lib/routes";
-
 /**
- * Features — WHOOP "Get a complete picture of your health" pattern.
+ * Features — "Get a complete picture of your readiness" pattern.
  *
  * One large featured card on top spanning full width (the "headline"
  * feature), then a 2x2 grid of smaller feature cards below. Each card
- * is a light off-white surface with an abstract purple-tinted graphic
+ * is a warm-cream surface with an abstract ink-tinted graphic
  * (text-accent), a small eyebrow / large display H3 / short body.
  * Imagery is abstract SVG only — no photography, per design.md §9.
+ *
+ * Apr 29, 2026 revamp: dropped the "Want the research?" footer link —
+ * that funnel now lives on the Comparison + Science sections.
  */
 type FeatureGraphic = "force-curve" | "asymmetry" | "ring" | "spark" | "device";
 
@@ -59,7 +58,7 @@ export function Features() {
     <section className="bg-background py-24 md:py-32">
       <div className="mx-auto w-full max-w-7xl px-5 md:px-10">
         <div className="mb-16 max-w-3xl md:mb-20">
-          <p className="text-eyebrow mb-5 text-accent">
+          <p className="text-eyebrow mb-5 text-text-tertiary">
             What you measure
           </p>
           <h2 className="font-display text-display-xl text-text-primary">
@@ -76,16 +75,6 @@ export function Features() {
             <FeatureCard key={feature.title} feature={feature} />
           ))}
         </div>
-
-        <p className="mt-12 text-sm text-text-tertiary">
-          Want the research?{" "}
-          <Link
-            href={routes.science.href}
-            className="text-accent underline-offset-4 hover:underline"
-          >
-            Read the science behind grip-as-readiness →
-          </Link>
-        </p>
       </div>
     </section>
   );
@@ -104,7 +93,7 @@ function FeatureCard({
   return (
     <article
       className={[
-        "group relative overflow-hidden rounded-xl border border-border-default bg-bg-elevated transition-shadow hover:shadow-[0_4px_16px_rgba(10,10,11,0.06)]",
+        "group relative overflow-hidden rounded-2xl border border-border-default bg-bg-elevated transition-shadow hover:shadow-[var(--shadow-card-hover)]",
         isHeadline
           ? "grid md:grid-cols-2 md:min-h-[420px]"
           : "flex flex-col min-h-[360px]",
@@ -120,7 +109,7 @@ function FeatureCard({
             : "flex flex-1 flex-col justify-end p-7 md:p-9"
         }
       >
-        <p className="text-eyebrow mb-4 text-accent">{feature.eyebrow}</p>
+        <p className="text-eyebrow mb-4 text-text-tertiary">{feature.eyebrow}</p>
         <h3
           className={
             isHeadline
@@ -141,17 +130,17 @@ function FeatureCard({
         </p>
       </div>
 
-      {/* Graphic well — light grey panel; SVGs use text-accent (purple). */}
+      {/* Graphic well — warm-cream panel; SVGs use text-accent (warm ink). */}
       <div
         className={
           isHeadline
-            ? "relative order-first border-b border-border-hairline bg-bg-deep md:order-last md:border-b-0 md:border-l"
-            : "relative h-44 border-b border-border-hairline bg-bg-deep"
+            ? "relative order-first border-b border-border-hairline bg-bg-raised md:order-last md:border-b-0 md:border-l"
+            : "relative h-44 border-b border-border-hairline bg-bg-raised"
         }
       >
         <div
           aria-hidden
-          className="absolute inset-0 bg-purple-wash opacity-50"
+          className="absolute inset-0 bg-warm-wash opacity-60"
         />
         <FeatureGraphicSvg name={feature.graphic} />
       </div>

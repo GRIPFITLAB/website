@@ -17,8 +17,8 @@ interface LogoProps {
  *
  * Pure inline SVG (no external image asset). Mark is a stylised
  * grip-bar: three horizontal force lines with the middle bar in the
- * royal-purple accent — hinting at squeeze + release. Wordmark is
- * Inter Tight at a medium weight to match the thin editorial display.
+ * warm-ink accent — hinting at squeeze + release. Wordmark is Inter
+ * Tight at a medium weight to match the thin editorial display.
  */
 export function Logo({
   className,

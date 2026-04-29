@@ -14,6 +14,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { discountConfig, externalLinks } from "@/lib/config";
 import { primaryNavRoutes, routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -82,14 +83,14 @@ export function MobileMenu() {
 
         <div className="px-6 pt-10">
           <Button
-            render={<Link href={routes.product.href} onClick={close} />}
+            render={<Link href={externalLinks.crowdfundingUrl} onClick={close} />}
             className="h-12 w-full text-sm font-semibold uppercase tracking-[0.08em]"
             size="lg"
           >
-            Pre-order GripFit
+            {discountConfig.preorder.ctaLabel}
           </Button>
           <p className="mt-4 text-center text-xs text-text-tertiary">
-            Free US shipping during pre-order.
+            {discountConfig.preorder.bannerCopy}
           </p>
         </div>
       </SheetContent>

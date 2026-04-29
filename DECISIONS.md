@@ -65,31 +65,46 @@ Authoritative files:
 
 Implementation rules:
 
-- **Light-only WHOOP-thin direction** with **royal deep purple
-  (`#5B21B6`)** as the accent, used *subtly*: buttons, links, focus
-  rings, the logo bar, key dot accents. **Not** a flood colour. (Locked
-  in Apr 26, 2026; supersedes the dark-only / amber direction below.)
+- **Light-only warm-cream + warm-ink direction.** The default surface is
+  `--bg-canvas` (`#F3ECE2`, warm cream). The brand "accent" is the warm
+  ink `--accent` (`#1C1A17`) used as the primary CTA fill, link colour,
+  focus ring, and logo bar. A separate **terracotta** `--promo`
+  (`#B54A30`) is reserved exclusively for the pre-order discount UI
+  (site-wide banner, strike-through pricing badge, email-modal CTA).
+  (Locked Apr 29, 2026; supersedes the royal-purple direction below.)
 - **Light-only.** `<html>` carries no `dark` class; tokens live under
-  `:root`. There is no dark-mode toggle.
+  `:root`. There is no dark-mode toggle. Inverted dark sections use the
+  `bg-inverted` (`--bg-ink`) utility — used at most twice per page (the
+  comparison band and the final CTA, non-adjacent).
+- **No pure white.** Cards live on `--bg-elevated` / `--bg-raised` cream
+  surfaces; the canvas itself is `--bg-canvas`.
+- **Pill buttons by default.** `components/ui/button.tsx` uses
+  `rounded-full` in its base CVA. Cards still use `rounded-lg` /
+  `rounded-xl`.
 - **Display font: Inter Tight** at light weights (400 for the largest
   display sizes, 500 for headings). **Body font: Inter.** No third
   font; Geist was deleted in the Apr 26, 2026 revamp.
-- **Zero photography in v1.** Section "imagery slots" are abstract
-  light-canvas gradient panels + SVG glyphs (`design.md` §9). The home
-  page also includes an `AppShowcase` section with three pure-CSS phone
-  mockups whose abstract gradient screens are placeholders for real
-  app screenshots.
+- **Zero photography in v1.** Section imagery is abstract warm gradient
+  panels + SVG glyphs (`design.md` §9). The home page hero ships a
+  labelled product-image placeholder tile; the `AppShowcase` swipe
+  gallery ships pure-CSS phone mockups; the PDP ships a "Product
+  photography TBD" tile. Each gets swapped for real assets when the
+  design team supplies them.
 - **No social-proof / athlete grid on the home page** (§6). The
-  analogous visual slot is the `Science` research-citation section.
+  analogous visual slot is the comparison band (GripFit vs a standard
+  dynamometer).
 - Final logo and tagline are **TBD** — see §16. The current wordmark is
   inline SVG inside `components/layout/Logo.tsx`; replace when the
   final mark lands.
 
-> **Revision history.** The previous identity was a dark-only,
-> amber-accent (`#FF6A00`) direction (locked Apr 26, 2026 morning,
-> reversed Apr 26, 2026 afternoon). The original placeholder identity
-> was a violet "Ethereal Tech" set deleted along with the
-> `DESIGN_SYSTEM/` folder during the same-day revamp.
+> **Revision history.** The Apr 29, 2026 revamp replaced the prior
+> royal-purple direction (locked Apr 26, 2026 PM) with the warm-cream +
+> warm-ink palette and added the `--promo` terracotta token for the
+> discount UI. Earlier still: the placeholder violet "Ethereal Tech"
+> identity that came with the original `DESIGN_SYSTEM/` folder, then a
+> dark-only / amber-accent (`#FF6A00`) direction (locked Apr 26, 2026
+> AM, reversed Apr 26, 2026 PM), then the royal-purple direction
+> (`#5B21B6`, locked Apr 26, 2026 PM, reversed Apr 29, 2026).
 
 ---
 
@@ -111,17 +126,34 @@ Implementation rules:
 Phase 1 product list:
 
 - **GripFit (base device)**
-  - Sold as a **pre-order SKU** through normal Shopify cart + checkout (resolved in Q3).
-  - CTAs may read "Pre-order" but the mechanic is the standard Storefront-API cart flow described in §7.
-  - There is **no separate waitlist email capture** in v1.
-  - Variants: none
-  - Price: $95
-  - Inventory: tracked via Shopify (use Shopify pre-order / continue-selling-when-out-of-stock setting; expected-ship date displayed on PDP)
-  - Weight: ~2 lbs (placeholder, close to final)
-  - Photos: minimum 5 — hero, side, in-use, app pairing, packaging
-  - Description: drafted in Shopify admin; marketing pages link/reference
+  - **v1 sells via an external crowdfunding campaign**, not Shopify
+    (resolved Apr 29, 2026 — supersedes the prior Q3 "Shopify pre-order"
+    decision). All "Pre-order" / "Back the campaign" CTAs hand off to
+    `externalLinks.crowdfundingUrl` (defined in `lib/config.ts`).
+  - List price: $95. Pre-order discount: **50% off** (sale price $47.50)
+    plus **free US shipping**. Discount config lives in
+    `lib/config.ts → discountConfig.preorder` so updating the percent or
+    free-shipping toggle only touches one file.
+  - First-visit email-capture modal offers an additional **30% off**
+    (`discountConfig.email`) for a code emailed back. v1 implementation
+    logs to the Resend stub (no DB) and returns success — fulfilment
+    happens manually until the crowdfunding platform is live.
+  - There is **no separate waitlist email capture** beyond the discount
+    modal.
+  - Variants: none.
+  - Photos: minimum 5 — hero, side, in-use, app pairing, packaging.
+    Currently placeholders (`design.md` §9).
+  - Description: marketing copy lives in TSX (`§10`); long-form is
+    eventually owned by Shopify admin in v2 when commerce relights.
 
-Subscription products: **None on Shopify.** App subscriptions stay in StoreKit 2.
+Subscription products: **None on Shopify in v1** (Shopify itself is
+parked). App subscriptions stay in StoreKit 2.
+
+> **Revision history.** Q3 was originally "Shopify pre-order SKU"
+> (resolved Apr 26, 2026). It was reopened and re-resolved on Apr 29,
+> 2026 in favour of the external crowdfunding model above. The
+> `lib/shopify/` client and its `lib/cart/` neighbour are intentionally
+> retained on disk for v2 — see §7 and §16 Q3.
 
 ---
 
@@ -148,15 +180,26 @@ Shopify on `checkout.gripfit.com`.
 
 ## 7. Cart and Checkout Decisions
 
-| Item | Decision |
+**v1: no on-site cart.** Pre-orders hand off to the external
+crowdfunding campaign (Decisions.md §5, §16 Q3, Q10). The table below
+documents the planned v2 cart so that the parked `lib/shopify/` and
+`lib/cart/` clients have a forward-compatible spec to wake up to:
+
+| Item | Decision (planned for v2) |
 | --- | --- |
 | Cart UI pattern | Drawer (slides in from right) |
 | Cart persistence | Shopify cart ID in HTTP-only cookie + localStorage backup |
 | Checkout host | Shopify (branded `checkout.gripfit.com` subdomain) |
-| Optimistic UI on add-to-cart | No (v1) — ship correct, polish later |
+| Optimistic UI on add-to-cart | No — ship correct, polish later |
 | Quantity selector | Yes, in cart drawer |
 | Promo code field | Defer to Shopify checkout (don't replicate in cart) |
 | Cross-sell in cart | None (single product) |
+
+**Implementation rule for v1:** no component imports anything from
+`lib/shopify/` or `lib/cart/`. The `/product` page reads from
+`productConfig` + `discountConfig` only. The dormant clients stay on
+disk so v2 doesn't have to rewrite them; they're excluded from the
+runtime bundle by virtue of having no consumers.
 
 ---
 
@@ -179,6 +222,7 @@ links an order # to an App Store account.
 | Form | Backend | Notification |
 | --- | --- | --- |
 | Contact | Server Action → Resend | Email to shared Gmail (`support@gripfit.com` alias) |
+| Email-discount modal (30% off, first-visit) | Server Action → Resend (stubbed) | Email back the code to the visitor; suppress modal via localStorage afterwards. Implementation lives in `components/marketing/EmailDiscountModal.tsx` + colocated action. |
 
 ---
 
@@ -329,12 +373,12 @@ Stop for review after each step. Do not proceed to the next step without explici
   - `app/layout.tsx` wires Nav + `<main>` + Footer.
   - `app/not-found.tsx` — branded 404.
   - Build prep: `.vercelignore` (excludes `iOS_App_Images/`, agent transcripts), `app/sitemap.ts`, `app/robots.ts`.
-- [x] **5. Home page static structure** —
-  - `components/marketing/{Hero,Features,HowItWorks,InTheBox,Science,CTA}.tsx` — WHOOP-style editorial sections (revamped Apr 26, 2026). Section order is Hero → Features → HowItWorks → InTheBox → Science → CTA.
-  - Explicitly NO athlete grid / member-quote section per §6. The analogous visual slot is `Science` (grip-strength research citations).
-  - `InTheBox` replaces the typical 3-tier "Choose a membership" pricing grid with a single bold pricing card — GripFit is a single-SKU pre-order (§5).
-  - `app/page.tsx` composes the six sections.
-  - Hero CTAs route to `/product` (pre-order) and `/science` (educational); both link-only — no Shopify dependency.
+- [x] **5. Home page static structure** — *Apr 29, 2026 revamp*
+  - `components/marketing/{Hero,Features,Readiness,AppShowcase,Comparison,InTheBox}.tsx` — warm-cream editorial sections. Order: Hero → Features → Readiness → AppShowcase → Comparison → InTheBox. (Earlier line-up was Hero → Features → HowItWorks → InTheBox → AppShowcase → Science → CTA — `HowItWorks`, `Science`, and `CTA` were deleted; `Readiness` and `Comparison` were added.)
+  - Explicitly NO athlete grid / member-quote section per §6. The analogous visual slot is `Comparison` (GripFit vs standard dynamometer on a `bg-inverted` band).
+  - `InTheBox` is the single bold pricing card and lives at the bottom of the page; it absorbed the deleted `CTA` section's "Talk to us" link (§5).
+  - `components/marketing/{DiscountBanner,EmailDiscountModal,PricingDisplay}.tsx` ship the pre-order discount UI: site-wide terracotta banner above the nav, first-visit 30%-off email-capture modal on the home page, and a strike-through pricing widget reused by Hero / InTheBox / PDP. All read from `lib/config.ts → discountConfig`.
+  - Hero / InTheBox CTAs route to `externalLinks.crowdfundingUrl`; `/science` link is the secondary CTA.
 - [x] **Pre-deploy stubs** (so Vercel preview shows every route) —
   - `app/product/page.tsx` — graceful fallback to `productConfig.base` + design-system specs grid when Shopify env is missing; live Shopify product when configured. Add-to-cart deliberately disabled until Step 6 / 7.
   - `app/science/page.tsx`, `app/setup/page.tsx`, `app/privacy/page.tsx`, `app/terms/page.tsx` — placeholder copy in TSX.
@@ -365,13 +409,18 @@ Out of scope for v1: `/about`, `/faq`, `/shipping`, blog. Home page does
 - Long-copy pages (`/setup`, `/privacy`, `/terms`) are **TSX**, not MDX.
   No `content/` folder, no `@next/mdx` dependency.
 
-**Q3 — Pre-order vs in-stock model. ✅ RESOLVED.**
-Pre-order via Shopify, using the standard Storefront-API cart drawer +
-Shopify-hosted checkout. Product is configured as a pre-order SKU on
-Shopify (continue-selling-when-out-of-stock + expected-ship-date messaging).
-**No separate waitlist email capture.** The design-system Hero "Pre-order"
-button copy is fine; the design-system CTA section's waitlist email form is
-**replaced** by a final pre-order CTA that opens the cart drawer.
+**Q3 — Pre-order vs in-stock model. ✅ RE-RESOLVED Apr 29, 2026.**
+v1 routes pre-orders through an **external crowdfunding campaign**
+(Kickstarter / Indiegogo / etc., URL TBD — see Q10). Shopify is parked.
+All "Pre-order" / "Back the campaign" CTAs hand off to
+`externalLinks.crowdfundingUrl`. The pre-order discount is **50% off +
+free US shipping**, baked into `discountConfig.preorder`. Visitors who
+provide their email get an **additional 30% off** code via the
+`EmailDiscountModal` (`discountConfig.email`).
+
+> The Apr 26, 2026 resolution (Shopify pre-order SKU) was superseded
+> when crowdfunding became the v1 pre-launch strategy. The
+> `lib/shopify/` client stays on disk for v2.
 
 **Q4 — Product naming. ✅ RESOLVED.** Canonical name is **"GripFit"**
 (no "Pro" suffix). Used in all copy, hero, PDP H1, and Shopify product
@@ -380,29 +429,47 @@ handle (`gripfit`). Resolved during the Apr 26, 2026 UI revamp.
 **Q5 — Tagline.** Current placeholder in `siteConfig.tagline` is
 *"Force is data."* Confirm or replace before launch. The hero H1 also
 uses this string — bumping it requires a touch in
-`components/marketing/Hero.tsx` and `components/marketing/CTA.tsx`.
+`components/marketing/Hero.tsx` and `lib/config.ts`.
 
 **Q6 — Logo.** The placeholder `DESIGN_SYSTEM/assets/logo.svg` was
 deleted with the rest of the placeholder identity. The current wordmark
 is inline SVG inside `components/layout/Logo.tsx` — uppercase "GRIPFIT"
 in Inter Tight medium with a three-bar grip glyph whose middle bar is
-the royal-purple accent. Replace this single file when the final mark
-lands; no other component references the logo asset
+the warm-ink accent (`--accent`). Replace this single file when the
+final mark lands; no other component references the logo asset
 directly.
 
-**Q7 — Domain + Shopify store URL (§4).** Both still TBD. Not blocking
-scaffold, but blocking deployment and Storefront token setup.
+**Q7 — Domain (§4).** Apex domain still TBD. Not blocking scaffold,
+but blocking production deployment. The Shopify store URL portion of
+this question is parked alongside Shopify itself in v1.
 
 **Q8 — App Store link target.** Several sections will want a "Get the app"
 or "Pair your device" CTA pointing to the iOS app. Provide the App Store
 URL (or confirm "TBD — link disabled until App Store approval").
 
-**Q9 — App screenshots for `AppShowcase`.** The home page now includes a
-3-phone "App Store style" `components/marketing/AppShowcase.tsx` section
-(Apr 26, 2026 PM revamp). The phone screens are abstract gradient
-mockups labelled *Strength / Readiness / History*. Drop the real iOS
-screenshots into `public/app/` and swap the abstract `<PhoneScreen>`
-graphics for `next/image` references when the design team supplies
-them. Until then the phones are intentionally generic to avoid mocking
-real Apple trade dress.
+**Q9 — App screenshots for `AppShowcase`.** The home page swipe gallery
+in `components/marketing/AppShowcase.tsx` ships pure-CSS phone mockups
+(*Strength / Readiness / History*). Drop the real iOS screenshots into
+`public/app/` and swap the abstract `<PhoneScreen>` graphics for
+`next/image` references when the design team supplies them. Until then
+the phones are intentionally generic to avoid mocking real Apple trade
+dress.
+
+**Q10 — Crowdfunding URL.** v1 pre-orders are taken on an external
+crowdfunding campaign (§5, §16 Q3). The platform and exact URL are
+**TBD**; the placeholder lives in `lib/config.ts` as
+`externalLinks.crowdfundingUrl` (currently `"#"` until the campaign
+goes live). When the URL is locked, update `lib/config.ts` only — every
+"Pre-order" / "Back the campaign" CTA on the site already routes
+through that constant.
+
+**Q11 — Hero product image.** The hero now reserves a right-column
+slot for a product render or photograph. Currently a labelled placeholder
+tile (`design.md` §9). Drop the final art into `public/product/hero.*`
+and reference it via `next/image` once the design team supplies it.
+
+**Q12 — Specs change wording.** The Apr 29, 2026 revamp removed the
+"Specifications are subject to minor change before the production run
+ships…" disclaimer from the PDP. If legal needs that hedge back, add
+it as a footnote on `/product` only (not on every spec section).
 

@@ -88,35 +88,55 @@
   --color-bg-elevated: var(--bg-elevated);
   --color-bg-raised: var(--bg-raised);
   --color-bg-deep: var(--bg-deep);
+  --color-bg-ink: var(--bg-ink);
+  --color-bg-ink-elevated: var(--bg-ink-elevated);
+
   --color-accent-bright: var(--accent-bright);
   --color-accent-deep: var(--accent-deep);
   --color-accent-soft: var(--accent-soft);
   --color-accent-glow: var(--accent-glow);
+
+  --color-promo: var(--promo);
+  --color-promo-bright: var(--promo-bright);
+  --color-promo-deep: var(--promo-deep);
+  --color-promo-soft: var(--promo-soft);
+  --color-promo-foreground: var(--promo-foreground);
+
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-tertiary: var(--text-tertiary);
   --color-text-disabled: var(--text-disabled);
+  --color-text-on-ink: var(--text-on-ink);
+  --color-text-on-ink-secondary: var(--text-on-ink-secondary);
+  --color-text-on-ink-tertiary: var(--text-on-ink-tertiary);
+
   --color-border-hairline: var(--border-hairline);
   --color-border-default: var(--border-default);
   --color-border-strong: var(--border-strong);
+  --color-border-on-ink: var(--border-on-ink);
+
   --color-state-success: var(--state-success);
   --color-state-warning: var(--state-warning);
   --color-state-danger: var(--state-danger);
   --color-state-info: var(--state-info);
 
-  /* Radii — sharper, more editorial than the shadcn default scale.
+  /* Radii — softer than the previous editorial scale to match the
+     Oura-leaning warm-cream direction. Buttons default to a full pill
+     via components/ui/button.tsx; cards use lg/xl.
      Values per design.md §5. */
-  --radius: 8px;
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 20px;
-  --radius-2xl: 28px;
-  --radius-3xl: 36px;
+  --radius: 12px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-3xl: 40px;
 
   /* GripFit shadows — exposed as Tailwind shadow-* utilities. */
-  --shadow-glow: 0 0 32px rgba(91, 33, 182, 0.18);
-  --shadow-glow-lg: 0 0 64px rgba(91, 33, 182, 0.24);
+  --shadow-glow: 0 0 28px rgba(28, 26, 23, 0.12);
+  --shadow-glow-lg: 0 0 56px rgba(28, 26, 23, 0.16);
+  --shadow-card: 0 4px 24px rgba(28, 26, 23, 0.06);
+  --shadow-card-hover: 0 8px 36px rgba(28, 26, 23, 0.10);
 
   /* Display type scale — utility names text-display-{size}.
      WHOOP-thin: lighter weights + slightly relaxed tracking on big sizes. */
@@ -157,49 +177,75 @@
 }
 
 /* ============================================================
-   GripFit light theme (the only theme — light-only since the
-   Apr 26, 2026 revamp). Tokens map 1:1 to the table in
+   GripFit warm-cream theme (the only theme — light-only since the
+   Apr 26, 2026 revamp; warm-cream + warm-ink palette adopted in
+   the Apr 29, 2026 revamp). Tokens map 1:1 to the table in
    design.md §2.
    ============================================================ */
 :root {
   /* === GripFit raw tokens (read by design.md and components) === */
-  --bg-canvas: #ffffff;
-  --bg-elevated: #fafafa;
-  --bg-raised: #f4f4f5;
-  --bg-deep: #efeff1;
 
-  /* Royal deep purple — used SUBTLY (buttons, links, focus rings, key accents). */
-  --accent: #5b21b6;
-  --accent-bright: #6d28d9;
-  --accent-deep: #4c1d95;
-  --accent-soft: rgba(91, 33, 182, 0.08);
-  --accent-glow: rgba(91, 33, 182, 0.18);
+  /* Surfaces — warm cream canvas, slightly cooler ink for dark bands.
+     The cream is just-off-white with a touch of warm beige; pure white
+     reads sterile against this palette and breaks the editorial mood. */
+  --bg-canvas: #f3ece2;
+  --bg-elevated: #f8f3ea;
+  --bg-raised: #ede4d5;
+  --bg-deep: #e6dccb;
+  --bg-ink: #1c1a17;
+  --bg-ink-elevated: #28251f;
 
-  --text-primary: #0a0a0b;
-  --text-secondary: rgba(10, 10, 11, 0.65);
-  --text-tertiary: rgba(10, 10, 11, 0.45);
-  --text-disabled: rgba(10, 10, 11, 0.25);
+  /* `--accent` is the brand "ink" — a deep warm charcoal used as the
+     primary CTA fill, link colour, and key accent. Solid; the soft tint
+     handles hover surfaces. DO NOT reassign this token to the soft tint
+     downstream; that breaks every text-accent / bg-accent / bg-primary
+     consumer (see git history Apr 26, 2026 PM). */
+  --accent: #1c1a17;
+  --accent-bright: #2a2620;
+  --accent-deep: #0f0d0a;
+  --accent-soft: rgba(28, 26, 23, 0.06);
+  --accent-glow: rgba(28, 26, 23, 0.12);
 
-  --border-hairline: rgba(10, 10, 11, 0.06);
-  --border-default: rgba(10, 10, 11, 0.1);
-  --border-strong: rgba(10, 10, 11, 0.18);
+  /* Promo accent — used ONLY for the discount banner / pre-order
+     savings badge / email-modal CTA. Warm terracotta sits inside the
+     cream palette; it pops against `--bg-canvas` without screaming. */
+  --promo: #b54a30;
+  --promo-bright: #c95a40;
+  --promo-deep: #8a3520;
+  --promo-soft: rgba(181, 74, 48, 0.08);
+  --promo-foreground: #ffffff;
 
-  --state-success: #16a34a;
-  --state-warning: #d97706;
-  --state-danger: #dc2626;
-  --state-info: #2563eb;
+  /* Text — warm near-black on cream, cream on ink. */
+  --text-primary: #1c1a17;
+  --text-secondary: rgba(28, 26, 23, 0.65);
+  --text-tertiary: rgba(28, 26, 23, 0.45);
+  --text-disabled: rgba(28, 26, 23, 0.25);
+  --text-on-ink: #f3ece2;
+  --text-on-ink-secondary: rgba(243, 236, 226, 0.65);
+  --text-on-ink-tertiary: rgba(243, 236, 226, 0.45);
+
+  /* Borders — warm hairlines on cream, cream hairlines on ink. */
+  --border-hairline: rgba(28, 26, 23, 0.06);
+  --border-default: rgba(28, 26, 23, 0.12);
+  --border-strong: rgba(28, 26, 23, 0.2);
+  --border-on-ink: rgba(243, 236, 226, 0.14);
+
+  --state-success: #5a7a3e;
+  --state-warning: #b88718;
+  --state-danger: #b54a30;
+  --state-info: #2f5e7a;
 
   /* === shadcn semantic tokens — point everything at GripFit raw tokens === */
   --background: var(--bg-canvas);
   --foreground: var(--text-primary);
   --card: var(--bg-canvas);
   --card-foreground: var(--text-primary);
-  --popover: var(--bg-canvas);
+  --popover: var(--bg-elevated);
   --popover-foreground: var(--text-primary);
 
-  /* `primary` is the buy-CTA fill. White text on royal purple. */
+  /* `primary` is the buy-CTA fill. Cream text on warm ink. */
   --primary: var(--accent);
-  --primary-foreground: #ffffff;
+  --primary-foreground: var(--text-on-ink);
 
   --secondary: var(--bg-elevated);
   --secondary-foreground: var(--text-primary);
@@ -207,15 +253,9 @@
   --muted: var(--bg-elevated);
   --muted-foreground: var(--text-secondary);
 
-  /* `--accent` is the brand royal-purple (defined above). DO NOT
-     reassign it to the soft tint — `text-accent` / `bg-accent` /
-     `bg-primary` all resolve through this token, and overwriting it
-     with an 8% alpha makes every accent on the site invisible. The
-     shadcn-stock components in this repo (button.tsx) use `bg-muted`
-     for hover surfaces, not `bg-accent`, so we don't need to overload
-     this slot. Reach for `bg-accent-soft` directly when you want the
-     soft tint hover. */
-  --accent-foreground: #ffffff;
+  /* When something has bg-accent, foreground should still be cream so
+     it reads as "filled ink button" — see Button default variant. */
+  --accent-foreground: var(--text-on-ink);
 
   --destructive: var(--state-danger);
   --success: var(--state-success);
@@ -223,8 +263,8 @@
   --info: var(--state-info);
 
   --border: var(--border-default);
-  --input: rgba(10, 10, 11, 0.04);
-  --ring: rgba(91, 33, 182, 0.45);
+  --input: rgba(28, 26, 23, 0.04);
+  --ring: rgba(28, 26, 23, 0.45);
 
   /* Charts (semantic state palette). */
   --chart-1: var(--accent);
@@ -237,11 +277,11 @@
   --sidebar: var(--bg-elevated);
   --sidebar-foreground: var(--text-primary);
   --sidebar-primary: var(--accent);
-  --sidebar-primary-foreground: #ffffff;
+  --sidebar-primary-foreground: var(--text-on-ink);
   --sidebar-accent: var(--accent-soft);
   --sidebar-accent-foreground: var(--accent-deep);
   --sidebar-border: var(--border-default);
-  --sidebar-ring: rgba(91, 33, 182, 0.45);
+  --sidebar-ring: rgba(28, 26, 23, 0.45);
 }
 
 @layer base {
@@ -271,7 +311,7 @@
     @apply font-display;
     font-feature-settings: "ss01", "cv11";
   }
-  /* Selection — branded purple tint. */
+  /* Selection — warm ink tint. */
   ::selection {
     background-color: var(--accent-soft);
     color: var(--accent-deep);
@@ -293,29 +333,37 @@
     font-weight: 600;
   }
 
-  /* Subtle SVG noise overlay — used sparingly on inverted (dark) bands
-     like the CTA strip. Rendered at low opacity. */
+  /* Subtle SVG noise overlay — used sparingly on inverted (dark) bands.
+     Rendered at low opacity. */
   .bg-noise {
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.025 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
     background-size: 200px 200px;
   }
 
-  /* Soft purple wash — used in hero / CTA backgrounds at low opacity.
-     SUBTLE only; the rule per Decisions §3 is purple is not a flood
-     colour. */
-  .bg-purple-wash {
+  /* Soft warm wash — used in hero / feature backgrounds at low opacity.
+     Replaces the previous `bg-purple-wash` utility. */
+  .bg-warm-wash {
     background-image: radial-gradient(
       ellipse at top,
-      var(--accent-soft) 0%,
+      rgba(28, 26, 23, 0.05) 0%,
       transparent 60%
     );
   }
 
-  /* Inverted dark band — used at most ONCE on the home page (the final
-     CTA strip) so the page still feels light-only but punches at the
-     end. Phones in AppShowcase float over the deep grey band, not this. */
+  /* Faint terracotta wash — only used on the discount banner / promo
+     surfaces, never on a primary content section. */
+  .bg-promo-wash {
+    background-image: radial-gradient(
+      ellipse at top,
+      var(--promo-soft) 0%,
+      transparent 65%
+    );
+  }
+
+  /* Inverted dark band — warm charcoal section. Used on the comparison
+     section and the dark CTA strip; cream text reads on top. */
   .bg-inverted {
-    background-color: #0a0a0b;
-    color: #ffffff;
+    background-color: var(--bg-ink);
+    color: var(--text-on-ink);
   }
 }

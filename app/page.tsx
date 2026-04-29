@@ -1,36 +1,38 @@
 import { AppShowcase } from "@/components/marketing/AppShowcase";
-import { CTA } from "@/components/marketing/CTA";
+import { Comparison } from "@/components/marketing/Comparison";
+import { EmailDiscountModal } from "@/components/marketing/EmailDiscountModal";
 import { Features } from "@/components/marketing/Features";
 import { Hero } from "@/components/marketing/Hero";
-import { HowItWorks } from "@/components/marketing/HowItWorks";
 import { InTheBox } from "@/components/marketing/InTheBox";
-import { Science } from "@/components/marketing/Science";
+import { Readiness } from "@/components/marketing/Readiness";
 
 /**
- * Home page composition.
+ * Home page composition (Apr 29, 2026 revamp).
  *
- * Section order mirrors WHOOP's "wear daily → complete picture →
- * choose a membership → backed by PhDs / worn by MVPs → final CTA"
- * pacing, adapted for GripFit:
+ *   Hero        → editorial headline + product image + pre-order pricing
+ *   Features    → "complete picture" feature grid
+ *   Readiness   → benefit cards explaining how the readiness score is built
+ *   AppShowcase → swipe gallery (image-right, paragraph-left per slide)
+ *   Comparison  → GripFit vs standard dynamometer (warm-charcoal band)
+ *   InTheBox    → final pricing card + Talk-to-us CTA
  *
- *   Hero        → editorial headline + stat strip
- *   Features    → "complete picture" feature grid (real-time / bilateral / readiness / trends / hardware)
- *   HowItWorks  → 3-step rail (Squeeze / Curve / Readiness)
- *   InTheBox    → single bold pricing card (replaces 3-tier "Choose a membership")
- *   AppShowcase → 3 phone mockups (App Store style) — placeholder until real screenshots ship
- *   Science     → research citations (replaces "Backed by PhDs / worn by MVPs"; Decisions.md §6 excludes social proof)
- *   CTA         → final pre-order push
+ *   EmailDiscountModal → first-visit 30%-off email capture (suppressed via localStorage)
+ *
+ * Removed in this revamp: HowItWorks (3-step rail) and the dedicated
+ * CTA section (it duplicated InTheBox). The Science marketing component
+ * is no longer rendered on the home page; it still ships as
+ * `components/marketing/Science.tsx` and is reused inside `/science`.
  */
 export default function HomePage() {
   return (
     <>
       <Hero />
       <Features />
-      <HowItWorks />
-      <InTheBox />
+      <Readiness />
       <AppShowcase />
-      <Science />
-      <CTA />
+      <Comparison />
+      <InTheBox />
+      <EmailDiscountModal />
     </>
   );
 }

@@ -38,7 +38,7 @@ const steps = [
 export default function SetupPage() {
   return (
     <article className="mx-auto w-full max-w-4xl px-5 py-20 md:px-10 md:py-28">
-      <p className="text-eyebrow mb-6 text-accent">Setup guide</p>
+      <p className="text-eyebrow mb-6 text-text-tertiary">Setup guide</p>
       <h1 className="font-display text-display-xl text-text-primary">
         Up and running in five minutes.
       </h1>

@@ -3,15 +3,17 @@ import Link from "next/link";
 import { Logo } from "@/components/layout/Logo";
 import { MobileMenu } from "@/components/layout/MobileMenu";
 import { Button } from "@/components/ui/button";
-import { primaryNavRoutes, routes } from "@/lib/routes";
+import { discountConfig, externalLinks } from "@/lib/config";
+import { primaryNavRoutes } from "@/lib/routes";
 
 /**
  * Sticky top navigation. Server component — interactivity (mobile menu,
  * cart drawer when it lands in Step 7) is delegated to small client islands.
  *
- * Light editorial nav: white canvas, hairline bottom border, single
- * royal-purple Pre-order CTA on the right, generous horizontal padding
- * so the wordmark + nav links breathe at any width.
+ * Editorial nav on the warm-cream canvas: hairline bottom border,
+ * single warm-ink Pre-order pill CTA on the right (routes to the
+ * crowdfunding URL), generous horizontal padding so the wordmark + nav
+ * links breathe at any width.
  */
 export function Nav() {
   return (
@@ -38,11 +40,11 @@ export function Nav() {
 
         <div className="flex flex-1 items-center justify-end gap-3">
           <Button
-            render={<Link href={routes.product.href} />}
+            render={<Link href={externalLinks.crowdfundingUrl} />}
             size="sm"
-            className="hidden h-9 px-5 text-[13px] font-semibold uppercase tracking-[0.08em] hover:shadow-[0_0_24px_var(--accent-glow)] md:inline-flex"
+            className="hidden h-9 px-5 text-[13px] font-semibold uppercase tracking-[0.08em] hover:shadow-[var(--shadow-glow)] md:inline-flex"
           >
-            Pre-order
+            {discountConfig.preorder.ctaLabel}
           </Button>
           <MobileMenu />
         </div>

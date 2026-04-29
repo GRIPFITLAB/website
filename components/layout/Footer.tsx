@@ -27,7 +27,7 @@ export function Footer() {
     <footer className="relative mt-24 overflow-hidden border-t border-border-hairline bg-bg-deep">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent"
+        className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent"
       />
 
       <div className="mx-auto w-full max-w-7xl px-5 py-16 md:px-10 md:py-20">

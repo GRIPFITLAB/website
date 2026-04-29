@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 
 import { Footer } from "@/components/layout/Footer";
 import { Nav } from "@/components/layout/Nav";
+import { DiscountBanner } from "@/components/marketing/DiscountBanner";
 import { siteConfig } from "@/lib/config";
 
 import "./globals.css";
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#f3ece2",
   colorScheme: "light",
 };
 
@@ -46,6 +47,7 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-full flex-col bg-background text-foreground">
+        <DiscountBanner />
         <Nav />
         <main id="main" className="flex-1">
           {children}
