@@ -28,8 +28,8 @@ Project-specific rules for AI assistants. Read these before the Next.js notes be
    for v2 — files stay, but no component should `import` from it
    (Decisions.md §7, §16 Q3). No waitlist email capture, no customer
    accounts (Decisions.md §8). The discount UI is built into the v1
-   pages: a 50%-off + free-shipping pre-order banner on every page, plus
-   an email-capture modal that offers an additional 30%-off on first
+   pages: a 40%-off + free-shipping Kickstarter pre-order banner on every
+   page, plus an email-capture modal that stacks an additional 15%-off on first
    visit (suppressed via localStorage afterwards).
 5. **No social-proof / athlete grid on the home page** (Decisions.md §6).
    The home page comparison section pitting GripFit against a standard

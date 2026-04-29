@@ -16,7 +16,7 @@ import { Readiness } from "@/components/marketing/Readiness";
  *   Comparison  → GripFit vs standard dynamometer (warm-charcoal band)
  *   InTheBox    → final pricing card + Talk-to-us CTA
  *
- *   EmailDiscountModal → first-visit 30%-off email capture (suppressed via localStorage)
+ *   EmailDiscountModal → first-visit extra-15%-off email capture (stacks on Kickstarter, suppressed via localStorage)
  *
  * Removed in this revamp: HowItWorks (3-step rail) and the dedicated
  * CTA section (it duplicated InTheBox). The Science marketing component

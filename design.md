@@ -250,8 +250,8 @@ plus a faint `border-strong`.
 ### Discount banner & promo pills
 
 The pre-order site-wide banner is `bg-promo text-promo-foreground`,
-sticky just under the nav, dismissable. Promo pills (50%-OFF,
-FREE-SHIPPING) inline use `border-promo text-promo` outline-style at
+sticky just under the nav, dismissable. Promo pills (40%-OFF,
+FREE-SHIPPING, EXTRA-15%-OFF) inline use `border-promo text-promo` outline-style at
 small sizes. Strike-through pricing renders the original price with
 `line-through text-text-tertiary` and the sale price as the live
 display number.

@@ -130,14 +130,17 @@ Phase 1 product list:
     (resolved Apr 29, 2026 — supersedes the prior Q3 "Shopify pre-order"
     decision). All "Pre-order" / "Back the campaign" CTAs hand off to
     `externalLinks.crowdfundingUrl` (defined in `lib/config.ts`).
-  - List price: $95. Pre-order discount: **50% off** (sale price $47.50)
-    plus **free US shipping**. Discount config lives in
+  - List price: $175. Kickstarter pre-order discount: **40% off** (sale
+    price $105) plus **free US shipping**. Discount config lives in
     `lib/config.ts → discountConfig.preorder` so updating the percent or
     free-shipping toggle only touches one file.
-  - First-visit email-capture modal offers an additional **30% off**
-    (`discountConfig.email`) for a code emailed back. v1 implementation
-    logs to the Resend stub (no DB) and returns success — fulfilment
-    happens manually until the crowdfunding platform is live.
+  - First-visit email-capture modal offers an **extra 15% off**
+    (`discountConfig.email`) that **stacks on top of the 40% Kickstarter
+    discount** — combined effective discount on the list price is
+    1 − 0.6 × 0.85 = 49% (stacked sale price $89.25, computed by
+    `getStackedPreorderPricing()`). v1 implementation logs to the Resend
+    stub (no DB) and returns success — fulfilment happens manually until
+    the crowdfunding platform is live.
   - There is **no separate waitlist email capture** beyond the discount
     modal.
   - Variants: none.
@@ -222,7 +225,7 @@ links an order # to an App Store account.
 | Form | Backend | Notification |
 | --- | --- | --- |
 | Contact | Server Action → Resend | Email to shared Gmail (`support@gripfit.com` alias) |
-| Email-discount modal (30% off, first-visit) | Server Action → Resend (stubbed) | Email back the code to the visitor; suppress modal via localStorage afterwards. Implementation lives in `components/marketing/EmailDiscountModal.tsx` + colocated action. |
+| Email-discount modal (extra 15% off, stacks on Kickstarter, first-visit) | Server Action → Resend (stubbed) | Email back the code to the visitor; suppress modal via localStorage afterwards. Implementation lives in `components/marketing/EmailDiscountModal.tsx` + colocated action. |
 
 ---
 
@@ -377,7 +380,7 @@ Stop for review after each step. Do not proceed to the next step without explici
   - `components/marketing/{Hero,Features,Readiness,AppShowcase,Comparison,InTheBox}.tsx` — warm-cream editorial sections. Order: Hero → Features → Readiness → AppShowcase → Comparison → InTheBox. (Earlier line-up was Hero → Features → HowItWorks → InTheBox → AppShowcase → Science → CTA — `HowItWorks`, `Science`, and `CTA` were deleted; `Readiness` and `Comparison` were added.)
   - Explicitly NO athlete grid / member-quote section per §6. The analogous visual slot is `Comparison` (GripFit vs standard dynamometer on a `bg-inverted` band).
   - `InTheBox` is the single bold pricing card and lives at the bottom of the page; it absorbed the deleted `CTA` section's "Talk to us" link (§5).
-  - `components/marketing/{DiscountBanner,EmailDiscountModal,PricingDisplay}.tsx` ship the pre-order discount UI: site-wide terracotta banner above the nav, first-visit 30%-off email-capture modal on the home page, and a strike-through pricing widget reused by Hero / InTheBox / PDP. All read from `lib/config.ts → discountConfig`.
+  - `components/marketing/{DiscountBanner,EmailDiscountModal,PricingDisplay}.tsx` ship the pre-order discount UI: site-wide terracotta banner above the nav, first-visit "extra 15% off" email-capture modal on the home page (stacks on the 40% Kickstarter discount), and a strike-through pricing widget reused by Hero / InTheBox / PDP. All read from `lib/config.ts → discountConfig`.
   - Hero / InTheBox CTAs route to `externalLinks.crowdfundingUrl`; `/science` link is the secondary CTA.
 - [x] **Pre-deploy stubs** (so Vercel preview shows every route) —
   - `app/product/page.tsx` — graceful fallback to `productConfig.base` + design-system specs grid when Shopify env is missing; live Shopify product when configured. Add-to-cart deliberately disabled until Step 6 / 7.
@@ -413,10 +416,12 @@ Out of scope for v1: `/about`, `/faq`, `/shipping`, blog. Home page does
 v1 routes pre-orders through an **external crowdfunding campaign**
 (Kickstarter / Indiegogo / etc., URL TBD — see Q10). Shopify is parked.
 All "Pre-order" / "Back the campaign" CTAs hand off to
-`externalLinks.crowdfundingUrl`. The pre-order discount is **50% off +
-free US shipping**, baked into `discountConfig.preorder`. Visitors who
-provide their email get an **additional 30% off** code via the
-`EmailDiscountModal` (`discountConfig.email`).
+`externalLinks.crowdfundingUrl`. The Kickstarter pre-order discount is
+**40% off + free US shipping** on a $175 list price, baked into
+`discountConfig.preorder` (sale price $105). Visitors who provide their
+email get an **additional 15% off** code via the `EmailDiscountModal`
+(`discountConfig.email`) that **stacks on top of the 40%** for a
+combined 49% off list (`getStackedPreorderPricing()`, $89.25).
 
 > The Apr 26, 2026 resolution (Shopify pre-order SKU) was superseded
 > when crowdfunding became the v1 pre-launch strategy. The
@@ -468,7 +473,15 @@ slot for a product render or photograph. Currently a labelled placeholder
 tile (`design.md` §9). Drop the final art into `public/product/hero.*`
 and reference it via `next/image` once the design team supplies it.
 
-**Q12 — Specs change wording.** The Apr 29, 2026 revamp removed the
+**Q12 — Pricing.** ✅ RESOLVED Apr 29, 2026 (late). List price set to
+**$175**, Kickstarter pre-order discount **40% off** (sale price $105),
+email-modal discount **extra 15% off** that **stacks on the Kickstarter
+discount** (combined 49% off list = $89.25, computed by
+`getStackedPreorderPricing()`). All values flow from `lib/config.ts →
+discountConfig`; no UI component encodes a percent or price literal.
+Replaces the earlier $95 / 50% / 30% line-up.
+
+**Q13 — Specs change wording.** The Apr 29, 2026 revamp removed the
 "Specifications are subject to minor change before the production run
 ships…" disclaimer from the PDP. If legal needs that hedge back, add
 it as a footnote on `/product` only (not on every spec section).

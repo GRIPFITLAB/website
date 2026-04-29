@@ -22,7 +22,7 @@ const STORAGE_KEY = "gripfit:email-discount:dismissed-v1";
 const APPEAR_DELAY_MS = 4500;
 
 /**
- * EmailDiscountModal — first-visit pop-up offering 30% off in exchange
+ * EmailDiscountModal — first-visit pop-up offering an extra 15% off in exchange
  * for an email address.
  *
  * Behaviour:
@@ -111,7 +111,7 @@ export function EmailDiscountModal() {
             />
 
             <p className="text-eyebrow mb-4 text-promo">
-              {discountConfig.email.percentOff * 100}% off pre-order
+              {discountConfig.email.label} · stacks on Kickstarter
             </p>
             <Dialog.Title className="font-display text-display-lg text-text-primary">
               {discountConfig.email.headline}

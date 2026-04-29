@@ -316,6 +316,46 @@
     background-color: var(--accent-soft);
     color: var(--accent-deep);
   }
+
+  /* Pointer-cursor on every interactive control.
+     Tailwind v4 dropped the `cursor: pointer` default on <button> to
+     match modern macOS-style UI conventions; we want it back so the
+     whole site feels clickable. Disabled controls revert to
+     `not-allowed`. Anything with `pointer-events: none` (the shadcn
+     button's disabled state, decorative wrappers, etc.) is unaffected
+     because the browser falls through to the underlying cursor. */
+  button,
+  [role="button"],
+  a[href],
+  [role="link"],
+  summary,
+  label[for],
+  select,
+  [role="tab"],
+  [role="menuitem"],
+  [role="menuitemcheckbox"],
+  [role="menuitemradio"],
+  [role="option"],
+  [role="switch"],
+  [role="checkbox"],
+  [role="radio"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="file"],
+  input[type="color"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"],
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    cursor: not-allowed;
+  }
 }
 
 /* ============================================================

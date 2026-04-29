@@ -33,7 +33,7 @@ export const productConfig = {
     name: "GripFit",
     handle: "gripfit",
     /** List price in USD. Sale price = list × (1 − discount %). */
-    fallbackPriceUSD: 95,
+    fallbackPriceUSD: 175,
     /**
      * v1 ships as a crowdfunding pre-order (Decisions.md §16 Q3).
      * The PDP / hero CTA copy reads "Pre-order" but routes to
@@ -53,23 +53,33 @@ export const productConfig = {
  */
 export const discountConfig = {
   preorder: {
-    /** 0–1. 0.5 = 50% off. */
-    percentOff: 0.5,
-    /** Surfaced to humans as "50% off". Computed; do not edit. */
+    /** 0–1. 0.4 = 40% off. */
+    percentOff: 0.4,
+    /** Surfaced to humans as "40% off". Computed; do not edit. */
     get label(): string {
       return `${Math.round(this.percentOff * 100)}% OFF`;
     },
     /** Sentence form for the banner. */
-    bannerCopy: "Pre-order: 50% off + free US shipping",
+    bannerCopy: "Kickstarter pre-order: 40% off + free US shipping",
     freeShipping: true,
     /** Where the banner / CTA routes — see externalLinks.crowdfundingUrl. */
     ctaLabel: "Back the campaign",
   },
   email: {
-    /** Additional first-visit modal offer. */
-    percentOff: 0.3,
-    headline: "Get 30% off pre-order",
-    body: "Drop your email and we'll send you a private 30%-off code, on top of the campaign discount.",
+    /**
+     * **Stacks on top of the campaign discount.** This is an additional
+     * percent off the campaign sale price, not off the list price. So
+     * the effective combined discount on the list price is
+     *   1 − (1 − preorder.percentOff) × (1 − email.percentOff).
+     * (At 40% × 15% = 49% off list.)
+     */
+    percentOff: 0.15,
+    /** Surfaced to humans as "EXTRA 15% OFF". Computed; do not edit. */
+    get label(): string {
+      return `EXTRA ${Math.round(this.percentOff * 100)}% OFF`;
+    },
+    headline: "Get an extra 15% off pre-order",
+    body: "Drop your email and we'll send you a private 15%-off code that stacks on top of the 40% Kickstarter discount.",
     confirmationCopy:
       "Done — your code is on the way. Check your inbox in a couple of minutes.",
   },
@@ -95,11 +105,33 @@ export function getPreorderPricing() {
   };
 }
 
+/**
+ * Pricing if the visitor also redeems the email-modal stacked discount.
+ * Email % is multiplicative on top of the Kickstarter % (see the comment
+ * on `discountConfig.email.percentOff`).
+ */
+export function getStackedPreorderPricing() {
+  const { list, sale: campaignSale } = getPreorderPricing();
+  const stacked = campaignSale * (1 - discountConfig.email.percentOff);
+  const totalPercentOff = 1 - stacked / list;
+  return {
+    list,
+    campaignSale,
+    stacked,
+    savings: list - stacked,
+    totalPercentOff,
+    formattedList: formatUSD(list),
+    formattedCampaignSale: formatUSD(campaignSale),
+    formattedStacked: formatUSD(stacked),
+    formattedSavings: formatUSD(list - stacked),
+  };
+}
+
 export function formatUSD(value: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    // $47.50 not $47.5; $95 not $95.00
+    // $47.50 not $47.5; $175 not $175.00
     minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
     maximumFractionDigits: 2,
   }).format(value);
