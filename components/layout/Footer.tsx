@@ -44,10 +44,10 @@ export function Footer() {
         <section
           id="email-discount"
           aria-labelledby="footer-email-discount-heading"
-          className="grid scroll-mt-24 gap-8 border-b border-border-default pb-14 md:grid-cols-12 md:gap-12 md:pb-16"
+          className="grid scroll-mt-24 items-center gap-6 border-b border-border-default pb-10 md:grid-cols-12 md:gap-10 md:pb-12"
         >
           <div className="md:col-span-6 lg:col-span-5">
-            <p className="text-eyebrow mb-4 inline-flex items-center gap-2 text-promo">
+            <p className="text-eyebrow mb-3 inline-flex items-center gap-2 text-promo">
               <span
                 aria-hidden
                 className="inline-block size-1.5 rounded-full bg-promo"
@@ -56,24 +56,24 @@ export function Footer() {
             </p>
             <h2
               id="footer-email-discount-heading"
-              className="font-display text-display-md text-text-primary"
+              className="font-display text-display-sm text-text-primary"
             >
               {discountConfig.email.headline}
             </h2>
-            <p className="mt-4 max-w-md text-[15px] leading-[1.65] text-text-secondary">
+            <p className="mt-3 max-w-md text-sm leading-[1.6] text-text-secondary">
               {discountConfig.email.body}
             </p>
           </div>
           <div className="flex flex-col justify-center md:col-span-6 md:pl-2 lg:col-span-7">
             <EmailDiscountForm variant="footer" idPrefix="footer" />
-            <p className="mt-3 text-[11px] leading-[1.5] text-text-tertiary">
+            <p className="mt-2.5 text-[11px] leading-[1.5] text-text-tertiary">
               No spam. Unsubscribe anytime. We&apos;ll only email you about
               pre-order updates.
             </p>
           </div>
         </section>
 
-        <div className="mt-14 grid gap-12 md:mt-16 md:grid-cols-12">
+        <div className="mt-12 grid gap-12 md:mt-14 md:grid-cols-12">
           {/* Brand column */}
           <div className="md:col-span-5">
             <Logo size={18} />

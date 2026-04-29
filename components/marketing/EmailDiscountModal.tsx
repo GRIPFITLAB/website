@@ -97,9 +97,12 @@ export function EmailDiscountModal() {
             "transition-[opacity,transform] duration-200 ease-out",
           )}
         >
+          {/* Close button — `z-10` elevates it above the content div
+              (both are positioned siblings; without an explicit z, the
+              later DOM node paints on top and swallows the clicks). */}
           <Dialog.Close
             aria-label="Close"
-            className="absolute right-3 top-3 inline-flex size-8 items-center justify-center rounded-full text-text-tertiary transition-colors hover:bg-accent-soft hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+            className="absolute right-3 top-3 z-10 inline-flex size-9 items-center justify-center rounded-full text-text-tertiary transition-colors hover:bg-accent-soft hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
           >
             <X className="size-4" strokeWidth={2} />
           </Dialog.Close>
