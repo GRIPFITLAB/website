@@ -20,9 +20,12 @@ export default function ContactPage() {
         drop a line and we&apos;ll reply within 1–2 business days.
       </p>
 
-      <div className="mt-14">
+      <section
+        aria-label="Contact form"
+        className="mt-14 rounded-2xl border border-border-default bg-bg-deep p-7 shadow-[var(--shadow-card)] md:p-10"
+      >
         <ContactForm />
-      </div>
+      </section>
     </article>
   );
 }
