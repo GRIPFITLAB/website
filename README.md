@@ -8,6 +8,11 @@ Q3).
 
 ## Source of truth
 
+- **[`lib/admin.ts`](./lib/admin.ts)** — control-panel for price,
+  campaign discount, email discount, banner copy, and links. Edit a
+  value here and it propagates to every banner, button, hero, modal,
+  and PDP automatically. Touch this first for any pricing or copy
+  tweak.
 - **[`Decisions.md`](./Decisions.md)** — every architectural and stack
   decision, plus open questions in §16. Read this before changing anything
   non-trivial.

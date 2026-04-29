@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { EmailDiscountTeaser } from "@/components/marketing/EmailDiscountTeaser";
 import { PricingDisplay } from "@/components/marketing/PricingDisplay";
 import { Button } from "@/components/ui/button";
 import { discountConfig, externalLinks, siteConfig } from "@/lib/config";
@@ -82,6 +83,8 @@ export function Hero() {
               The science
             </Button>
           </div>
+
+          <EmailDiscountTeaser className="mt-5" />
         </div>
 
         {/* Product image column — labelled placeholder until art lands.

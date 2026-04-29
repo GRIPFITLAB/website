@@ -225,7 +225,7 @@ links an order # to an App Store account.
 | Form | Backend | Notification |
 | --- | --- | --- |
 | Contact | Server Action → Resend | Email to shared Gmail (`support@gripfit.com` alias) |
-| Email-discount modal (extra 15% off, stacks on Kickstarter, first-visit) | Server Action → Resend (stubbed) | Email back the code to the visitor; suppress modal via localStorage afterwards. Implementation lives in `components/marketing/EmailDiscountModal.tsx` + colocated action. |
+| Email-discount capture (extra 15% off, stacks on Kickstarter) | Server Action → Resend (stubbed) | Email back the code to the visitor. Three surfaces share the same `submitEmailDiscount` action and the same `EMAIL_DISCOUNT_DISMISSED_KEY` localStorage flag: (a) first-visit `<EmailDiscountModal />` mounted in `app/layout.tsx`, (b) always-visible `<EmailDiscountForm variant="footer" />` in the footer, (c) `<EmailDiscountTeaser />` next to every "Back the campaign" CTA. The teaser opens the modal via the `gripfit:open-email-discount` custom event (`lib/email-discount-events.ts`) — no Context provider, no prop drilling. |
 
 ---
 

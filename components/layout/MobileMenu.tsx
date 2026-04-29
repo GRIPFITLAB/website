@@ -6,6 +6,7 @@ import { Menu } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { Logo } from "@/components/layout/Logo";
+import { EmailDiscountTeaser } from "@/components/marketing/EmailDiscountTeaser";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -89,6 +90,9 @@ export function MobileMenu() {
           >
             {discountConfig.preorder.ctaLabel}
           </Button>
+          <div className="mt-4 flex justify-center">
+            <EmailDiscountTeaser onClick={close} />
+          </div>
           <p className="mt-4 text-center text-xs text-text-tertiary">
             {discountConfig.preorder.bannerCopy}
           </p>

@@ -29,8 +29,16 @@ Project-specific rules for AI assistants. Read these before the Next.js notes be
    (Decisions.md §7, §16 Q3). No waitlist email capture, no customer
    accounts (Decisions.md §8). The discount UI is built into the v1
    pages: a 40%-off + free-shipping Kickstarter pre-order banner on every
-   page, plus an email-capture modal that stacks an additional 15%-off on first
-   visit (suppressed via localStorage afterwards).
+   page, plus an email-capture flow that stacks an additional 15%-off
+   discount. The flow has three surfaces, all wired to the same Server
+   Action and the same `EMAIL_DISCOUNT_DISMISSED_KEY` localStorage flag:
+   (a) `<EmailDiscountModal />` mounted in `app/layout.tsx` (auto-opens
+   once on first visit, can be re-opened from anywhere via the
+   `gripfit:open-email-discount` custom event), (b) `<EmailDiscountForm
+   variant="footer" />` always-visible at the top of the footer, and
+   (c) `<EmailDiscountTeaser />` placed next to every "Back the
+   campaign" CTA (Hero, InTheBox, PDP, MobileMenu) to programmatically
+   open the modal.
 5. **No social-proof / athlete grid on the home page** (Decisions.md §6).
    The home page comparison section pitting GripFit against a standard
    dynamometer is the analogous visual slot.
@@ -51,11 +59,17 @@ Project-specific rules for AI assistants. Read these before the Next.js notes be
    only — no Redux / Zustand / SWR. The cart `Context` planned for v2 is
    intentionally unimplemented in v1.
 9. **No hardcoded prices, product handles, API endpoints, or env values
-   in components.** They live in `lib/config.ts` (`siteConfig`,
-   `productConfig`, `discountConfig`, `externalLinks`) or `lib/env.ts`.
-   Pre-order pricing is derived from `productConfig.base.fallbackPriceUSD`
-   × `discountConfig.preorder.percentOff` so updating the discount only
-   touches one file.
+   in components.** Editable values live in **[`lib/admin.ts`](./lib/admin.ts)**
+   — the single "control panel" for price, campaign discount, email
+   discount, banner copy, links, and product naming. `lib/config.ts`
+   composes the typed `siteConfig`, `productConfig`, `discountConfig`,
+   and `externalLinks` exports from `admin.ts` and adds pricing helpers
+   (`getPreorderPricing`, `getStackedPreorderPricing`, `formatUSD`).
+   Components import from `lib/config.ts` as before; humans editing
+   values touch `lib/admin.ts`. Env-derived values stay in `lib/env.ts`.
+   Pre-order pricing is derived from `productSettings.listPriceUSD ×
+   campaignDiscount.percentOff`, so changing the discount only touches
+   one file.
 10. **Skills to consult:** `nextjs`, `shadcn`, `vercel-functions`. (No
     `auth` — accounts disallowed in v1. No `shopify-*` skills until the
     `lib/shopify/` client is reawakened in v2.)

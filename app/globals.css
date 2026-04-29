@@ -263,7 +263,14 @@
   --info: var(--state-info);
 
   --border: var(--border-default);
-  --input: rgba(28, 26, 23, 0.04);
+  /*
+   * `--input` is the input/textarea border color (shadcn convention).
+   * 4% alpha was invisible on every cream/tan surface in the new theme;
+   * 22% gives a crisp, paper-like line on `--bg-canvas`, the contact-page
+   * `--bg-deep` card, and the modal `--bg-elevated` surface alike. The
+   * disabled-state background (`bg-input/50`) reads as a subtle warm gray.
+   */
+  --input: rgba(28, 26, 23, 0.22);
   --ring: rgba(28, 26, 23, 0.45);
 
   /* Charts (semantic state palette). */

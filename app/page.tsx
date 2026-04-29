@@ -1,6 +1,5 @@
 import { AppShowcase } from "@/components/marketing/AppShowcase";
 import { Comparison } from "@/components/marketing/Comparison";
-import { EmailDiscountModal } from "@/components/marketing/EmailDiscountModal";
 import { Features } from "@/components/marketing/Features";
 import { Hero } from "@/components/marketing/Hero";
 import { InTheBox } from "@/components/marketing/InTheBox";
@@ -16,7 +15,10 @@ import { Readiness } from "@/components/marketing/Readiness";
  *   Comparison  → GripFit vs standard dynamometer (warm-charcoal band)
  *   InTheBox    → final pricing card + Talk-to-us CTA
  *
- *   EmailDiscountModal → first-visit extra-15%-off email capture (stacks on Kickstarter, suppressed via localStorage)
+ * The first-visit `EmailDiscountModal` (extra-15%-off email capture) is
+ * mounted in `app/layout.tsx` so it auto-opens on every page and can be
+ * triggered from any `<EmailDiscountTeaser />` site-wide. The footer's
+ * always-visible signup form lives in `components/layout/Footer.tsx`.
  *
  * Removed in this revamp: HowItWorks (3-step rail) and the dedicated
  * CTA section (it duplicated InTheBox). The Science marketing component
@@ -32,7 +34,6 @@ export default function HomePage() {
       <AppShowcase />
       <Comparison />
       <InTheBox />
-      <EmailDiscountModal />
     </>
   );
 }

@@ -2,52 +2,49 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import { X } from "lucide-react";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { EmailDiscountForm } from "@/components/marketing/EmailDiscountForm";
 import { discountConfig } from "@/lib/config";
+import {
+  EMAIL_DISCOUNT_DISMISSED_KEY,
+  EMAIL_DISCOUNT_OPEN_EVENT,
+} from "@/lib/email-discount-events";
 import { cn } from "@/lib/utils";
 
-import {
-  initialEmailDiscountState,
-  submitEmailDiscount,
-  type EmailDiscountState,
-} from "./email-discount-action";
-
-const STORAGE_KEY = "gripfit:email-discount:dismissed-v1";
 /** Wait this long before showing on first paint — give the visitor a
  *  beat to read the hero before we interrupt them. */
 const APPEAR_DELAY_MS = 4500;
 
 /**
- * EmailDiscountModal — first-visit pop-up offering an extra 15% off in exchange
- * for an email address.
+ * EmailDiscountModal — first-visit pop-up (and on-demand opener) for
+ * the extra-15%-off email-capture flow.
+ *
+ * Mounted once at the layout level (`app/layout.tsx`) so any
+ * `<EmailDiscountTeaser />` button on any page can open it via the
+ * shared `gripfit:open-email-discount` custom event.
  *
  * Behaviour:
- *   - Mounts on the home page only (see app/page.tsx).
- *   - Respects localStorage suppression: closing or submitting marks
- *     the visitor "seen" forever (until they clear storage).
- *   - Honours `prefers-reduced-motion` via the Base UI primitives'
- *     defaults — no custom transition.
- *   - Honeypot field is visually hidden but accessible to bots.
+ *   - First-visit auto-popup after `APPEAR_DELAY_MS` unless the
+ *     visitor has already submitted (localStorage) or dismissed the
+ *     pop-up earlier in this session (sessionStorage).
+ *   - Programmatic open via `openEmailDiscountModal()` always works,
+ *     even if previously dismissed — clicking a teaser is an explicit
+ *     user action, not an interruption.
+ *   - Closing without submitting suppresses for the rest of the session.
+ *   - Submitting (here OR in the footer form) sets the localStorage
+ *     flag so the auto-popup stops nagging on subsequent visits.
  */
 export function EmailDiscountModal() {
   const [open, setOpen] = useState(false);
-  const [seen, setSeen] = useState(true); // start true → no flash
-  const [state, formAction, pending] = useActionState<
-    EmailDiscountState,
-    FormData
-  >(submitEmailDiscount, initialEmailDiscountState);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // First-visit auto-open
   useEffect(() => {
     if (typeof window === "undefined") return;
     const dismissed =
-      window.localStorage.getItem(STORAGE_KEY) === "1" ||
-      window.sessionStorage.getItem(STORAGE_KEY) === "1";
-    setSeen(dismissed);
+      window.localStorage.getItem(EMAIL_DISCOUNT_DISMISSED_KEY) === "1" ||
+      window.sessionStorage.getItem(EMAIL_DISCOUNT_DISMISSED_KEY) === "1";
     if (!dismissed) {
       timerRef.current = setTimeout(() => setOpen(true), APPEAR_DELAY_MS);
     }
@@ -56,27 +53,30 @@ export function EmailDiscountModal() {
     };
   }, []);
 
-  // Once the visitor submits successfully, mark dismissed permanently.
+  // Programmatic open from any teaser button anywhere in the tree.
   useEffect(() => {
-    if (state.status === "success" && typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, "1");
+    function handler() {
+      // Cancel any pending first-visit timer so we don't double-open.
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      setOpen(true);
     }
-  }, [state.status]);
+    document.addEventListener(EMAIL_DISCOUNT_OPEN_EVENT, handler);
+    return () =>
+      document.removeEventListener(EMAIL_DISCOUNT_OPEN_EVENT, handler);
+  }, []);
 
   function handleOpenChange(next: boolean) {
     setOpen(next);
     if (!next && typeof window !== "undefined") {
       // Closing without submitting: suppress for the rest of the session
-      // but allow a true bounce-back next visit. (localStorage on submit;
-      // sessionStorage on close.)
-      window.sessionStorage.setItem(STORAGE_KEY, "1");
+      // but allow a true bounce-back next visit. (localStorage on submit
+      // is set inside `<EmailDiscountForm />`; sessionStorage on close.)
+      window.sessionStorage.setItem(EMAIL_DISCOUNT_DISMISSED_KEY, "1");
     }
   }
-
-  if (seen) return null;
-
-  const fieldErrors =
-    state.status === "error" ? state.fieldErrors : undefined;
 
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
@@ -120,77 +120,11 @@ export function EmailDiscountModal() {
               {discountConfig.email.body}
             </Dialog.Description>
 
-            {state.status === "success" ? (
-              <p className="mt-7 rounded-xl border border-state-success/30 bg-state-success/10 px-4 py-3 text-sm leading-[1.55] text-state-success">
-                {state.message}
-              </p>
-            ) : (
-              <form action={formAction} className="mt-7 flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="email-discount-email">Email address</Label>
-                  <Input
-                    id="email-discount-email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    inputMode="email"
-                    placeholder="you@domain.com"
-                    aria-invalid={Boolean(fieldErrors?.email)}
-                    aria-describedby={
-                      fieldErrors?.email ? "email-discount-error" : undefined
-                    }
-                    required
-                  />
-                  {fieldErrors?.email && (
-                    <p
-                      id="email-discount-error"
-                      className="text-xs text-destructive"
-                    >
-                      {fieldErrors.email}
-                    </p>
-                  )}
-                </div>
-
-                {/* Honeypot */}
-                <div
-                  aria-hidden
-                  className="absolute left-[-9999px] top-[-9999px] h-0 w-0 overflow-hidden"
-                >
-                  <label htmlFor="email-discount-website">
-                    Don&apos;t fill this out if you&apos;re human
-                  </label>
-                  <input
-                    id="email-discount-website"
-                    name="website"
-                    type="text"
-                    tabIndex={-1}
-                    autoComplete="off"
-                  />
-                </div>
-
-                {state.status === "error" && !fieldErrors?.email && (
-                  <p className="text-xs text-destructive" role="alert">
-                    {state.message}
-                  </p>
-                )}
-
-                <Button
-                  type="submit"
-                  size="lg"
-                  disabled={pending}
-                  className="h-12 w-full bg-promo px-8 text-sm font-semibold uppercase tracking-[0.08em] text-promo-foreground hover:bg-promo-bright"
-                >
-                  {pending
-                    ? "Sending…"
-                    : `Send my ${discountConfig.email.percentOff * 100}% code`}
-                </Button>
-
-                <p className="text-center text-[11px] leading-[1.5] text-text-tertiary">
-                  No spam. Unsubscribe anytime. We&apos;ll only email you
-                  about pre-order updates.
-                </p>
-              </form>
-            )}
+            <EmailDiscountForm
+              variant="modal"
+              idPrefix="email-discount-modal"
+              className="mt-7"
+            />
           </div>
         </Dialog.Popup>
       </Dialog.Portal>

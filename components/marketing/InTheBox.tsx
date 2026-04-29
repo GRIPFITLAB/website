@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Check } from "lucide-react";
 
+import { EmailDiscountTeaser } from "@/components/marketing/EmailDiscountTeaser";
 import { PricingDisplay } from "@/components/marketing/PricingDisplay";
 import { Button } from "@/components/ui/button";
 import { discountConfig, externalLinks } from "@/lib/config";
@@ -83,6 +84,8 @@ export function InTheBox() {
                   Talk to us
                 </Button>
               </div>
+
+              <EmailDiscountTeaser className="mt-5" />
             </div>
 
             {/* Right — what's included */}

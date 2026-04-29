@@ -1,19 +1,28 @@
 import Link from "next/link";
 
 import { Logo } from "@/components/layout/Logo";
-import { externalLinks, siteConfig } from "@/lib/config";
+import { EmailDiscountForm } from "@/components/marketing/EmailDiscountForm";
+import { discountConfig, externalLinks, siteConfig } from "@/lib/config";
 import { footerRoutes, routes } from "@/lib/routes";
 
 /**
  * Footer — wide editorial layout.
  *
- * WHOOP-style structure: dense link grid grouped by topic on the left,
- * brand block + support email on the right, hairline rule below for
- * legal copy and copyright. The footer is intentionally large so it
- * acts as the closing punctuation on every page.
+ * Top band: always-visible email signup that promotes the stacked
+ * extra-15%-off code. Submitting here writes the same localStorage
+ * suppression flag the modal uses, so visitors who already gave us
+ * their email don't get nagged by the auto-popup on later pages.
+ *
+ * Below: dense link grid grouped by topic on the left, brand block on
+ * the right, hairline rule below for legal copy and copyright. The
+ * footer is intentionally large so it acts as the closing punctuation
+ * on every page.
  */
 
-const linkGroups: Array<{ heading: string; routeKeys: ReadonlyArray<keyof typeof routes> }> = [
+const linkGroups: Array<{
+  heading: string;
+  routeKeys: ReadonlyArray<keyof typeof routes>;
+}> = [
   { heading: "Product", routeKeys: ["product", "science", "setup"] },
   { heading: "Company", routeKeys: ["contact"] },
   { heading: "Legal", routeKeys: ["privacy", "terms"] },
@@ -31,7 +40,40 @@ export function Footer() {
       />
 
       <div className="mx-auto w-full max-w-7xl px-5 py-16 md:px-10 md:py-20">
-        <div className="grid gap-12 md:grid-cols-12">
+        {/* Email signup band — promotes the stacked extra-15% code. */}
+        <section
+          id="email-discount"
+          aria-labelledby="footer-email-discount-heading"
+          className="grid scroll-mt-24 gap-8 border-b border-border-default pb-14 md:grid-cols-12 md:gap-12 md:pb-16"
+        >
+          <div className="md:col-span-6 lg:col-span-5">
+            <p className="text-eyebrow mb-4 inline-flex items-center gap-2 text-promo">
+              <span
+                aria-hidden
+                className="inline-block size-1.5 rounded-full bg-promo"
+              />
+              {discountConfig.email.label} · stacks on Kickstarter
+            </p>
+            <h2
+              id="footer-email-discount-heading"
+              className="font-display text-display-md text-text-primary"
+            >
+              {discountConfig.email.headline}
+            </h2>
+            <p className="mt-4 max-w-md text-[15px] leading-[1.65] text-text-secondary">
+              {discountConfig.email.body}
+            </p>
+          </div>
+          <div className="flex flex-col justify-center md:col-span-6 md:pl-2 lg:col-span-7">
+            <EmailDiscountForm variant="footer" idPrefix="footer" />
+            <p className="mt-3 text-[11px] leading-[1.5] text-text-tertiary">
+              No spam. Unsubscribe anytime. We&apos;ll only email you about
+              pre-order updates.
+            </p>
+          </div>
+        </section>
+
+        <div className="mt-14 grid gap-12 md:mt-16 md:grid-cols-12">
           {/* Brand column */}
           <div className="md:col-span-5">
             <Logo size={18} />

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
+import { EmailDiscountTeaser } from "@/components/marketing/EmailDiscountTeaser";
 import { PricingDisplay } from "@/components/marketing/PricingDisplay";
 import { Button } from "@/components/ui/button";
 import { discountConfig, externalLinks, productConfig } from "@/lib/config";
@@ -103,7 +104,8 @@ export default function ProductPage() {
             >
               {discountConfig.preorder.ctaLabel}
             </Button>
-            <p className="text-xs leading-[1.6] text-text-tertiary">
+            <EmailDiscountTeaser className="mt-1" />
+            <p className="mt-3 text-xs leading-[1.6] text-text-tertiary">
               Pre-orders are handled by our crowdfunding campaign. The
               campaign URL goes live once the campaign launches; the
               link above will route there automatically.

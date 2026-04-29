@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Footer } from "@/components/layout/Footer";
 import { Nav } from "@/components/layout/Nav";
 import { DiscountBanner } from "@/components/marketing/DiscountBanner";
+import { EmailDiscountModal } from "@/components/marketing/EmailDiscountModal";
 import { siteConfig } from "@/lib/config";
 
 import "./globals.css";
@@ -53,6 +54,9 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        {/* Mounted globally so any <EmailDiscountTeaser /> on any page
+            can open it via the shared custom-event channel. */}
+        <EmailDiscountModal />
       </body>
     </html>
   );
