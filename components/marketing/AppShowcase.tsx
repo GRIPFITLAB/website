@@ -24,27 +24,33 @@ interface Slide {
   eyebrow: string;
   title: string;
   body: string;
-  graphic: "strength" | "recovery" | "history";
+  graphic: "strength" | "recovery" | "trends" | "metrics";
 }
 
 const slides: ReadonlyArray<Slide> = [
   {
     eyebrow: "Live force",
     title: "Watch the curve climb.",
-    body: "The Strength screen streams 100 samples per second as you squeeze. Peak force, rate-of-force-development, and hold time fall out automatically — same dataset coaches and physical-therapy clinics already use, just at consumer accessibility.",
+    body: "The entire force profile, streamed in real time — current value front and center so you can push for a new PR mid-squeeze.",
     graphic: "strength",
   },
   {
     eyebrow: "Today's score",
     title: "One number you can act on.",
-    body: "Readiness compresses your last 24 hours of grip, sleep, and load history into a 0–100 score. Above 80, train hard. Below 60, deload. The thresholds shift with your baseline, not someone else's.",
+    body: "Readiness rolls your grip, sleep, and load into a 0–100 score. Above 80, train hard. Below 60, deload.",
     graphic: "recovery",
   },
   {
     eyebrow: "Trends",
-    title: "See the season, not the day.",
-    body: "Twelve weeks of rolling readiness reveal the shape of an arc — the climb into camp, the dip during a meet block, the rebuild. Drift early, confirm progress later.",
-    graphic: "history",
+    title: "Trends over time.",
+    body: "7-day, 30-day, and seasonal views surface drift early and confirm progress later.",
+    graphic: "trends",
+  },
+  {
+    eyebrow: "The details",
+    title: "Every metric, one tap.",
+    body: "Peak force, left/right balance, and AM vs PM readings — the full breakdown behind your score.",
+    graphic: "metrics",
   },
 ];
 
@@ -104,19 +110,13 @@ export function AppShowcase() {
   return (
     <section className="bg-bg-canvas py-24 md:py-32">
       <div className="mx-auto w-full max-w-7xl px-5 md:px-10">
-        <div className="mb-14 grid gap-8 md:mb-20 md:grid-cols-12">
-          <div className="md:col-span-7">
-            <p className="text-eyebrow mb-5 text-text-tertiary">
-              In your pocket
-            </p>
-            <h2 className="font-display text-display-xl text-text-primary">
-              Built for iPhone, designed to disappear.
-            </h2>
-          </div>
-          <p className="max-w-md text-[17px] leading-[1.7] text-text-secondary md:col-span-4 md:col-start-9 md:self-end">
-            The GripFit app does the math so you can do the work. Three
-            screens, no settings menus to dig through.
+        <div className="mb-14 md:mb-20">
+          <p className="text-eyebrow mb-5 text-text-tertiary">
+            In your pocket
           </p>
+          <h2 className="font-display text-display-xl text-text-primary">
+            Built for iPhone.
+          </h2>
         </div>
 
         {/* Gallery */}
@@ -272,7 +272,8 @@ function PhoneScreen({
       <div className="relative mt-5 flex-1">
         {graphic === "strength" ? <StrengthScreen /> : null}
         {graphic === "recovery" ? <RecoveryScreen /> : null}
-        {graphic === "history" ? <HistoryScreen /> : null}
+        {graphic === "trends" ? <TrendsScreen /> : null}
+        {graphic === "metrics" ? <MetricsScreen /> : null}
       </div>
 
       <div className="mt-4 flex items-center justify-around border-t border-white/10 pt-3">
@@ -400,7 +401,7 @@ function RecoveryScreen() {
   );
 }
 
-function HistoryScreen() {
+function TrendsScreen() {
   const bars = [62, 71, 58, 80, 74, 86, 82, 90, 88, 84, 92, 88];
   return (
     <div className="flex h-full flex-col">
@@ -439,6 +440,69 @@ function HistoryScreen() {
         <span>Wk 1</span>
         <span>Wk 6</span>
         <span>Wk 12</span>
+      </div>
+    </div>
+  );
+}
+
+function MetricsScreen() {
+  return (
+    <div className="flex h-full flex-col">
+      {/* Peak force */}
+      <div className="rounded-[12px] border border-white/10 bg-white/[0.02] p-3">
+        <p className="text-[9px] uppercase tracking-[0.16em] text-white/45">
+          Peak force
+        </p>
+        <div className="mt-1 flex items-baseline gap-1.5">
+          <span
+            className="text-[32px] font-medium leading-none tabular-nums tracking-[-0.025em]"
+            style={{ fontFamily: "Inter Tight, Inter, sans-serif" }}
+          >
+            118
+          </span>
+          <span className="text-[10px] uppercase tracking-[0.12em] text-white/45">
+            lbs · new PR
+          </span>
+        </div>
+      </div>
+
+      {/* L/R balance */}
+      <div className="mt-3 rounded-[12px] border border-white/10 bg-white/[0.02] p-3">
+        <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.14em] text-white/45">
+          <span>L · 116</span>
+          <span>Balance</span>
+          <span>R · 118</span>
+        </div>
+        <div className="mt-2 flex h-2 overflow-hidden rounded-full bg-white/10">
+          <span className="h-full" style={{ width: "49%", background: "rgba(243,236,226,0.55)" }} />
+          <span className="h-full w-px bg-white/30" />
+          <span className="h-full flex-1" style={{ background: "#f3ece2" }} />
+        </div>
+        <p className="mt-2 text-[9px] uppercase tracking-[0.12em] text-white/45">
+          2% asymmetry · balanced
+        </p>
+      </div>
+
+      {/* AM / PM */}
+      <div className="mt-3 grid flex-1 grid-cols-2 gap-2">
+        <div className="flex flex-col justify-center rounded-[12px] border border-white/10 bg-white/[0.02] p-3">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-white/45">AM</p>
+          <span
+            className="mt-1 text-[22px] font-medium leading-none tabular-nums"
+            style={{ fontFamily: "Inter Tight, Inter, sans-serif" }}
+          >
+            82
+          </span>
+        </div>
+        <div className="flex flex-col justify-center rounded-[12px] border border-white/10 bg-white/[0.02] p-3">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-white/45">PM</p>
+          <span
+            className="mt-1 text-[22px] font-medium leading-none tabular-nums"
+            style={{ fontFamily: "Inter Tight, Inter, sans-serif" }}
+          >
+            90
+          </span>
+        </div>
       </div>
     </div>
   );

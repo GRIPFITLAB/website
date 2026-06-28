@@ -21,8 +21,8 @@ interface Feature {
 
 const headline: Feature = {
   eyebrow: "Real-time force",
-  title: "See the curve, not just the number.",
-  body: "Most dynamometers report a single peak number. GripFit streams 100 samples per second to your phone, so you see the full force curve — rise rate, plateau, and fatigue tail — every squeeze. That curve is what coaches actually act on.",
+  title: "The whole curve, not just the peak.",
+  body: "We track the entire force profile of a grip test, not just the peak number — with the current value shown in real time so you can push to new PRs.",
   graphic: "force-curve",
 };
 
@@ -48,7 +48,7 @@ const features: ReadonlyArray<Feature> = [
   {
     eyebrow: "Hardware",
     title: "Calibrated for life.",
-    body: "Aluminium body, strain-gauge load cell, USB-C charging, ~6h continuous use, ±0.5 lbs accuracy across 0–150 lbs.",
+    body: "Calibrated with NIST-certified load cells. Aluminium body, USB-C charging, ±0.5 lb accuracy across 0–150 lb.",
     graphic: "device",
   },
 ];

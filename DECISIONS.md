@@ -130,14 +130,14 @@ Phase 1 product list:
     (resolved Apr 29, 2026 — supersedes the prior Q3 "Shopify pre-order"
     decision). All "Pre-order" / "Back the campaign" CTAs hand off to
     `externalLinks.crowdfundingUrl` (defined in `lib/config.ts`).
-  - List price: $175. Kickstarter pre-order discount: **40% off** (sale
-    price $105) plus **free US shipping**. Discount config lives in
+  - List price: $135. Kickstarter pre-order discount: **30% off** (sale
+    price $94.50) plus **free US shipping**. Discount config lives in
     `lib/config.ts → discountConfig.preorder` so updating the percent or
     free-shipping toggle only touches one file.
   - First-visit email-capture modal offers an **extra 15% off**
-    (`discountConfig.email`) that **stacks on top of the 40% Kickstarter
+    (`discountConfig.email`) that **stacks on top of the 30% Kickstarter
     discount** — combined effective discount on the list price is
-    1 − 0.6 × 0.85 = 49% (stacked sale price $89.25, computed by
+    1 − 0.7 × 0.85 = 40.5% (stacked sale price $80.36, computed by
     `getStackedPreorderPricing()`). v1 implementation logs to the Resend
     stub (no DB) and returns success — fulfilment happens manually until
     the crowdfunding platform is live.
@@ -376,12 +376,12 @@ Stop for review after each step. Do not proceed to the next step without explici
   - `app/layout.tsx` wires Nav + `<main>` + Footer.
   - `app/not-found.tsx` — branded 404.
   - Build prep: `.vercelignore` (excludes `iOS_App_Images/`, agent transcripts), `app/sitemap.ts`, `app/robots.ts`.
-- [x] **5. Home page static structure** — *Apr 29, 2026 revamp*
-  - `components/marketing/{Hero,Features,Readiness,AppShowcase,Comparison,InTheBox}.tsx` — warm-cream editorial sections. Order: Hero → Features → Readiness → AppShowcase → Comparison → InTheBox. (Earlier line-up was Hero → Features → HowItWorks → InTheBox → AppShowcase → Science → CTA — `HowItWorks`, `Science`, and `CTA` were deleted; `Readiness` and `Comparison` were added.)
-  - Explicitly NO athlete grid / member-quote section per §6. The analogous visual slot is `Comparison` (GripFit vs standard dynamometer on a `bg-inverted` band).
-  - `InTheBox` is the single bold pricing card and lives at the bottom of the page; it absorbed the deleted `CTA` section's "Talk to us" link (§5).
-  - `components/marketing/{DiscountBanner,EmailDiscountModal,PricingDisplay}.tsx` ship the pre-order discount UI: site-wide terracotta banner above the nav, first-visit "extra 15% off" email-capture modal on the home page (stacks on the 40% Kickstarter discount), and a strike-through pricing widget reused by Hero / InTheBox / PDP. All read from `lib/config.ts → discountConfig`.
-  - Hero / InTheBox CTAs route to `externalLinks.crowdfundingUrl`; `/science` link is the secondary CTA.
+- [x] **5. Home page static structure** — *Jun 28, 2026 revamp*
+  - `components/marketing/{Hero,Comparison,AppShowcase,Features}.tsx` — warm-cream editorial sections. Order: Hero → Comparison → AppShowcase → Features. (Earlier Apr 29 line-up was Hero → Features → Readiness → AppShowcase → Comparison → InTheBox; the standalone `Readiness` section and the bottom `InTheBox` pricing card were dropped from the home page — both files stay on disk, unused.)
+  - Explicitly NO athlete grid / member-quote section per §6. The analogous visual slot is `Comparison` (GripFit vs standard dynamometer on a `bg-inverted` band), now placed directly under the hero.
+  - The hero product card carries the "what's in the box" checklist (folded in from the removed `InTheBox`). There is no longer a duplicate bottom pricing card; the hero is the single pricing + buy-link surface on the home page.
+  - `components/marketing/{DiscountBanner,EmailDiscountModal,PricingDisplay}.tsx` ship the pre-order discount UI: site-wide terracotta banner above the nav, first-visit "extra 15% off" email-capture modal on the home page (stacks on the 30% Kickstarter discount), and a strike-through pricing widget reused by Hero / PDP. All read from `lib/config.ts → discountConfig`.
+  - Hero CTAs: primary "Back the campaign" routes to `externalLinks.crowdfundingUrl`; secondary is "Talk to us" (→ `/contact`).
 - [x] **Pre-deploy stubs** (so Vercel preview shows every route) —
   - `app/product/page.tsx` — graceful fallback to `productConfig.base` + design-system specs grid when Shopify env is missing; live Shopify product when configured. Add-to-cart deliberately disabled until Step 6 / 7.
   - `app/science/page.tsx`, `app/setup/page.tsx`, `app/privacy/page.tsx`, `app/terms/page.tsx` — placeholder copy in TSX.
@@ -417,11 +417,11 @@ v1 routes pre-orders through an **external crowdfunding campaign**
 (Kickstarter / Indiegogo / etc., URL TBD — see Q10). Shopify is parked.
 All "Pre-order" / "Back the campaign" CTAs hand off to
 `externalLinks.crowdfundingUrl`. The Kickstarter pre-order discount is
-**40% off + free US shipping** on a $175 list price, baked into
-`discountConfig.preorder` (sale price $105). Visitors who provide their
+**30% off + free US shipping** on a $135 list price, baked into
+`discountConfig.preorder` (sale price $94.50). Visitors who provide their
 email get an **additional 15% off** code via the `EmailDiscountModal`
-(`discountConfig.email`) that **stacks on top of the 40%** for a
-combined 49% off list (`getStackedPreorderPricing()`, $89.25).
+(`discountConfig.email`) that **stacks on top of the 30%** for a
+combined 40.5% off list (`getStackedPreorderPricing()`, $80.36).
 
 > The Apr 26, 2026 resolution (Shopify pre-order SKU) was superseded
 > when crowdfunding became the v1 pre-launch strategy. The
@@ -431,10 +431,11 @@ combined 49% off list (`getStackedPreorderPricing()`, $89.25).
 (no "Pro" suffix). Used in all copy, hero, PDP H1, and Shopify product
 handle (`gripfit`). Resolved during the Apr 26, 2026 UI revamp.
 
-**Q5 — Tagline.** Current placeholder in `siteConfig.tagline` is
-*"Force is data."* Confirm or replace before launch. The hero H1 also
-uses this string — bumping it requires a touch in
-`components/marketing/Hero.tsx` and `lib/config.ts`.
+**Q5 — Tagline.** Current working tagline in `siteIdentity.tagline`
+(`lib/admin.ts`) is *"Measure every squeeze."* (replaced the earlier
+*"Force is data."* on Jun 28, 2026). Confirm or replace before launch.
+The hero H1 and the `<title>` both read `siteConfig.tagline`, so a
+change only requires editing `lib/admin.ts`.
 
 **Q6 — Logo.** The placeholder `DESIGN_SYSTEM/assets/logo.svg` was
 deleted with the rest of the placeholder identity. The current wordmark
@@ -473,13 +474,13 @@ slot for a product render or photograph. Currently a labelled placeholder
 tile (`design.md` §9). Drop the final art into `public/product/hero.*`
 and reference it via `next/image` once the design team supplies it.
 
-**Q12 — Pricing.** ✅ RESOLVED Apr 29, 2026 (late). List price set to
-**$175**, Kickstarter pre-order discount **40% off** (sale price $105),
+**Q12 — Pricing.** ✅ RE-RESOLVED Jun 28, 2026. List price set to
+**$135**, Kickstarter pre-order discount **30% off** (sale price $94.50),
 email-modal discount **extra 15% off** that **stacks on the Kickstarter
-discount** (combined 49% off list = $89.25, computed by
+discount** (combined 40.5% off list = $80.36, computed by
 `getStackedPreorderPricing()`). All values flow from `lib/config.ts →
 discountConfig`; no UI component encodes a percent or price literal.
-Replaces the earlier $95 / 50% / 30% line-up.
+Replaces the Apr 29, 2026 $175 / 40% / $105 line-up.
 
 **Q13 — Specs change wording.** The Apr 29, 2026 revamp removed the
 "Specifications are subject to minor change before the production run

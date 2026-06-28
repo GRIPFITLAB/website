@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Check } from "lucide-react";
 
 import { EmailDiscountTeaser } from "@/components/marketing/EmailDiscountTeaser";
 import { PricingDisplay } from "@/components/marketing/PricingDisplay";
@@ -9,17 +10,24 @@ import { routes } from "@/lib/routes";
 /**
  * Hero — warm-cream editorial section.
  *
- * Composition (Apr 29, 2026 revamp):
- *   - Two-column layout: copy + pricing on the left, product-image
- *     placeholder on the right.
- *   - Stat strip removed (per the Apr 29 brief — they live on /product
- *     and inside the Readiness card section now).
- *   - Pre-order CTA routes to the external crowdfunding URL via
- *     `externalLinks.crowdfundingUrl`. Shopify is parked.
+ * Composition (Jun 28, 2026 revamp):
+ *   - Two-column layout: copy + pricing on the left, product card on
+ *     the right. The product card now carries the "what's in the box"
+ *     checklist (folded in from the deleted bottom InTheBox section).
+ *   - Secondary CTA is "Talk to us" (→ /contact); the "Back the
+ *     campaign" primary CTA routes to `externalLinks.crowdfundingUrl`.
  *
  * Tagline / H1 still come from `siteConfig.tagline` so Decisions.md
  * §16 Q5 only requires touching one file.
  */
+
+/** What ships with every GripFit pre-order. */
+const includes: ReadonlyArray<string> = [
+  "GripFit device — aluminium body, NIST-calibrated load cell",
+  "USB-C charging cable",
+  "iOS app — real-time force, trends, readiness",
+  "1-year limited warranty",
+];
 export function Hero() {
   return (
     <section className="relative overflow-hidden bg-background">
@@ -57,9 +65,9 @@ export function Hero() {
           </h1>
 
           <p className="mt-7 max-w-xl text-balance text-[17px] leading-[1.7] text-text-secondary md:text-[19px]">
-            GripFit measures every squeeze with strain-gauge precision and
-            turns it into the readiness intelligence elite athletes use to
-            plan, train, and recover.
+            A precision hand dynamometer calibrated with NIST-certified load
+            cells. Track the entire force profile in real time — not just
+            your peak.
           </p>
 
           <div className="mt-9">
@@ -75,22 +83,44 @@ export function Hero() {
               {discountConfig.preorder.ctaLabel}
             </Button>
             <Button
-              render={<Link href={routes.science.href} />}
+              render={<Link href={routes.contact.href} />}
               variant="outline"
               size="lg"
               className="h-12 border-border-strong bg-transparent px-8 text-sm font-semibold uppercase tracking-[0.08em] text-text-primary hover:border-accent hover:bg-accent-soft"
             >
-              The science
+              Talk to us
             </Button>
           </div>
 
           <EmailDiscountTeaser className="mt-5" />
         </div>
 
-        {/* Product image column — labelled placeholder until art lands.
-            Decisions.md §16 Q11 owns the swap-in. */}
-        <div className="relative flex items-center justify-center md:col-span-5">
+        {/* Product card — labelled placeholder until art lands
+            (Decisions.md §16 Q11), with the "what's in the box" checklist
+            folded in from the deleted bottom pricing section. */}
+        <div className="relative flex flex-col justify-center gap-5 md:col-span-5">
           <ProductPlaceholder />
+          <div className="rounded-2xl border border-border-default bg-bg-elevated p-6 shadow-[var(--shadow-card)]">
+            <p className="text-eyebrow mb-4 text-text-tertiary">
+              What&apos;s in the box
+            </p>
+            <ul className="flex flex-col gap-3">
+              {includes.map((item) => (
+                <li
+                  key={item}
+                  className="flex items-start gap-3 text-[14px] leading-[1.5] text-text-primary"
+                >
+                  <span
+                    aria-hidden
+                    className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent"
+                  >
+                    <Check className="size-3" strokeWidth={3} />
+                  </span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </section>
@@ -102,9 +132,9 @@ function ProductPlaceholder() {
     <figure
       role="img"
       aria-label="GripFit device — product photography placeholder"
-      className="relative w-full max-w-[480px] overflow-hidden rounded-2xl border border-border-default bg-bg-elevated shadow-[var(--shadow-card)]"
+      className="relative w-full overflow-hidden rounded-2xl border border-border-default bg-bg-elevated shadow-[var(--shadow-card)]"
     >
-      <div className="relative aspect-[4/5] w-full">
+      <div className="relative aspect-[5/4] w-full">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-warm-wash opacity-80"

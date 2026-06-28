@@ -51,7 +51,7 @@ export const siteIdentity = {
   name: "GripFit",
   /** TODO(Decisions.md §16 Q5): final tagline. Short, declarative,
    *  performance-coded. Used as the hero eyebrow and meta description hint. */
-  tagline: "Force is data.",
+  tagline: "Measure every squeeze.",
   /** One-sentence product summary. Powers the default OG description and
    *  the marketing-site `meta description`. Keep ≤ 160 chars. */
   description:
@@ -71,7 +71,7 @@ export const productSettings = {
   /** **List price in USD** — the sticker price.
    *  All sale / discounted prices are computed from this number, so this
    *  is the only price you ever need to change. */
-  listPriceUSD: 175,
+  listPriceUSD: 135,
   /** v1 always true: every CTA on the site routes to the crowdfunding
    *  campaign (`links.crowdfundingUrl`) instead of a Shopify checkout.
    *  Flip to `false` once Shopify commerce relights in v2. */
@@ -84,15 +84,15 @@ export const productSettings = {
 
 export const campaignDiscount = {
   /** Pre-order discount, expressed as 0–1.
-   *  e.g. `0.4` = 40% off the list price.
+   *  e.g. `0.3` = 30% off the list price.
    *  Sale price = `listPriceUSD × (1 − percentOff)`. */
-  percentOff: 0.4,
+  percentOff: 0.3,
   /** Toggle the "+ free US shipping" promise on the banner / PDP. */
   freeShipping: true,
   /** Sentence form for the site-wide banner above the nav.
    *  Update this string if you change `percentOff` so the banner reads
    *  the right percent. */
-  bannerCopy: "Kickstarter pre-order: 40% off + free US shipping",
+  bannerCopy: "Kickstarter pre-order: 30% off + free US shipping",
   /** Button label used everywhere the campaign CTA appears: nav,
    *  mobile menu, hero, PDP, banner. */
   ctaLabel: "Back the campaign",
@@ -111,12 +111,12 @@ export const emailDiscount = {
    *
    *      1 − (1 − campaignDiscount.percentOff) × (1 − emailDiscount.percentOff)
    *
-   *  At 40% × 15% the visitor pays 51% of list = 49% off. */
+   *  At 30% × 15% the visitor pays 59.5% of list = 40.5% off. */
   percentOff: 0.15,
   /** Modal title. Update to match `percentOff` if you change it. */
   headline: "Get an extra 15% off pre-order",
   /** Modal body copy. Update both percents if you change the numbers. */
-  body: "Drop your email and we'll send you a private 15%-off code that stacks on top of the 40% Kickstarter discount.",
+  body: "Drop your email and we'll send you a private 15%-off code that stacks on top of the 30% Kickstarter discount.",
   /** Shown after a successful submission. */
   confirmationCopy:
     "Done — your code is on the way. Check your inbox in a couple of minutes.",
