@@ -72,6 +72,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `/science` citations linked to `href="#"` — dead links announced as
   interactive to screen readers. They render as plain rows until the final
   DOIs land. [R-020]
+- `.env.example` was never committed — `.gitignore` matched `.env*` with no
+  exception, so the `cp .env.example .env.local` step in README.md and
+  `docs/ADMIN.md` §1 failed on a fresh clone. The template is now negated
+  back in; every file that can hold a real value stays ignored. [R-014]
+- `.env.example` contents refreshed for Brevo: the removed `RESEND_*` and
+  `CONTACT_EMAIL_FROM` keys are gone, all `BREVO_*` keys are present, and
+  each is annotated with where to find its value and whether it blocks
+  launch. [R-014]
 
 ### Removed
 

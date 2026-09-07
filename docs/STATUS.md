@@ -83,10 +83,6 @@ Brevo API — the unit tests mock every call. The smoke test in
 - **No rate limiting** on either Server Action — honeypot only. Add
   Upstash if abuse appears (Decisions §12).
 - **No backup** of captured emails outside Brevo (PRD OQ-9).
-- **`.env.example` is stale** — it still lists the removed `RESEND_*` /
-  `CONTACT_EMAIL_FROM` keys and none of the `BREVO_*` ones. A tooling
-  permission rule blocked writing to `.env*`; the correct contents are in
-  `docs/ADMIN.md` §4. Update it by hand.
 - **`lib/shopify/` is retained but unused** — a deliberate exception to
   the no-dead-code sweep, because Decisions §7 keeps it for the v2
   commerce relight. Say the word and it goes.
