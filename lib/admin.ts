@@ -25,8 +25,8 @@
  *
  *   • Pricing math / formatters → lib/config.ts (`getPreorderPricing`,
  *     `getStackedPreorderPricing`, `formatUSD`)
- *   • Environment-derived values (NEXT_PUBLIC_SITE_URL, Shopify keys,
- *     Resend keys) → lib/env.ts and `.env.local`
+ *   • Environment-derived values (NEXT_PUBLIC_SITE_URL, Brevo keys,
+ *     Shopify keys) → lib/env.ts and `.env.local`
  *   • Page-specific marketing copy (feature blurbs, science citations,
  *     setup steps) → the TSX of the relevant page / component
  *
@@ -36,8 +36,12 @@
  *   `campaignDiscount.bannerCopy` (and any percent reference in
  *   `emailDiscount.headline` / `emailDiscount.body`) so the human-readable
  *   copy matches the new number. The `label` shown on pills and the
- *   strike-through pricing on Hero / InTheBox / PDP recompute themselves
+ *   strike-through pricing on Hero / PDP recompute themselves
  *   automatically (see lib/config.ts → discountConfig.*.label).
+ *
+ *   `tests/copy.test.ts` asserts these sentences agree with the numbers,
+ *   so `npm test` (and CI) will fail loudly if you change one and not
+ *   the other.
  *
  * ──────────────────────────────────────────────────────────────────────── */
 
@@ -68,10 +72,10 @@ export const productSettings = {
   /** Shopify admin handle — only used when commerce relights in v2.
    *  Decisions.md §7 / §16 Q3. Safe to leave as-is until then. */
   handle: "gripfit",
-  /** **List price in USD** — the sticker price.
+  /** **List price / MSRP in USD** — the sticker price.
    *  All sale / discounted prices are computed from this number, so this
    *  is the only price you ever need to change. */
-  listPriceUSD: 135,
+  listPriceUSD: 149,
   /** v1 always true: every CTA on the site routes to the crowdfunding
    *  campaign (`links.crowdfundingUrl`) instead of a Shopify checkout.
    *  Flip to `false` once Shopify commerce relights in v2. */
@@ -84,15 +88,16 @@ export const productSettings = {
 
 export const campaignDiscount = {
   /** Pre-order discount, expressed as 0–1.
-   *  e.g. `0.3` = 30% off the list price.
+   *  e.g. `0.25` = 25% off the list price.
    *  Sale price = `listPriceUSD × (1 − percentOff)`. */
-  percentOff: 0.3,
+  percentOff: 0.25,
   /** Toggle the "+ free US shipping" promise on the banner / PDP. */
   freeShipping: true,
   /** Sentence form for the site-wide banner above the nav.
    *  Update this string if you change `percentOff` so the banner reads
-   *  the right percent. */
-  bannerCopy: "Kickstarter pre-order: 30% off + free US shipping",
+   *  the right percent. (`tests/copy.test.ts` fails the build if the
+   *  percent in this sentence drifts from `percentOff`.) */
+  bannerCopy: "Kickstarter pre-order: 25% off + free US shipping",
   /** Button label used everywhere the campaign CTA appears: nav,
    *  mobile menu, hero, PDP, banner. */
   ctaLabel: "Back the campaign",
@@ -111,15 +116,18 @@ export const emailDiscount = {
    *
    *      1 − (1 − campaignDiscount.percentOff) × (1 − emailDiscount.percentOff)
    *
-   *  At 30% × 15% the visitor pays 59.5% of list = 40.5% off. */
+   *  At 25% × 15% the visitor pays 63.75% of list = 36.25% off. */
   percentOff: 0.15,
   /** Modal title. Update to match `percentOff` if you change it. */
   headline: "Get an extra 15% off pre-order",
   /** Modal body copy. Update both percents if you change the numbers. */
-  body: "Drop your email and we'll send you a private 15%-off code that stacks on top of the 30% Kickstarter discount.",
+  body: "Drop your email and we'll send you a private 15%-off code that stacks on top of the 25% Kickstarter discount.",
   /** Shown after a successful submission. */
   confirmationCopy:
     "Done — your code is on the way. Check your inbox in a couple of minutes.",
+  /** Prefix on every generated discount code, e.g. `GF-7Q4KX2M9`.
+   *  Letters/digits only; keep it short so it stays readable in an email. */
+  codePrefix: "GF",
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -130,10 +138,13 @@ export const links = {
   /** **Crowdfunding campaign URL** — the destination for every "Back
    *  the campaign" / pre-order CTA on the site.
    *
-   *  TODO(Decisions.md §16 Q10): replace with the live Kickstarter /
-   *  Indiegogo URL when ready. While the campaign is dark, links fall
-   *  back to /contact so visitors who hit a CTA early still reach us. */
-  crowdfundingUrl: "/contact",
+   *  Leave `null` while the campaign is dark: every CTA then routes to
+   *  the on-site `/kickstarter` holding page, which explains that the
+   *  campaign is in progress and collects an email for launch notice.
+   *  Paste the live Kickstarter URL here on launch day and every CTA
+   *  site-wide switches to it (opening in a new tab) with no other edit.
+   *  Decisions.md §16 Q10. */
+  crowdfundingUrl: null as string | null,
   /** App Store URL for the iOS companion app. Set to `null` to hide
    *  the App Store CTA entirely (Decisions.md §16 Q8). */
   iosAppStore: null as string | null,
@@ -142,8 +153,11 @@ export const links = {
    *  `productSettings.preorder = false` and uncomment the Shopify
    *  imports in /product. */
   shopifyCheckoutHost: "checkout.gripfit.com",
-  /** Support / contact email — used on the contact page and in any
-   *  fallback "or email us" lines. */
+  /** Support / contact email shown to visitors (footer, setup page).
+   *  TODO(Decisions.md §16 Q7): this mailbox does not exist yet — stand
+   *  it up before launch, or the `mailto:` links bounce. Where the
+   *  *contact form* delivers is separate and env-driven
+   *  (`CONTACT_EMAIL_TO`), so the two can differ during setup. */
   supportEmail: "support@gripfit.com",
 } as const;
 

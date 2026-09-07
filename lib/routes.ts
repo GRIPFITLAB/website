@@ -11,6 +11,7 @@ export type RouteKey =
   | "home"
   | "product"
   | "science"
+  | "kickstarter"
   | "contact"
   | "setup"
   | "privacy"
@@ -51,6 +52,19 @@ export const routes: Record<RouteKey, Route> = {
     href: "/setup",
     label: "Setup",
     surface: { primaryNav: true, footer: true },
+  },
+  /**
+   * Holding page for the crowdfunding campaign. Every "Back the
+   * campaign" CTA lands here while `links.crowdfundingUrl` is null;
+   * once the live URL is set the CTAs bypass this page, but the route
+   * stays reachable (and linked from the footer) as the campaign
+   * explainer + launch-notice signup.
+   */
+  kickstarter: {
+    key: "kickstarter",
+    href: "/kickstarter",
+    label: "Kickstarter",
+    surface: { primaryNav: false, footer: true },
   },
   contact: {
     key: "contact",

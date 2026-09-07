@@ -6,9 +6,9 @@ import { cn } from "@/lib/utils";
  * pill, and free-shipping note (when applicable).
  *
  * Variants:
- *   - `hero`   80px sale price; flush-left.
- *   - `card`   72px sale price; for InTheBox / pricing card.
- *   - `pdp`    96px sale price; for the product detail page.
+ *   - `hero`   72px sale price; flush-left, home-page hero.
+ *   - `card`   72px sale price; default, for in-page pricing recaps.
+ *   - `pdp`    88px sale price; for the product detail page.
  *
  * Single source of truth for pricing math is `lib/config.ts`. The
  * component is a Server Component — discount values are baked at build.

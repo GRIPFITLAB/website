@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { discountConfig } from "@/lib/config";
-import { EMAIL_DISCOUNT_DISMISSED_KEY } from "@/lib/email-discount-events";
+import { markEmailDiscountDismissed } from "@/lib/email-discount-events";
 import { cn } from "@/lib/utils";
 
 import {
@@ -63,9 +63,7 @@ export function EmailDiscountForm({
   const honeypotId = `${prefix}-website`;
 
   useEffect(() => {
-    if (state.status === "success" && typeof window !== "undefined") {
-      window.localStorage.setItem(EMAIL_DISCOUNT_DISMISSED_KEY, "1");
-    }
+    if (state.status === "success") markEmailDiscountDismissed("local");
   }, [state.status]);
 
   const fieldErrors =

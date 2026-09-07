@@ -118,7 +118,7 @@ export function ContactForm() {
             className={cn(
               "text-sm",
               state.status === "success"
-                ? "text-success"
+                ? "text-state-success"
                 : "text-destructive",
             )}
           >

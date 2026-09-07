@@ -5,13 +5,14 @@
  *   Anything else is server-only and will be `undefined` if read in a
  *   client component.
  * - Most variables are `.optional()` for v1 because the app must boot before
- *   Shopify, Resend, and the production domain are set up. Use
+ *   Brevo, Shopify, and the production domain are set up. Use
  *   `requireEnv()` at the call site of any feature that genuinely needs
  *   the variable, so the failure mode is a clear error in that subsystem
  *   instead of a hard boot crash with no UI.
  *
  * Per Decisions.md §12: the Shopify Storefront token is public-by-design;
- * the Shopify Admin token must NEVER appear in this file.
+ * the Shopify Admin token must NEVER appear in this file. `BREVO_API_KEY`
+ * is server-only — it must never gain a `NEXT_PUBLIC_` prefix.
  */
 
 import { z } from "zod";
@@ -31,9 +32,20 @@ const envSchema = z.object({
     .optional(),
 
   SHOPIFY_STOREFRONT_API_VERSION: z.string().default("2025-04"),
-  RESEND_API_KEY: z.string().min(1).optional(),
+
+  // ── Brevo (transactional email + contacts) ───────────────────────
+  /** Brevo v3 API key. Server-only — never expose to the client. */
+  BREVO_API_KEY: z.string().min(1).optional(),
+  /** Numeric id of the Brevo list captured email-discount signups join. */
+  BREVO_WEBSITE_LIST_ID: z.coerce.number().int().positive().optional(),
+  /** A sender address verified in Brevo. Unverified senders bounce. */
+  BREVO_SENDER_EMAIL: z.string().email().optional(),
+  BREVO_SENDER_NAME: z.string().min(1).default("GripFit"),
+  /** Optional Brevo template for the discount-code email. When unset the
+   *  action sends the built-in inline HTML instead. */
+  BREVO_DISCOUNT_TEMPLATE_ID: z.coerce.number().int().positive().optional(),
+  /** Inbox the contact form delivers to. */
   CONTACT_EMAIL_TO: z.string().email().optional(),
-  CONTACT_EMAIL_FROM: z.string().email().optional(),
 
   NODE_ENV: z
     .enum(["development", "test", "production"])
@@ -73,15 +85,20 @@ export function requireEnv<K extends keyof Env>(
 
 /**
  * Feature flags — true once the matching subsystem has working credentials.
- * Pages should branch on these to render fallback UI when an integration
- * isn't configured (e.g. Shopify before the store exists, Resend before
- * the contact form is wired in Step 9).
+ * Server Actions branch on these so the site stays deployable (and every
+ * form stays usable) before the integration is configured.
  */
 export const isShopifyConfigured = Boolean(
   env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN &&
     env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN,
 );
 
-export const isResendConfigured = Boolean(
-  env.RESEND_API_KEY && env.CONTACT_EMAIL_TO && env.CONTACT_EMAIL_FROM,
+/** Enough config to send mail through Brevo. */
+export const isBrevoConfigured = Boolean(
+  env.BREVO_API_KEY && env.BREVO_SENDER_EMAIL,
+);
+
+/** Brevo is configured *and* we know where contact-form mail goes. */
+export const isContactEmailConfigured = Boolean(
+  isBrevoConfigured && env.CONTACT_EMAIL_TO,
 );

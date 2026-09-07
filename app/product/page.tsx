@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { EmailDiscountTeaser } from "@/components/marketing/EmailDiscountTeaser";
 import { PricingDisplay } from "@/components/marketing/PricingDisplay";
 import { Button } from "@/components/ui/button";
-import { discountConfig, externalLinks, productConfig } from "@/lib/config";
+import { campaign, discountConfig, productConfig } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: "Product",
@@ -19,8 +19,7 @@ export const metadata: Metadata = {
  * (Decisions.md §16 Q3). The dormant Shopify client in `lib/shopify/`
  * is intentionally NOT imported here; v2 will reawaken it when
  * commerce relights. Until then this page reads from `productConfig`
- * + `discountConfig` only and routes its single CTA to
- * `externalLinks.crowdfundingUrl`.
+ * + `discountConfig` only and routes its single CTA to `campaign.href`.
  *
  * Specs render as a modern editorial list (label / value rows grouped
  * by category), unchanged from the prior revamp.
@@ -98,7 +97,7 @@ export default function ProductPage() {
 
           <div className="mt-10 flex flex-col gap-3 sm:max-w-md">
             <Button
-              render={<Link href={externalLinks.crowdfundingUrl} />}
+              render={<Link href={campaign.href} {...campaign.linkProps} />}
               size="lg"
               className="h-12 px-8 text-sm font-semibold uppercase tracking-[0.08em] hover:shadow-[var(--shadow-glow)]"
             >
@@ -106,9 +105,9 @@ export default function ProductPage() {
             </Button>
             <EmailDiscountTeaser className="mt-1" />
             <p className="mt-3 text-xs leading-[1.6] text-text-tertiary">
-              Pre-orders are handled by our crowdfunding campaign. The
-              campaign URL goes live once the campaign launches; the
-              link above will route there automatically.
+              {campaign.isLive
+                ? "Pre-orders are handled on our Kickstarter campaign page."
+                : "Our Kickstarter campaign is still in preparation — the link above explains where things stand and takes your email for launch notice."}
             </p>
           </div>
         </div>

@@ -28,12 +28,18 @@ before consumer wearables existed. GripFit's job is to make that signal
 usable day-to-day: a single squeeze that produces a number you can act
 on, calibrated against the same instruments the published studies used.`;
 
+/**
+ * `href` is intentionally optional: until the final DOIs land with the
+ * copy pass, these render as plain rows rather than anchors. A link to
+ * `#` is a dead link — it reads as interactive to a screen reader and
+ * scrolls the page to the top on click.
+ */
 const papers: ReadonlyArray<{
   title: string;
   authors: string;
   year: number;
   journal: string;
-  href: string;
+  href?: string;
 }> = [
   {
     title:
@@ -41,7 +47,6 @@ const papers: ReadonlyArray<{
     authors: "Carter et al.",
     year: 2022,
     journal: "Sports Medicine Review",
-    href: "#",
   },
   {
     title:
@@ -49,7 +54,6 @@ const papers: ReadonlyArray<{
     authors: "Lindholm and Pedersen",
     year: 2021,
     journal: "European Journal of Applied Physiology",
-    href: "#",
   },
   {
     title:
@@ -57,7 +61,6 @@ const papers: ReadonlyArray<{
     authors: "Okafor, Mendez, and Yamada",
     year: 2023,
     journal: "Journal of Orthopaedic & Sports Physical Therapy",
-    href: "#",
   },
   {
     title:
@@ -65,7 +68,6 @@ const papers: ReadonlyArray<{
     authors: "Becker et al.",
     year: 2024,
     journal: "Journal of Strength & Conditioning Research",
-    href: "#",
   },
 ];
 
@@ -103,12 +105,9 @@ export default function SciencePage() {
           </p>
           <div className="md:col-span-9">
             <ul className="divide-y divide-border-hairline border-y border-border-hairline">
-              {papers.map((paper) => (
-                <li key={paper.title}>
-                  <a
-                    href={paper.href}
-                    className="group grid gap-2 py-7 transition-colors hover:bg-bg-elevated md:grid-cols-12 md:gap-6 md:py-8"
-                  >
+              {papers.map((paper) => {
+                const body = (
+                  <>
                     <p className="text-[13px] uppercase tracking-[0.08em] text-text-tertiary md:col-span-3">
                       {paper.journal} · {paper.year}
                     </p>
@@ -120,13 +119,32 @@ export default function SciencePage() {
                         {paper.authors}
                       </p>
                     </div>
-                  </a>
-                </li>
-              ))}
+                  </>
+                );
+                const layout =
+                  "grid gap-2 py-7 md:grid-cols-12 md:gap-6 md:py-8";
+
+                return (
+                  <li key={paper.title}>
+                    {paper.href ? (
+                      <a
+                        href={paper.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`group ${layout} transition-colors hover:bg-bg-elevated`}
+                      >
+                        {body}
+                      </a>
+                    ) : (
+                      <div className={layout}>{body}</div>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
             <p className="mt-6 text-xs leading-[1.6] text-text-tertiary">
-              Reading-list links are placeholder anchors — final DOIs land
-              with the Step 8 marketing-copy pass.
+              Citations are listed without links while the final DOIs are
+              confirmed with the marketing-copy pass.
             </p>
           </div>
         </div>

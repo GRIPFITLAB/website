@@ -7,8 +7,9 @@ import { useEffect, useRef, useState } from "react";
 import { EmailDiscountForm } from "@/components/marketing/EmailDiscountForm";
 import { discountConfig } from "@/lib/config";
 import {
-  EMAIL_DISCOUNT_DISMISSED_KEY,
   EMAIL_DISCOUNT_OPEN_EVENT,
+  isEmailDiscountDismissed,
+  markEmailDiscountDismissed,
 } from "@/lib/email-discount-events";
 import { cn } from "@/lib/utils";
 
@@ -41,11 +42,7 @@ export function EmailDiscountModal() {
 
   // First-visit auto-open
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const dismissed =
-      window.localStorage.getItem(EMAIL_DISCOUNT_DISMISSED_KEY) === "1" ||
-      window.sessionStorage.getItem(EMAIL_DISCOUNT_DISMISSED_KEY) === "1";
-    if (!dismissed) {
+    if (!isEmailDiscountDismissed()) {
       timerRef.current = setTimeout(() => setOpen(true), APPEAR_DELAY_MS);
     }
     return () => {
@@ -70,11 +67,11 @@ export function EmailDiscountModal() {
 
   function handleOpenChange(next: boolean) {
     setOpen(next);
-    if (!next && typeof window !== "undefined") {
+    if (!next) {
       // Closing without submitting: suppress for the rest of the session
-      // but allow a true bounce-back next visit. (localStorage on submit
-      // is set inside `<EmailDiscountForm />`; sessionStorage on close.)
-      window.sessionStorage.setItem(EMAIL_DISCOUNT_DISMISSED_KEY, "1");
+      // but allow a true bounce-back next visit. (The persistent
+      // localStorage flag is written on submit by `<EmailDiscountForm />`.)
+      markEmailDiscountDismissed("session");
     }
   }
 

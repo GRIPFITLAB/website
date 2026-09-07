@@ -15,7 +15,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { discountConfig, externalLinks } from "@/lib/config";
+import { campaign, discountConfig } from "@/lib/config";
 import { primaryNavRoutes, routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -84,7 +84,13 @@ export function MobileMenu() {
 
         <div className="px-6 pt-10">
           <Button
-            render={<Link href={externalLinks.crowdfundingUrl} onClick={close} />}
+            render={
+              <Link
+                href={campaign.href}
+                onClick={close}
+                {...campaign.linkProps}
+              />
+            }
             className="h-12 w-full text-sm font-semibold uppercase tracking-[0.08em]"
             size="lg"
           >

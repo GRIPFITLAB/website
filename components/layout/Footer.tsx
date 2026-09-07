@@ -24,7 +24,7 @@ const linkGroups: Array<{
   routeKeys: ReadonlyArray<keyof typeof routes>;
 }> = [
   { heading: "Product", routeKeys: ["product", "science", "setup"] },
-  { heading: "Company", routeKeys: ["contact"] },
+  { heading: "Company", routeKeys: ["kickstarter", "contact"] },
   { heading: "Legal", routeKeys: ["privacy", "terms"] },
 ];
 

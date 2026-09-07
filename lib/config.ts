@@ -79,10 +79,34 @@ export const discountConfig = {
 
 /**
  * External-link surface — re-exported from `lib/admin.ts` so existing
- * imports (`externalLinks.crowdfundingUrl`, etc.) keep working.
+ * imports (`externalLinks.supportEmail`, etc.) keep working.
  * Edit values in `lib/admin.ts → links`.
  */
 export const externalLinks = links;
+
+/**
+ * Where every "Back the campaign" CTA points, and how to render the link.
+ *
+ * While `links.crowdfundingUrl` is `null` the campaign is dark and CTAs
+ * route to the on-site `/kickstarter` holding page. Paste the live
+ * Kickstarter URL into `lib/admin.ts` and the same CTAs switch to it,
+ * opening in a new tab — no component edits.
+ *
+ * Use `campaign.linkProps` on the `<Link>`/`<a>` so external targets get
+ * `target="_blank"` + `rel="noopener noreferrer"` and internal ones don't.
+ */
+export const campaign: {
+  isLive: boolean;
+  href: string;
+  linkProps: { target?: "_blank"; rel?: string };
+} = {
+  isLive: links.crowdfundingUrl !== null,
+  href: links.crowdfundingUrl ?? "/kickstarter",
+  linkProps:
+    links.crowdfundingUrl !== null
+      ? { target: "_blank", rel: "noopener noreferrer" }
+      : {},
+};
 
 /**
  * Pricing helpers. Use these instead of computing prices in JSX.

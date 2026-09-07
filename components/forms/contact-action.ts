@@ -2,19 +2,23 @@
 
 import { z } from "zod";
 
-import { isResendConfigured } from "@/lib/env";
+import { sendTransactionalEmail } from "@/lib/brevo";
+import { siteConfig } from "@/lib/config";
+import { env, isContactEmailConfigured } from "@/lib/env";
 
 /**
- * Contact form Server Action — Step-4 stub.
- *
- * Step 9 will:
- *   - Replace the no-Resend branch with a real Resend send.
- *   - Add IP-based rate limiting.
- *   - Send a confirmation email back to the submitter.
+ * Contact form → Brevo transactional email (PRD R-013).
  *
  * Schema lives here (server side) so submissions can't bypass validation
- * by calling the Action directly. The client form re-uses the same schema
- * via a small re-export to give us instant feedback.
+ * by calling the Action directly. The client form re-uses the same shape
+ * for instant feedback.
+ *
+ * `replyTo` is set to the submitter so hitting reply in the support
+ * inbox answers them directly. The *sender* stays the verified Brevo
+ * address — sending as the visitor's domain would fail SPF/DKIM.
+ *
+ * When Brevo isn't configured the action still validates, logs, and
+ * reports success so the form stays usable pre-launch (PRD R-014).
  */
 export const contactSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(80),
@@ -39,18 +43,22 @@ export type ContactFormState =
 
 export const initialContactState: ContactFormState = { status: "idle" };
 
+const SUCCESS_MESSAGE =
+  "Thanks — we received your message and will reply within 1–2 business days.";
+
+const GENERIC_ERROR =
+  "We couldn't send your message just now. Please try again in a moment.";
+
 export async function submitContact(
   _prev: ContactFormState,
   formData: FormData,
 ): Promise<ContactFormState> {
-  const raw = {
+  const parsed = contactSchema.safeParse({
     name: String(formData.get("name") ?? ""),
     email: String(formData.get("email") ?? ""),
     message: String(formData.get("message") ?? ""),
     website: String(formData.get("website") ?? ""),
-  };
-
-  const parsed = contactSchema.safeParse(raw);
+  });
 
   if (!parsed.success) {
     const fieldErrors: Partial<Record<"name" | "email" | "message", string>> =
@@ -71,12 +79,12 @@ export async function submitContact(
     };
   }
 
-  if (!isResendConfigured) {
-    // Step-4 deploy mode: log and return success-ish so the UI can be
-    // exercised on Vercel before Resend is wired up.
+  const { name, email, message } = parsed.data;
+
+  if (!isContactEmailConfigured || !env.CONTACT_EMAIL_TO) {
     console.warn(
-      "[contact] Resend not configured — submission accepted but no email sent.",
-      { name: parsed.data.name, email: parsed.data.email },
+      "[contact] Brevo/CONTACT_EMAIL_TO not configured — submission accepted but no email sent.",
+      { name, email },
     );
     return {
       status: "success",
@@ -85,12 +93,54 @@ export async function submitContact(
     };
   }
 
-  // TODO(Step 9): replace this block with a Resend.emails.send() call
-  // using RESEND_API_KEY + CONTACT_EMAIL_TO + CONTACT_EMAIL_FROM.
-  console.warn("[contact] Resend integration pending — Step 9.");
+  try {
+    await sendTransactionalEmail({
+      to: [{ email: env.CONTACT_EMAIL_TO }],
+      replyTo: { email, name },
+      subject: `${siteConfig.name} contact form — ${name}`,
+      textContent: [
+        `From: ${name} <${email}>`,
+        "",
+        message,
+      ].join("\n"),
+      htmlContent: contactEmailHtml({ name, email, message }),
+    });
 
-  return {
-    status: "success",
-    message: "Thanks — we received your message and will reply within 1–2 business days.",
-  };
+    return { status: "success", message: SUCCESS_MESSAGE };
+  } catch (error) {
+    console.error("[contact] Brevo send failed", error);
+    return { status: "error", message: GENERIC_ERROR };
+  }
+}
+
+/** Escape submitted text before interpolating it into the HTML body. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function contactEmailHtml({
+  name,
+  email,
+  message,
+}: {
+  name: string;
+  email: string;
+  message: string;
+}): string {
+  return `<!doctype html>
+<html lang="en">
+<body style="margin:0;padding:24px;background:#f3ece2;font-family:Inter,Helvetica,Arial,sans-serif;color:#1c1a17;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#faf6f0;border-radius:12px;padding:28px;">
+    <tr><td>
+      <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8a8378;">Contact form</p>
+      <p style="margin:0 0 20px;font-size:16px;font-weight:500;">${escapeHtml(name)} &lt;${escapeHtml(email)}&gt;</p>
+      <p style="margin:0;font-size:15px;line-height:1.65;white-space:pre-wrap;color:#4a453d;">${escapeHtml(message)}</p>
+    </td></tr>
+  </table>
+</body>
+</html>`;
 }

@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { ArrowRight, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
-import { discountConfig, externalLinks } from "@/lib/config";
+import { campaign, discountConfig } from "@/lib/config";
 
 const STORAGE_KEY = "gripfit:discount-banner:dismissed-v1";
 
@@ -13,35 +13,75 @@ const STORAGE_KEY = "gripfit:discount-banner:dismissed-v1";
  *
  * - Renders at the very top of every page (above the sticky nav).
  * - Reads the pre-order discount config from `lib/config.ts` so swapping
- *   the percent / free-shipping toggle / CTA target only touches that
- *   file (Decisions.md §16 Q3).
- * - Dismiss state lives in localStorage so it persists across pages
- *   without round-tripping a cookie. Uses an SSR-friendly mount gate to
- *   avoid hydration drift.
+ *   the percent / free-shipping toggle / CTA target only touches
+ *   `lib/admin.ts`.
+ * - Dismissal lives in localStorage so it persists across pages without
+ *   round-tripping a cookie.
+ *
+ * Dismissal is modelled as an external store rather than
+ * `useState` + `useEffect`: localStorage *is* external state, and
+ * `useSyncExternalStore` gives us the SSR-safe read (server snapshot =
+ * "dismissed", so the server renders nothing and hydration can't
+ * mismatch) without a setState-in-effect cascade.
  *
  * Visual: warm terracotta (`bg-promo`) with cream text. This is the
  * only place the promo accent is allowed to flood-fill — every other
  * promo usage is outline / text-only.
  */
-export function DiscountBanner() {
-  const [mounted, setMounted] = useState(false);
-  const [visible, setVisible] = useState(true);
 
-  useEffect(() => {
-    setMounted(true);
-    if (typeof window === "undefined") return;
-    const dismissed = window.localStorage.getItem(STORAGE_KEY) === "1";
-    if (dismissed) setVisible(false);
-  }, []);
+/** Same-tab dismissals don't fire `storage`, so we notify explicitly. */
+const listeners = new Set<() => void>();
 
-  if (!mounted || !visible) return null;
+/**
+ * Fallback for browsers that block site data: dismissal still works for
+ * the rest of the page session, it just doesn't survive a reload.
+ */
+let dismissedInSession = false;
 
-  function dismiss() {
-    setVisible(false);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, "1");
-    }
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  // `storage` covers the other-tab case.
+  window.addEventListener("storage", listener);
+  return () => {
+    listeners.delete(listener);
+    window.removeEventListener("storage", listener);
+  };
+}
+
+function getSnapshot(): boolean {
+  if (dismissedInSession) return true;
+  try {
+    return window.localStorage.getItem(STORAGE_KEY) === "1";
+  } catch {
+    // Private mode or blocked site data — show the banner rather than
+    // swallowing the offer.
+    return false;
   }
+}
+
+/** Server render: treat as dismissed so nothing is emitted to hydrate. */
+function getServerSnapshot(): boolean {
+  return true;
+}
+
+function dismiss(): void {
+  dismissedInSession = true;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, "1");
+  } catch {
+    // Storage unavailable — `dismissedInSession` still hides the banner.
+  }
+  for (const listener of listeners) listener();
+}
+
+export function DiscountBanner() {
+  const dismissed = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
+
+  if (dismissed) return null;
 
   return (
     <div
@@ -52,7 +92,8 @@ export function DiscountBanner() {
       <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[12px] font-semibold uppercase leading-tight tracking-[0.08em]">
         <span>{discountConfig.preorder.bannerCopy}</span>
         <Link
-          href={externalLinks.crowdfundingUrl}
+          href={campaign.href}
+          {...campaign.linkProps}
           className="group inline-flex items-center gap-1.5 underline-offset-4 hover:underline"
         >
           {discountConfig.preorder.ctaLabel}

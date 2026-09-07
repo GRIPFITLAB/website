@@ -4,7 +4,7 @@ import { Check } from "lucide-react";
 import { EmailDiscountTeaser } from "@/components/marketing/EmailDiscountTeaser";
 import { PricingDisplay } from "@/components/marketing/PricingDisplay";
 import { Button } from "@/components/ui/button";
-import { discountConfig, externalLinks, siteConfig } from "@/lib/config";
+import { campaign, discountConfig, siteConfig } from "@/lib/config";
 import { routes } from "@/lib/routes";
 
 /**
@@ -15,7 +15,8 @@ import { routes } from "@/lib/routes";
  *     the right. The product card now carries the "what's in the box"
  *     checklist (folded in from the deleted bottom InTheBox section).
  *   - Secondary CTA is "Talk to us" (→ /contact); the "Back the
- *     campaign" primary CTA routes to `externalLinks.crowdfundingUrl`.
+ *     campaign" primary CTA routes to `campaign.href` — the live
+ *     Kickstarter URL once set, the /kickstarter holding page until then.
  *
  * Tagline / H1 still come from `siteConfig.tagline` so Decisions.md
  * §16 Q5 only requires touching one file.
@@ -76,7 +77,7 @@ export function Hero() {
 
           <div className="mt-9 flex flex-wrap items-center gap-4">
             <Button
-              render={<Link href={externalLinks.crowdfundingUrl} />}
+              render={<Link href={campaign.href} {...campaign.linkProps} />}
               size="lg"
               className="h-12 px-9 text-sm font-semibold uppercase tracking-[0.08em] hover:shadow-[var(--shadow-glow)]"
             >

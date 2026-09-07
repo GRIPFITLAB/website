@@ -30,3 +30,46 @@ export function openEmailDiscountModal(): void {
   if (typeof document === "undefined") return;
   document.dispatchEvent(new CustomEvent(EMAIL_DISCOUNT_OPEN_EVENT));
 }
+
+/* ── Storage access ───────────────────────────────────────────────────
+ * `localStorage` / `sessionStorage` are not merely absent on the server:
+ * touching them *throws* in browsers configured to block site data. An
+ * unguarded write inside an effect takes the whole page down, which for
+ * this flow would mean crashing right after a successful signup. Both
+ * helpers below fail closed and silent — suppression is a convenience,
+ * never a correctness requirement.
+ * ------------------------------------------------------------------ */
+
+type StorageKind = "local" | "session";
+
+function storage(kind: StorageKind): Storage | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return kind === "local" ? window.localStorage : window.sessionStorage;
+  } catch {
+    return null;
+  }
+}
+
+/** True only if the flag is definitely set. Unreadable storage → false. */
+export function isEmailDiscountDismissed(): boolean {
+  for (const kind of ["local", "session"] as const) {
+    try {
+      if (storage(kind)?.getItem(EMAIL_DISCOUNT_DISMISSED_KEY) === "1") {
+        return true;
+      }
+    } catch {
+      // Ignore and check the other store.
+    }
+  }
+  return false;
+}
+
+/** Record the dismissal. `local` persists across visits, `session` doesn't. */
+export function markEmailDiscountDismissed(kind: StorageKind): void {
+  try {
+    storage(kind)?.setItem(EMAIL_DISCOUNT_DISMISSED_KEY, "1");
+  } catch {
+    // Blocked storage — the visitor simply sees the offer again later.
+  }
+}

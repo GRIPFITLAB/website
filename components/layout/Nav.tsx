@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Logo } from "@/components/layout/Logo";
 import { MobileMenu } from "@/components/layout/MobileMenu";
 import { Button } from "@/components/ui/button";
-import { discountConfig, externalLinks } from "@/lib/config";
+import { campaign, discountConfig } from "@/lib/config";
 import { primaryNavRoutes } from "@/lib/routes";
 
 /**
@@ -40,7 +40,7 @@ export function Nav() {
 
         <div className="flex flex-1 items-center justify-end gap-3">
           <Button
-            render={<Link href={externalLinks.crowdfundingUrl} />}
+            render={<Link href={campaign.href} {...campaign.linkProps} />}
             size="sm"
             className="hidden h-9 px-5 text-[13px] font-semibold uppercase tracking-[0.08em] hover:shadow-[var(--shadow-glow)] md:inline-flex"
           >

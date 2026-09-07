@@ -38,7 +38,10 @@ drives them to purchase the GripFit device, and links them to the iOS app.
 | GraphQL client | Native `fetch` + typed wrappers in `lib/shopify/` | Avoid Apollo overhead |
 | Forms | React Hook Form + Zod | Standard, well-supported |
 | Email — orders | Shopify built-in | Handled by checkout |
-| Email — contact | Resend (Server Action) | Minimize custom infra |
+| Email + contacts | **Brevo** (v3 REST, hand-rolled `fetch` wrapper in `lib/brevo/`) | Single vendor for all outbound mail and email capture. Already runs the iOS app's signup + notifications, so one API key, one verified sender domain, one contact list to reconcile against backers. Supersedes the Resend decision (Sep 7, 2026). No SDK — mirrors the `lib/shopify/` pattern. |
+| Email capture store | Brevo Contacts (custom attributes) | No database in v1. Brevo is the system of record for captured emails and their discount codes. |
+| Tests | **Vitest** (unit) + `next build` as the integration gate | Native ESM/TS, no config beyond a path alias. Rendering is covered by the build, which fails if a page throws while prerendering. |
+| CI | GitHub Actions — lint → typecheck → test → build | Runs on every PR and push to `main`, with no secrets, proving the zero-config deploy still works. |
 | Analytics | Vercel Analytics + Shopify reports | Free, sufficient for v1 |
 | State | RSC + URL state + minimal client (cart only via React Context + cookie) | No Redux / Zustand |
 | Node | 22 LTS — pinned via `.nvmrc` (added in Step 1 cleanup) | Matches Vercel current LTS |
@@ -130,17 +133,24 @@ Phase 1 product list:
     (resolved Apr 29, 2026 — supersedes the prior Q3 "Shopify pre-order"
     decision). All "Pre-order" / "Back the campaign" CTAs hand off to
     `externalLinks.crowdfundingUrl` (defined in `lib/config.ts`).
-  - List price: $135. Kickstarter pre-order discount: **30% off** (sale
-    price $94.50) plus **free US shipping**. Discount config lives in
-    `lib/config.ts → discountConfig.preorder` so updating the percent or
-    free-shipping toggle only touches one file.
+  - MSRP: **$149**. Kickstarter pre-order discount: **25% off** (sale
+    price $111.75) plus **free US shipping**. Values live in
+    `lib/admin.ts`; `lib/config.ts → discountConfig.preorder` types them,
+    so updating a percent or the free-shipping toggle touches one file.
   - First-visit email-capture modal offers an **extra 15% off**
-    (`discountConfig.email`) that **stacks on top of the 30% Kickstarter
-    discount** — combined effective discount on the list price is
-    1 − 0.7 × 0.85 = 40.5% (stacked sale price $80.36, computed by
-    `getStackedPreorderPricing()`). v1 implementation logs to the Resend
-    stub (no DB) and returns success — fulfilment happens manually until
-    the crowdfunding platform is live.
+    (`discountConfig.email`) that **stacks on top of the 25% Kickstarter
+    discount** — combined effective discount on MSRP is
+    1 − 0.75 × 0.85 = 36.25% (stacked sale price $94.99, computed by
+    `getStackedPreorderPricing()`).
+  - Each captured email receives a **unique code** (`GF-XXXXXXXX`,
+    40 bits of Crockford base32 from `crypto.getRandomValues`), stored as
+    a `DISCOUNT_CODE` attribute on the Brevo contact. One code per
+    address, re-sent rather than re-issued on repeat submits, so a leaked
+    code is traceable to the address it was issued to. Generation lives
+    in `lib/discount-code.ts`.
+  - **Redemption is unresolved** — see §16 Q14. Codes are issued, stored,
+    and exportable; how a code grants a discounted Kickstarter reward
+    tier is decided when the campaign is set up.
   - There is **no separate waitlist email capture** beyond the discount
     modal.
   - Variants: none.
@@ -167,7 +177,8 @@ parked). App subscriptions stay in StoreKit 2.
 | `/`                  | Home — hero, features, how-it-works, CTA. **No social-proof section.**   | Step 5   |
 | `/product`           | PDP — photos, specs, add-to-cart                                         | Step 6   |
 | `/science`           | Why grip strength predicts athletic readiness                            | Step 8   |
-| `/contact`           | Resend-backed contact form (Server Action submit)                        | Step 9   |
+| `/kickstarter`       | Campaign holding page — "in preparation" + launch-notice email capture   | Sep 2026 |
+| `/contact`           | Brevo-backed contact form (Server Action submit)                        | Step 9   |
 | `/setup`             | Pairing / setup guide                                                    | Step 8   |
 | `/privacy`           | Privacy policy (TSX)                                                     | Step 8   |
 | `/terms`             | Terms of service (TSX)                                                   | Step 8   |
@@ -224,8 +235,8 @@ links an order # to an App Store account.
 
 | Form | Backend | Notification |
 | --- | --- | --- |
-| Contact | Server Action → Resend | Email to shared Gmail (`support@gripfit.com` alias) |
-| Email-discount capture (extra 15% off, stacks on Kickstarter) | Server Action → Resend (stubbed) | Email back the code to the visitor. Three surfaces share the same `submitEmailDiscount` action and the same `EMAIL_DISCOUNT_DISMISSED_KEY` localStorage flag: (a) first-visit `<EmailDiscountModal />` mounted in `app/layout.tsx`, (b) always-visible `<EmailDiscountForm variant="footer" />` in the footer, (c) `<EmailDiscountTeaser />` next to every "Back the campaign" CTA. The teaser opens the modal via the `gripfit:open-email-discount` custom event (`lib/email-discount-events.ts`) — no Context provider, no prop drilling. |
+| Contact | Server Action → Brevo transactional (`/smtp/email`) | Delivered to `CONTACT_EMAIL_TO`; `replyTo` is the submitter so replying answers them directly. Sender is always the verified Brevo address — sending as the visitor's domain would fail SPF/DKIM. |
+| Email-discount capture (extra 15% off, stacks on Kickstarter) | Server Action → Brevo Contacts (`/contacts`, `updateEnabled: true`) then Brevo transactional | Upserts the contact into `BREVO_WEBSITE_LIST_ID` with a unique `DISCOUNT_CODE` attribute, then emails the code. Three surfaces share the same `submitEmailDiscount` action and the same `EMAIL_DISCOUNT_DISMISSED_KEY` localStorage flag: (a) first-visit `<EmailDiscountModal />` mounted in `app/layout.tsx`, (b) always-visible `<EmailDiscountForm variant="footer" />` in the footer, (c) `<EmailDiscountTeaser />` next to every "Back the campaign" CTA. The teaser opens the modal via the `gripfit:open-email-discount` custom event (`lib/email-discount-events.ts`) — no Context provider, no prop drilling. |
 
 ---
 
@@ -313,19 +324,34 @@ components/
   ui/                         # shadcn primitives (button, sheet, dialog, …)
 
 lib/
-  shopify/
+  brevo/
+    client.ts                 # typed fetch wrapper + BrevoHttpError / BrevoNetworkError
+    types.ts                  # handwritten subset of the Brevo v3 shapes
+    index.ts                  # public API (getContact, upsertContact, sendTransactionalEmail)
+  shopify/                    # parked for v2 — no importers (§7)
     client.ts                 # typed fetch wrapper (Storefront GraphQL)
     queries.ts                # Storefront query strings
     mutations.ts              # Storefront mutation strings
     types.ts                  # handwritten Storefront response types
     index.ts                  # public API (getProduct, createCart, …)
-  cart/
-    context.tsx               # React Context provider (client component) — Step 7
-    cookies.ts                # cart-id cookie helpers (server-only) — Step 7
-  env.ts                      # Zod-validated process.env + isShopifyConfigured / isResendConfigured
-  config.ts                   # siteConfig, productConfig, externalLinks
+  admin.ts                    # THE control panel — prices, discounts, copy, links
+  config.ts                   # typed exports + pricing helpers + `campaign` link switch
+  discount-code.ts            # unique per-email code generation
+  email-discount-events.ts    # modal custom-event channel + safe storage helpers
+  env.ts                      # Zod-validated process.env + isBrevoConfigured / isShopifyConfigured
   routes.ts                   # typed nav + footer + sitemap route map (Step 4)
   utils.ts                    # cn() — shadcn
+
+tests/                        # Vitest units — see §2
+  pricing.test.ts             # stacked discount maths + formatUSD
+  config.test.ts              # admin.ts → config.ts invariants
+  copy.test.ts                # banner/modal percentages match the numbers
+  discount-code.test.ts       # format, uniqueness, non-guessability
+  contact-action.test.ts      # validation, honeypot, HTML escaping, Brevo mocked
+  email-discount-action.test.ts # validation, code reuse, degraded modes
+  routes.test.ts              # route map ⇔ app/ directory parity
+
+.github/workflows/ci.yml      # lint → typecheck → test → build
 
 public/
   fonts/                      # self-hosted Inter Tight Variable + Inter Variable + Inter Italic Variable
@@ -387,12 +413,25 @@ Stop for review after each step. Do not proceed to the next step without explici
   - `app/science/page.tsx`, `app/setup/page.tsx`, `app/privacy/page.tsx`, `app/terms/page.tsx` — placeholder copy in TSX.
   - `app/contact/page.tsx` + `components/forms/{ContactForm.tsx,contact-action.ts}` — Server Action with Zod validation, honeypot, and an `isResendConfigured` no-op branch (logs + success message until Resend env lands in Step 9).
   - `npm run build` is green; all 12 routes (home, 6 inner pages, 404, sitemap, robots) statically prerender.
-- [ ] 6. Product detail page with add-to-cart (live Shopify data) — promote `/product` from stub to full PDP.
-- [ ] 7. Cart drawer + Context + cookie persistence.
-- [ ] 8. Marketing-page polish (`/science`, `/setup`, copywriting).
-- [ ] 9. Contact form backend (replace stub with Resend send + rate limit).
-- [ ] 10. SEO metadata, structured data, OG images (sitemap + robots already shipped in Step 4 prep).
+- [x] ~~6. Product detail page with add-to-cart (live Shopify data)~~ — **deferred to v2** (§16 Q3). v1 PDP is crowdfunding-driven.
+- [x] ~~7. Cart drawer + Context + cookie persistence~~ — **deferred to v2**.
+- [ ] 8. Marketing-page polish (`/science`, `/setup`, copywriting) — **final copy still outstanding**; see §16 Q15.
+- [x] **9. Email backend — Brevo.** *Sep 7, 2026.*
+  - `lib/brevo/{client,types,index}.ts` — typed `fetch` wrapper, `BrevoHttpError` / `BrevoNetworkError`, 10s timeout.
+  - `lib/discount-code.ts` — unique `GF-XXXXXXXX` codes, Crockford base32, `crypto.getRandomValues`.
+  - `submitEmailDiscount` — validate → look up contact → reuse or mint a code → upsert into `BREVO_WEBSITE_LIST_ID` → send the code. Idempotent per address.
+  - `submitContact` — validate → Brevo transactional to `CONTACT_EMAIL_TO`, `replyTo` the submitter, submitted text HTML-escaped.
+  - Both keep the degraded branch: with no Brevo env set they validate, log, and report success, so the zero-config deploy still works (CI proves it).
+  - Rate limiting still deferred (§12) — honeypot only.
+- [ ] 10. SEO metadata, structured data, OG images (sitemap + robots already shipped in Step 4 prep; robots now disallows non-production).
 - [ ] 11. Performance and accessibility audit.
+- [x] **12. Production hardening.** *Sep 7, 2026.*
+  - Pricing moved to $149 / 25% / +15% stacked (§16 Q12).
+  - `/kickstarter` holding page added; `campaign.href` switch replaces the `/contact` CTA fallback (§16 Q10).
+  - Vitest suite (62 tests) + GitHub Actions CI: lint → typecheck → test → build.
+  - Dead code removed: `components/marketing/{InTheBox,Readiness}.tsx` (orphaned since the Jun 28 revamp).
+  - Bugs fixed: `robots.txt` allowed indexing of preview deploys; `ContactForm` used a `text-success` class that no token defines; `/science` citations linked to `#`; `localStorage` writes were unguarded and threw when a browser blocks site data; `DiscountBanner` tripped `react-hooks/set-state-in-effect` (now `useSyncExternalStore`).
+  - `@types/node` bumped 20 → 22 to match `.nvmrc`.
 
 ---
 
@@ -412,16 +451,17 @@ Out of scope for v1: `/about`, `/faq`, `/shipping`, blog. Home page does
 - Long-copy pages (`/setup`, `/privacy`, `/terms`) are **TSX**, not MDX.
   No `content/` folder, no `@next/mdx` dependency.
 
-**Q3 — Pre-order vs in-stock model. ✅ RE-RESOLVED Apr 29, 2026.**
+**Q3 — Pre-order vs in-stock model. ✅ RE-RESOLVED Apr 29, 2026;
+pricing updated Sep 7, 2026.**
 v1 routes pre-orders through an **external crowdfunding campaign**
-(Kickstarter / Indiegogo / etc., URL TBD — see Q10). Shopify is parked.
-All "Pre-order" / "Back the campaign" CTAs hand off to
-`externalLinks.crowdfundingUrl`. The Kickstarter pre-order discount is
-**30% off + free US shipping** on a $135 list price, baked into
-`discountConfig.preorder` (sale price $94.50). Visitors who provide their
-email get an **additional 15% off** code via the `EmailDiscountModal`
-(`discountConfig.email`) that **stacks on top of the 30%** for a
-combined 40.5% off list (`getStackedPreorderPricing()`, $80.36).
+(Kickstarter, URL TBD — see Q10). Shopify is parked. All "Pre-order" /
+"Back the campaign" CTAs hand off to `campaign.href`. The Kickstarter
+pre-order discount is **25% off + free US shipping** on a $149 MSRP,
+baked into `discountConfig.preorder` (sale price $111.75). Visitors who
+provide their email get an **additional 15% off** code via the
+`EmailDiscountModal` (`discountConfig.email`) that **stacks on top of the
+25%** for a combined 36.25% off MSRP (`getStackedPreorderPricing()`,
+$94.99).
 
 > The Apr 26, 2026 resolution (Shopify pre-order SKU) was superseded
 > when crowdfunding became the v1 pre-launch strategy. The
@@ -461,29 +501,65 @@ in `components/marketing/AppShowcase.tsx` ships pure-CSS phone mockups
 the phones are intentionally generic to avoid mocking real Apple trade
 dress.
 
-**Q10 — Crowdfunding URL.** v1 pre-orders are taken on an external
-crowdfunding campaign (§5, §16 Q3). The platform and exact URL are
-**TBD**; the placeholder lives in `lib/config.ts` as
-`externalLinks.crowdfundingUrl` (currently `"#"` until the campaign
-goes live). When the URL is locked, update `lib/config.ts` only — every
-"Pre-order" / "Back the campaign" CTA on the site already routes
-through that constant.
+**Q10 — Crowdfunding URL. ⏳ OPEN, but no longer blocking.** The
+campaign is Kickstarter; the exact URL is **TBD** because the campaign
+page isn't built yet. `lib/admin.ts → links.crowdfundingUrl` is `null`,
+which routes every CTA to the on-site **`/kickstarter` holding page**
+(campaign-in-preparation blurb + launch-notice email capture) rather
+than to a dead `#` or an off-topic `/contact`. Paste the live URL into
+`lib/admin.ts` on launch day and every CTA site-wide switches to it,
+opening in a new tab — no component edits, no other file touched.
+`lib/config.ts → campaign` owns that switch.
 
 **Q11 — Hero product image.** The hero now reserves a right-column
 slot for a product render or photograph. Currently a labelled placeholder
 tile (`design.md` §9). Drop the final art into `public/product/hero.*`
 and reference it via `next/image` once the design team supplies it.
 
-**Q12 — Pricing.** ✅ RE-RESOLVED Jun 28, 2026. List price set to
-**$135**, Kickstarter pre-order discount **30% off** (sale price $94.50),
+**Q12 — Pricing.** ✅ RE-RESOLVED Sep 7, 2026. MSRP set to **$149**,
+Kickstarter pre-order discount **25% off** (sale price $111.75),
 email-modal discount **extra 15% off** that **stacks on the Kickstarter
-discount** (combined 40.5% off list = $80.36, computed by
-`getStackedPreorderPricing()`). All values flow from `lib/config.ts →
-discountConfig`; no UI component encodes a percent or price literal.
-Replaces the Apr 29, 2026 $175 / 40% / $105 line-up.
+discount** (combined 36.25% off MSRP = $94.99, computed by
+`getStackedPreorderPricing()`). All values flow from `lib/admin.ts`; no
+UI component encodes a percent or price literal, and
+`tests/copy.test.ts` fails the build if a banner sentence drifts from
+the number it describes. Replaces the Jun 28, 2026 $135 / 30% / $94.50
+line-up (itself replacing Apr 29's $175 / 40% / $105).
 
 **Q13 — Specs change wording.** The Apr 29, 2026 revamp removed the
 "Specifications are subject to minor change before the production run
 ships…" disclaimer from the PDP. If legal needs that hedge back, add
 it as a footnote on `/product` only (not on every spec section).
+
+**Q14 — Discount-code redemption on Kickstarter. ⏳ OPEN (owner: AS).**
+The site issues a unique code per captured email and stores it on the
+Brevo contact (§5). **How a backer actually redeems it is undecided.**
+Kickstarter has no native promo-code field; the likely mechanism is a
+set of **secret/limited reward tiers** priced at the stacked discount,
+whose URLs are sent only to people on the list — which makes the code
+a reference for reconciliation rather than something typed at checkout.
+
+Resolve when the Kickstarter campaign is set up. Until then the code
+email deliberately says *"we'll write to you the day it opens, with
+instructions for applying your code"* — it promises no specific
+redemption mechanism. Nothing in the codebase depends on the answer;
+only the copy in `components/marketing/email-discount-action.ts` and
+the launch-day announcement do.
+
+Depends on Q10 (campaign URL).
+
+**Q15 — Final copy and imagery. ⏳ OPEN (owner: design/AS).** The site
+is structurally complete but still ships interim copy in places:
+`/setup` steps, `/science` citations (listed without DOI links until
+they're confirmed), and the home-page section copy. Imagery is still
+abstract per §3 — hero product tile, PDP photography slot, and the
+`AppShowcase` phone mockups all await real renders and screenshots
+(Q9, Q11). None of this blocks deployment; all of it blocks *launch*.
+
+**Q16 — Support mailbox. ⏳ OPEN.** `links.supportEmail`
+(`support@gripfit.com`) is displayed in the footer and on `/setup` but
+the mailbox does not exist — those `mailto:` links currently bounce.
+Separately, `CONTACT_EMAIL_TO` (where the contact form delivers) and
+`BREVO_SENDER_EMAIL` (a Brevo-verified sender) must be set before
+launch or no mail is sent at all.
 

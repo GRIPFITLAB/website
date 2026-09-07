@@ -31,15 +31,16 @@ Q3).
 - Tailwind CSS v4 via `@tailwindcss/postcss`
 - shadcn/ui (style: `base-nova`, base: `@base-ui/react`)
 - Zod for env + form validation
+- Brevo for all outbound email + email capture (typed `fetch` wrapper in `lib/brevo/`)
 - Shopify Storefront API (typed `fetch` wrapper — parked for v2)
-- Resend for the contact form + email-discount modal (Step 9)
+- Vitest units + GitHub Actions CI (lint → typecheck → test → build)
 - Vercel hosting + Vercel Analytics
 
 ## Local development
 
 ```bash
 nvm use            # Node 22 LTS, see .nvmrc
-cp .env.example .env.local   # fill in Shopify + Resend keys
+cp .env.example .env.local   # optional — the app runs with nothing set
 npm install
 npm run dev        # http://localhost:3000
 ```
@@ -53,6 +54,10 @@ Useful scripts:
 | `npm run start`    | Run production build locally           |
 | `npm run lint`     | ESLint (Next.js core-web-vitals + TS)  |
 | `npm run typecheck`| `tsc --noEmit`                         |
+| `npm test`         | Vitest unit suite                      |
+| `npm run test:watch`| Vitest in watch mode                  |
+
+CI runs all four gates (`lint`, `typecheck`, `test`, `build`) on every PR.
 
 ## Repository layout
 
@@ -75,24 +80,43 @@ added as the corresponding build steps land.
 - [x] 2. shadcn/ui init + design-token wiring
 - [x] 3. Shopify Storefront API client (`lib/shopify/`)
 - [x] 4. Site shell — Nav, Footer, MobileMenu, branded 404, sitemap, robots
-- [x] 5. Home page — Hero, Features, Readiness, AppShowcase, Comparison, InTheBox + DiscountBanner / EmailDiscountModal (no athlete-grid social proof per §6)
-- [x] **Pre-deploy stubs** for `/product`, `/science`, `/setup`, `/contact`,
-  `/privacy`, `/terms` so every nav link resolves on Vercel. The PDP
-  reads `productConfig` + `discountConfig` only and routes its CTA to
-  `externalLinks.crowdfundingUrl`. The contact form's Server Action and
-  the email-discount Server Action both accept + log submissions until
-  Resend lands in Step 9.
-- [ ] 6. ~PDP with live add-to-cart (Shopify required)~ — **deferred to v2** (Decisions.md §16 Q3). v1 PDP is crowdfunding-driven.
-- [ ] 7. ~Cart drawer + Context + cookie persistence~ — **deferred to v2**.
-- [ ] 8. Marketing-page polish (`/science`, `/setup`)
-- [ ] 9. Contact form backend (replace stub with Resend send) + email-discount delivery
+- [x] 5. Home page — Hero, Comparison, AppShowcase, Features + DiscountBanner / EmailDiscountModal (no athlete-grid social proof per §6)
+- [x] **All routes live** — `/product`, `/science`, `/setup`, `/contact`,
+  `/kickstarter`, `/privacy`, `/terms`. The PDP reads `productConfig` +
+  `discountConfig` only and routes its CTA through `campaign.href`.
+- [x] ~~6. PDP with live add-to-cart (Shopify required)~~ — **deferred to v2** (Decisions.md §16 Q3). v1 PDP is crowdfunding-driven.
+- [x] ~~7. Cart drawer + Context + cookie persistence~~ — **deferred to v2**.
+- [ ] 8. Marketing-page polish (`/science`, `/setup`) — **final copy outstanding** (§16 Q15)
+- [x] 9. Email backend — Brevo transactional + contacts, unique per-email discount codes
 - [ ] 10. SEO polish — structured data, OG images
 - [ ] 11. Performance and accessibility audit
+- [x] 12. Production hardening — pricing update, `/kickstarter` holding page, Vitest + CI, dead-code removal, bug fixes
 
 The site is **deploy-ready to Vercel right now** with no env vars set. The
-build is `npm run build` clean; all 12 routes statically prerender. Once a
-custom domain is attached, set `NEXT_PUBLIC_SITE_URL` so `sitemap.xml` and
-`robots.txt` can resolve absolute URLs.
+build is `npm run build` clean; all 13 routes statically prerender, and CI
+proves the zero-config build keeps working. Before launch, set
+`NEXT_PUBLIC_SITE_URL` (absolute URLs for `sitemap.xml` / `robots.txt` /
+OG tags) and the `BREVO_*` + `CONTACT_EMAIL_TO` keys (nothing is emailed
+until they exist — forms accept input and log instead).
+
+## Pre-order pricing
+
+| | |
+| --- | --- |
+| MSRP | $149 |
+| Kickstarter pre-order | 25% off + free US shipping → **$111.75** |
+| With email-signup code | extra 15% off, stacked → **$94.99** (36.25% off MSRP) |
+
+All four numbers derive from two values in [`lib/admin.ts`](./lib/admin.ts).
+`tests/copy.test.ts` fails the build if the banner copy stops matching them.
+
+## Campaign link
+
+`links.crowdfundingUrl` is `null` while the Kickstarter campaign is being
+built, so every "Back the campaign" CTA routes to the on-site
+`/kickstarter` holding page, which explains the status and captures an
+email for launch notice. Paste the live URL into `lib/admin.ts` and every
+CTA switches to it (opening in a new tab) — no other file changes.
 
 Stop for review at the end of each step (per Decisions.md §15).
 # gripfit-web
