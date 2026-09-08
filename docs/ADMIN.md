@@ -141,13 +141,162 @@ Do these in the Brevo dashboard before setting the env vars.
 5. Submit `/contact` → confirm mail lands in `CONTACT_EMAIL_TO` and that
    hitting reply addresses the submitter, not the sender address.
 
-## 9. Reconciling codes with backers (R-015 — pending OQ-2)
+## 9. Discount codes — anatomy, storage, review, redemption
 
-Export the `BREVO_WEBSITE_LIST_ID` contacts (email + `DISCOUNT_CODE`) from Brevo
-as CSV and cross-check against the campaign's backer export. Enforcement mechanism
-on the campaign side is unresolved — see PRD OQ-2.
+### 9.1 What a code is
 
-## 10. Conventions
+`GF-7Q4KX2M9` — the prefix from `emailDiscount.codePrefix` (`lib/admin.ts`),
+then 8 characters of Crockford base32 (`0-9A-Z` minus `I`, `L`, `O`, `U`, so a
+code read off a screen cannot be mistyped into a lookalike). 40 bits of entropy
+from `crypto.getRandomValues`.
+
+The token is **random, not derived from the email**. Deriving it would let
+anyone who knows the algorithm mint a valid code for any address.
+
+One address gets exactly one code, permanently: `submitEmailDiscount` looks the
+contact up first and re-sends the existing `DISCOUNT_CODE` rather than issuing a
+second (R-012). Re-submitting is therefore safe and idempotent.
+
+A code is worth an extra **15% off the campaign price**, stacking on the 25%
+Kickstarter discount — $94.99 against a $149 MSRP. All three numbers live in
+`lib/admin.ts`.
+
+### 9.2 Where codes live — and the risk that creates
+
+**Brevo is the only store. There is no database and no backup** (EDD D-004,
+PRD OQ-9). Each signup is one Brevo contact carrying four attributes:
+
+| Attribute | Type | Example | Meaning |
+| --- | --- | --- | --- |
+| `DISCOUNT_CODE` | Text | `GF-7Q4KX2M9` | the code itself |
+| `DISCOUNT_PCT` | Number | `15` | percent off, at time of issue |
+| `SIGNUP_SOURCE` | Text | `website` | distinguishes these from iOS-app contacts |
+| `SIGNUP_TS` | Text | ISO 8601 | when it was issued |
+
+Consequences worth understanding before you rely on this:
+
+- **Delete a Brevo contact and its code is gone.** If that person re-submits
+  they receive a *different* code, and any record you gave them is now invalid.
+- **Losing access to the Brevo account or list loses every code**, with no
+  second copy anywhere.
+- Nothing reconciles the site against Brevo. The site never reads codes back
+  except during a re-submission.
+
+Until OQ-9 is answered, the mitigation is the export in §9.3, run on a schedule
+and kept somewhere you control.
+
+### 9.3 Reviewing and exporting codes
+
+**Brevo UI** — Contacts → Lists → *(your website list)* → **Export contacts**.
+Include attributes; you get a CSV with `EMAIL`, `DISCOUNT_CODE`, `DISCOUNT_PCT`,
+`SIGNUP_SOURCE`, `SIGNUP_TS`. This is the file you reconcile against.
+
+**API**, for scripting a periodic backup (paginate, 500 max per call):
+
+```bash
+curl -s "https://api.brevo.com/v3/contacts/lists/$LIST_ID/contacts?limit=500&offset=0" \
+  -H "api-key: $BREVO_API_KEY" -H "accept: application/json"
+```
+
+Spot-checking one address:
+
+```bash
+curl -s "https://api.brevo.com/v3/contacts/you%40example.com" \
+  -H "api-key: $BREVO_API_KEY" | jq '.attributes'
+```
+
+### 9.4 Redemption — unresolved, and it is not a code problem (OQ-2)
+
+**Nothing enforces these codes.** Not the site, not Brevo, not Kickstarter.
+Kickstarter has no native promo-code mechanism, which is why v1 treats codes as
+informational (EDD D-006). Issuing them was always the easy half; honouring
+them is an operational decision you still have to make. The three workable
+routes:
+
+| Option | How it works | Cost |
+| --- | --- | --- |
+| **A — Pledge survey** | Add a "discount code" question to the Kickstarter survey. Export responses, cross-check against the Brevo CSV, refund the difference or send a credit. | Manual, and refunds after the fact look untidy to backers. |
+| **B — Secret reward tier** *(recommended)* | Create a Kickstarter secret/hidden reward priced at $94.99. Put its URL in the launch email instead of asking for a code. | Cleanest for the backer — the price is simply right. The code becomes a receipt rather than a key. Anyone who forwards the link gets the price. |
+| **C — Post-campaign** | Collect codes in the pledge-manager (BackerKit or similar) and apply the discount to the fulfilment invoice. | Depends on a tool you have not chosen; delays the discount. |
+
+Option B is the recommendation: it needs no reconciliation, and it converts the
+code from something that must be *enforced* into something that merely has to be
+*sent*. If you pick B, the codes still earn their keep as the mailing list.
+
+Whichever you pick, note the commitment already made in the email body: *"we'll
+write to you the day it opens."* That is a broadcast you owe every contact on
+this list, and it is the moment the code has to mean something.
+
+### 9.5 Abuse
+
+One code per address is enforced; **one code per person is not**. Nothing stops
+someone submitting ten addresses, and there is no rate limiting on the Server
+Action — a determined script could enumerate the form. The deterrent is
+traceability: a leaked code identifies the address it was issued to (EDD D-005).
+
+If volume looks wrong at reconciliation, the practical controls are capping
+redemptions manually, or checking `SIGNUP_TS` clustering in the export.
+
+## 10. What issuing these codes obliges you to do
+
+This is the part that is easy to skip and awkward to retrofit.
+
+**The code email is transactional; the list is marketing.** The email goes via
+Brevo's `/smtp/email` endpoint, and Brevo does not add an unsubscribe link to
+transactional mail by default. The same submission adds that person to a
+marketing list via `/contacts`. So today: **no consent checkbox, no double
+opt-in, and no unsubscribe link on the only email they receive.**
+
+Brevo *does* add unsubscribe automatically to campaign (broadcast) sends, so the
+launch announcement will carry one. The gap is the initial capture, and it is
+the capture that has to be defensible.
+
+**The privacy policy does not mention any of this.** It currently describes a
+Shopify checkout that does not exist in v1 and says nothing about email capture,
+Brevo, or discount codes — the one thing the site actually collects. That is the
+most concrete item on this page.
+
+Minimum before you send traffic:
+
+1. **A line of consent copy under the email field** saying what they are signing
+   up for — the code plus launch news — and that they can unsubscribe.
+2. **A privacy section covering the capture**: what is stored (email + code +
+   timestamp), that Brevo is the processor, how long it is kept, and how to be
+   deleted.
+3. **Delete the Shopify paragraph** from `/privacy`, or scope it to v2.
+4. Decide whether the code email should carry an unsubscribe link. It needs a
+   real unsubscribe destination first — do not ship a decorative one.
+
+**Deletion requests** are served by deleting the Brevo contact, which also
+destroys the code (§9.2). Say so when you answer one.
+
+## 11. Before-launch checklist
+
+Everything still outstanding. "Blocks launch" means the site is misleading or
+broken without it, not merely unpolished.
+
+| # | Item | Blocks launch | Owner |
+| --- | --- | --- | --- |
+| 1 | Consent copy under the email field (§10) | Yes | You + copy |
+| 2 | Privacy policy: email capture, Brevo, retention, deletion; drop Shopify (§10) | Yes | You + legal |
+| 3 | Pick a redemption route — A, B, or C (§9.4, OQ-2) | Yes | You |
+| 4 | `support@gripfit.com` mailbox — `mailto:` links bounce until it exists (OQ-4) | Yes | You |
+| 5 | Kickstarter campaign URL → `links.crowdfundingUrl` (OQ-1) | Yes | You |
+| 6 | Scheduled export of the Brevo list as the only backup (§9.3, OQ-9) | Yes | You |
+| 7 | Terms of service — placeholder copy, unreviewed | Yes | Legal |
+| 8 | Product photography — hero and `/product` show "TBD" tiles | No | Design |
+| 9 | OG image, Twitter handle, manifest icons (`app/layout.tsx` TODO) | No | Design |
+| 10 | `/science` citations — real DOIs, currently plain rows | No | You |
+| 11 | Final tagline and logo (DECISIONS §16 Q5, Q6) | No | You + design |
+| 12 | Cookie-consent banner — scope undecided (OQ-8) | Undecided | You |
+| 13 | Rate limiting on the email Server Action (§9.5) | No | Eng |
+| 14 | E2E test that renders a page — no test does today | No | Eng |
+
+Item 14 is worth its place: a `"use server"` export bug shipped to production
+and 500'd every form page while `next build` stayed green and 78 unit tests
+passed. Nothing in CI renders a page, so nothing caught it.
+
+## 12. Conventions
 
 - **Read [`../DECISIONS.md`](../DECISIONS.md) before any non-trivial change.**
   §16 holds open questions — don't build on an unanswered one without flagging it.

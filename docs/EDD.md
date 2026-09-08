@@ -178,7 +178,7 @@ Each `D-xxx` records the choice and the alternative rejected.
 | R-012 | §3.2 code format + idempotent generation, D-005 |
 | R-013 | §4.1 `submitContact`, §4.2 `sendTransactionalEmail`, §4.3 `CONTACT_EMAIL_TO` |
 | R-014 | §1 deploy-without-config invariant, §4.3 `isBrevoConfigured`, D-008, D-017 (blank = unset) |
-| R-015 | §3.1 (exportable attributes); runbook in ADMIN.md; D-006 |
+| R-015 | §3.1 (exportable attributes); runbook in ADMIN.md §9 (anatomy, storage, export, redemption options) + §10 (consent/privacy obligations); D-006 |
 | R-020 | Content pass in page TSX; not an architecture change |
 | R-021 | `next/image` + `public/product/`, `public/app/`; DECISIONS §3 imagery rules |
 | R-022 | `components/layout/Logo.tsx`, `siteIdentity.tagline` |

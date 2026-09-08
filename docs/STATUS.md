@@ -1,36 +1,45 @@
 # GripFit Web — Status
 
-**Phase:** v1 code-complete — pending Brevo credentials, final content, campaign URL
-**Updated:** 2026-09-07
+**Phase:** v1 functional — email capture verified live; pending consent/privacy copy,
+redemption decision, final content, campaign URL
+**Updated:** 2026-09-08
 
 ---
 
 ## Now
 
-**Blocked on you, not on code.** Every gate is green (`lint`, `typecheck`,
-62 tests, `build` → 13 static routes) and the work is committed. Nothing
-further can be verified end-to-end until Brevo is configured, because every
-test mocks it.
+**The email-discount flow is verified end to end against live Brevo** on
+2026-09-08: form submitted on `/kickstarter`, code email received, contact
+created on the website list with all four attributes. R-011 and R-013 are
+closed. Every gate is green — `lint`, `typecheck`, 82 tests, `build` → 13
+static routes.
 
-Immediate action, in order:
+What remains is not code. Three things make the site *misleading* rather than
+merely unfinished, and they are the real launch gate:
 
-1. Set the env vars in **Vercel → Settings → Environment Variables** — note the
-   origin key is now `SITE_URL`, **not** `NEXT_PUBLIC_SITE_URL`.
-2. The **Brevo manual checklist** below (custom attributes first — Brevo rejects
-   writes to attributes it doesn't know).
-3. The smoke test (`docs/ADMIN.md` §7–8) against the preview deploy.
+1. **Consent copy under the email field.** The form adds people to a marketing
+   list with no stated consent, no opt-in, and no unsubscribe on the one email
+   they get (`docs/ADMIN.md` §10).
+2. **Privacy policy.** It describes a Shopify checkout that does not exist and
+   says nothing about email capture, Brevo, or codes — the only data the site
+   actually collects.
+3. **Pick a redemption route** — §9.4 lays out three, and recommends the secret
+   Kickstarter reward tier. Codes are being issued *now*; nothing honours them
+   yet, and the code email already promises a launch announcement.
 
-Blank values are safe: an empty field reads as unset and disables that feature
-rather than failing the build.
+Also: the Brevo list is the **only** copy of every issued code. Schedule the
+export in §9.3 before the list is worth anything.
 
-## Recently completed — 2026-09-07
+## Recently completed — 2026-09-07 / 09-08
 
 | Shipped | Requirements |
 | --- | --- |
-| `SITE_URL` replaces `NEXT_PUBLIC_SITE_URL` (server-only origin) — **rename the key in Vercel** | R-043 |
-| Blank env vars no longer crash the build; `.env.example` removed as a redundant third list | R-014 |
-| `SITE_URL` accepts a bare hostname (`gripfit.com`); http/https enforced; `tests/env.test.ts` added | R-043, R-030 |
-| Server Actions split from their schemas — every form page was 500ing in production | R-011, R-013 |
+| **09-08** `SITE_URL` replaces `NEXT_PUBLIC_SITE_URL` (server-only origin) | R-043 |
+| **09-08** Blank env vars no longer crash the build; `.env.example` removed as a redundant third list | R-014 |
+| **09-08** `SITE_URL` accepts a bare hostname; http/https enforced; `tests/env.test.ts` | R-043, R-030 |
+| **09-08** Server Actions split from their schemas — every form page was 500ing in production | R-011, R-013 |
+| **09-08** Brevo 401 diagnostics + env trimming; live flow verified | R-010, R-014 |
+| **09-08** Discount-code runbook: storage, export, redemption options, obligations (ADMIN §9–11) | R-015 |
 | MSRP $149 · campaign 25% · email +15% stacked → $94.99 (36.25% off) | R-002…R-005 |
 | `lib/brevo/` typed client; both Server Actions on Brevo; env schema + flags | R-010, R-013, R-014 |
 | Unique per-email discount codes, stored on the Brevo contact, idempotent | R-011, R-012 |
@@ -49,24 +58,31 @@ rather than failing the build.
 | `localStorage`/`sessionStorage` writes were unguarded | Threw and broke the page in browsers that block site data — including right after a successful signup |
 | `DiscountBanner` called `setState` synchronously in an effect | Failed `npm run lint`, which the new CI gate makes blocking |
 
-**Not yet proven:** R-011 and R-013 are wired but unverified against the live
-Brevo API — the unit tests mock every call. The smoke test in
-`docs/ADMIN.md` §8 is what closes them.
+**Now proven:** R-011 and R-013 were verified against live Brevo on 2026-09-08
+(§8 smoke test). Three production bugs were found and fixed in the process,
+none of which any existing gate caught — see the 2026-09-08 row below.
 
 ## Next
 
 | Order | Work | Requirements | Blocked on |
 | --- | --- | --- | --- |
-| 1 | **Brevo account setup + env vars** — see ADMIN.md §4 and the manual checklist below | R-011, R-013 | You (Brevo dashboard) |
-| 2 | Verify with the live smoke test on a preview deploy | R-033 | Step 1 |
-| 3 | Structured data + OG images | R-043 | — |
-| 4 | Final copy pass on every page | R-020 | Copy |
-| 5 | Real product renders + app screenshots | R-021 | Design |
-| 6 | Final logo + tagline confirmation | R-022 | Design |
-| 7 | Lighthouse / a11y audit | R-045 | Steps 4–6 |
-| 8 | Paste the live Kickstarter URL into `lib/admin.ts` | R-041 | Campaign build-out |
+| 1 | **Consent copy** under the email field | R-042 | You + copy |
+| 2 | **Privacy policy** rewrite: email capture, Brevo, retention, deletion; drop Shopify | R-020 | You + legal |
+| 3 | **Choose a redemption route** (ADMIN §9.4) | R-015, OQ-2 | You |
+| 4 | Stand up `support@gripfit.com` | OQ-4 | You |
+| 5 | Scheduled Brevo export — the only backup of every code | OQ-9 | You |
+| 6 | Terms of service review | R-020 | Legal |
+| 7 | Structured data + OG images | R-043 | — |
+| 8 | Final copy pass on every page | R-020 | Copy |
+| 9 | Real product renders + app screenshots | R-021 | Design |
+| 10 | Final logo + tagline confirmation | R-022 | Design |
+| 11 | Lighthouse / a11y audit | R-045 | Steps 8–10 |
+| 12 | Paste the live Kickstarter URL into `lib/admin.ts` | R-041 | Campaign build-out |
+| 13 | An E2E test that renders a page | R-030 | Eng |
 
-### Manual steps only you can do (Brevo)
+Full detail, with a blocks-launch column: **`docs/ADMIN.md` §11**.
+
+### Manual steps only you can do (Brevo) — ✅ completed 2026-09-08
 
 1. Create the custom contact attributes — **the code will error without
    these**: `DISCOUNT_CODE` (text), `DISCOUNT_PCT` (number),
@@ -82,7 +98,6 @@ Brevo API — the unit tests mock every call. The smoke test in
 
 | Item | On | Ref |
 | --- | --- | --- |
-| Email actually sending | Brevo attributes, list id, verified sender, API key | PRD OQ-4, OQ-5 · Decisions §16 Q16 |
 | What a discount code *does* | Kickstarter redemption mechanism — likely secret reward tiers, not a typed code | PRD OQ-2 · Decisions §16 Q14 |
 | Live campaign CTA | Kickstarter campaign not built; `/kickstarter` holding page covers the gap meanwhile | Decisions §16 Q10 |
 | Launch-ready pages | Final copy, product renders, app screenshots, logo, tagline | Decisions §16 Q15, Q5, Q6, Q9, Q11 |

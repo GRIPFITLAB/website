@@ -8,6 +8,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `docs/ADMIN.md` §9–§11 — the discount-code runbook. §9: code anatomy, the
+  Brevo-only storage model and what it risks, UI + API export, and three
+  redemption routes with a recommendation (OQ-2 is an operational decision, not
+  a code one). §10: the consent, unsubscribe, and privacy obligations the
+  mechanism creates — none of which are met today. §11: a before-launch
+  checklist with a blocks-launch column. [R-015]
 
 - Brevo integration as the single provider for all outbound email and email
   capture: typed `fetch` client in `lib/brevo/` (`getContact`,
