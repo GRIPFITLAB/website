@@ -8,27 +8,30 @@ redemption decision, final content, campaign URL
 
 ## Now
 
-**The email-discount flow is verified end to end against live Brevo** on
-2026-09-08: form submitted on `/kickstarter`, code email received, contact
-created on the website list with all four attributes. R-011 and R-013 are
-closed. Every gate is green — `lint`, `typecheck`, 82 tests, `build` → 13
-static routes.
+Email capture is verified live and the launch-blocking compliance work is
+done in code. Gates: `lint`, `typecheck`, 95 tests, `build`, and a new
+`smoke` run that serves the build and requests every route.
 
-What remains is not code. Three things make the site *misleading* rather than
-merely unfinished, and they are the real launch gate:
+**One thing found late and worth knowing:** discount codes were never being
+stored. The four Brevo custom attributes did not exist, and Brevo silently
+drops writes to unknown attributes rather than rejecting them — so every
+signal said success while the code vanished. Fixed 2026-09-08 and verified;
+`npm run brevo:check` now gates it. The two contacts captured before the fix
+have no code and cannot be backfilled — delete them before the first export.
 
-1. **Consent copy under the email field.** The form adds people to a marketing
-   list with no stated consent, no opt-in, and no unsubscribe on the one email
-   they get (`docs/ADMIN.md` §10).
-2. **Privacy policy.** It describes a Shopify checkout that does not exist and
-   says nothing about email capture, Brevo, or codes — the only data the site
-   actually collects.
-3. **Pick a redemption route** — §9.4 lays out three, and recommends the secret
-   Kickstarter reward tier. Codes are being issued *now*; nothing honours them
-   yet, and the code email already promises a launch announcement.
+What is left is genuinely external:
 
-Also: the Brevo list is the **only** copy of every issued code. Schedule the
-export in §9.3 before the list is worth anything.
+1. **Pick a redemption route** (ADMIN §9.4 — recommendation is the secret
+   Kickstarter reward tier). Codes are being issued now and the email already
+   promises a launch announcement.
+2. **Stand up `support@gripfit.com`** — `mailto:` links bounce until it exists.
+3. **Legal review** of `/privacy` and `/terms`. Both are now accurate and both
+   say on their face that they are unreviewed.
+4. **Schedule `npm run export:contacts`.** It is the only backup of every
+   issued code.
+5. Final renders, copy, DOIs, logo, tagline, and the live campaign URL.
+
+Full detail with a blocks-launch column: `docs/ADMIN.md` §11.
 
 ## Recently completed — 2026-09-07 / 09-08
 
@@ -40,6 +43,9 @@ export in §9.3 before the list is worth anything.
 | **09-08** Server Actions split from their schemas — every form page was 500ing in production | R-011, R-013 |
 | **09-08** Brevo 401 diagnostics + env trimming; live flow verified | R-010, R-014 |
 | **09-08** Discount-code runbook: storage, export, redemption options, obligations (ADMIN §9–11) | R-015 |
+| **09-08** Consent copy, working unsubscribe, privacy + terms rewritten to reality | R-020, R-042 |
+| **09-08** Brevo attributes were missing — codes silently unstored; created + verified | R-011, R-012 |
+| **09-08** Rate limiting, `smoke` in CI, Brevo setup/check + export scripts | R-030, R-032, R-015 |
 | MSRP $149 · campaign 25% · email +15% stacked → $94.99 (36.25% off) | R-002…R-005 |
 | `lib/brevo/` typed client; both Server Actions on Brevo; env schema + flags | R-010, R-013, R-014 |
 | Unique per-email discount codes, stored on the Brevo contact, idempotent | R-011, R-012 |
@@ -84,9 +90,10 @@ Full detail, with a blocks-launch column: **`docs/ADMIN.md` §11**.
 
 ### Manual steps only you can do (Brevo) — ✅ completed 2026-09-08
 
-1. Create the custom contact attributes — **the code will error without
-   these**: `DISCOUNT_CODE` (text), `DISCOUNT_PCT` (number),
-   `SIGNUP_SOURCE` (text), `SIGNUP_TS` (text).
+1. Create the custom contact attributes — **skipping these fails silently,
+   it does not error**: `DISCOUNT_CODE` (text), `DISCOUNT_PCT` (number),
+   `SIGNUP_SOURCE` (text), `SIGNUP_TS` (text). Done 2026-09-08 via
+   `npm run brevo:setup`.
 2. Create (or choose) the list website signups join → note its numeric id.
 3. Verify a sender address or domain.
 4. Generate a v3 API key.

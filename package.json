@@ -9,7 +9,11 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "smoke": "node scripts/smoke.mjs",
+    "export:contacts": "node scripts/export-brevo-contacts.mjs",
+    "brevo:setup": "node scripts/setup-brevo-attributes.mjs",
+    "brevo:check": "node scripts/setup-brevo-attributes.mjs --check"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

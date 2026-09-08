@@ -57,7 +57,7 @@ Config layering:
 | Server-only guard | `server-only` (build-time error if a server module is pulled client-side) | `^0.0.1` |
 | Unit tests | **Vitest** (`environment: "node"`; no DOM tests, so no `@vitejs/plugin-react`) | `^5.0.0` |
 | CI | **GitHub Actions** | `.github/workflows/ci.yml` |
-| Hosting | Vercel + Vercel Analytics | — |
+| Hosting | Vercel. **No analytics package is installed** — `@vercel/analytics` was never added, so the site sets no cookies and runs no trackers. | — |
 | Node | 22 LTS (`.nvmrc`) | `22` |
 | Parked (v2) | `lib/shopify/` Storefront client | on disk, no importers |
 

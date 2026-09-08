@@ -16,6 +16,7 @@ import { describe, expect, it } from "vitest";
  */
 const ACTION_FILES = [
   "components/forms/contact-action.ts",
+  "components/forms/unsubscribe-action.ts",
   "components/marketing/email-discount-action.ts",
 ];
 

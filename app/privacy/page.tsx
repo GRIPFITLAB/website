@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: `How ${siteConfig.name} collects, uses, and protects your data.`,
 };
 
-const updated = "April 26, 2026";
+const updated = "September 8, 2026";
 
 export default function PrivacyPage() {
   return (
@@ -23,50 +23,104 @@ export default function PrivacyPage() {
       <div className="mt-14 flex flex-col gap-10 text-[16px] leading-[1.8] text-text-secondary">
         <Section title="Overview">
           <p>
-            This is a placeholder privacy policy. The text below is{" "}
-            <strong className="text-text-primary">not legal advice</strong>{" "}
-            and will be replaced with reviewed copy before {siteConfig.name}{" "}
-            ships. Decisions.md §10 owns the canonical content plan; this
-            file exists so the site can deploy with all routes resolving.
+            This policy describes what {siteConfig.name} actually collects
+            today: an email address if you ask for a pre-order discount code,
+            and whatever you send us through the contact form. Nothing else.
+          </p>
+          <p>
+            It has{" "}
+            <strong className="text-text-primary">
+              not yet been reviewed by a lawyer
+            </strong>{" "}
+            and is not legal advice. It is written to be accurate rather than
+            complete — where it is silent, assume we are not doing the thing.
           </p>
         </Section>
 
-        <Section title="Information we collect">
+        <Section title="Pre-order discount emails">
           <p>
-            When you place a pre-order, our payment processor Shopify
-            collects your name, email, shipping address, and payment
-            details to fulfil the order. We do not store your payment
-            information on our servers.
+            If you submit your email address to receive a pre-order discount
+            code, we store that address together with the code we issued you,
+            the discount percentage, and the date you signed up.
           </p>
           <p>
-            When you fill out the contact form on this site we collect
-            your name, email address, and the message you sent us. We use
-            that information solely to respond to your inquiry.
+            We use it to send you the code, and to email you about the
+            crowdfunding campaign — most importantly when it opens. We will not
+            sell it, and we will not pass it to anyone else for their own
+            marketing.
           </p>
           <p>
-            We use Vercel Analytics to measure aggregate site usage. No
-            personally identifiable information is collected.
+            <strong className="text-text-primary">
+              You can unsubscribe from any email we send you.
+            </strong>{" "}
+            Every message includes an unsubscribe link. Unsubscribing stops all
+            email from us; any discount code we already issued stays valid.
           </p>
         </Section>
 
-        <Section title="How we use your information">
+        <Section title="The contact form">
           <p>
-            To fulfil orders, respond to support requests, and improve the
-            product. We do not sell your personal information.
+            When you use the contact form we collect your name, email address,
+            and your message, and we use them solely to reply to you.
+          </p>
+        </Section>
+
+        <Section title="Who processes this data">
+          <p>
+            We use{" "}
+            <a
+              href="https://www.brevo.com/legal/privacypolicy/"
+              className="text-accent underline-offset-4 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Brevo
+            </a>{" "}
+            to store contacts and send email, and{" "}
+            <a
+              href="https://vercel.com/legal/privacy-policy"
+              className="text-accent underline-offset-4 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Vercel
+            </a>{" "}
+            to host the site. Brevo holds your email address and discount code;
+            Vercel processes the requests your browser makes, including your IP
+            address in its server logs.
+          </p>
+          <p>
+            This site sets{" "}
+            <strong className="text-text-primary">no cookies</strong> and runs
+            no analytics or advertising trackers. Some preferences — whether
+            you have dismissed the discount pop-up, for instance — are kept in
+            your browser&apos;s local storage on your own device, and are never
+            sent to us.
+          </p>
+        </Section>
+
+        <Section title="How long we keep it">
+          <p>
+            Email addresses captured for a discount code are kept until the
+            crowdfunding campaign has concluded and orders are fulfilled, or
+            until you unsubscribe or ask us to delete them — whichever comes
+            first. Contact-form messages are kept as long as needed to resolve
+            what you wrote in about.
           </p>
         </Section>
 
         <Section title="Your rights">
           <p>
-            You can request a copy of, correction to, or deletion of your
-            personal data by emailing{" "}
+            You can ask for a copy of your data, a correction to it, or its
+            deletion, by emailing{" "}
             <a
               href={`mailto:${externalLinks.supportEmail}`}
               className="text-accent underline-offset-4 hover:underline"
             >
               {externalLinks.supportEmail}
             </a>
-            .
+            . Deleting your record also deletes the discount code attached to
+            it — if you sign up again afterwards you will be issued a new one.
           </p>
         </Section>
 

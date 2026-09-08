@@ -107,9 +107,17 @@ is configured (PRD R-014).
 
 Do these in the Brevo dashboard before setting the env vars.
 
-1. **Create the custom contact attributes.** Contacts → Settings →
-   Contact attributes. Brevo rejects writes to attributes it doesn't
-   know, so the signup action fails without all four:
+1. **Create the custom contact attributes.** Run **`npm run brevo:setup`**,
+   which creates any that are missing and is safe to re-run. To do it by
+   hand instead: Contacts → Settings → Contact attributes.
+
+   > **This step fails silently if skipped.** Brevo does *not* reject a write
+   > to an unknown attribute — it returns success and drops the field. The
+   > signup then looks perfect (contact created, code emailed) while the code
+   > is never stored, which breaks idempotency and leaves nothing to
+   > reconcile. It was live in production on 2026-09-08 for exactly this
+   > reason. Gate a release with `npm run brevo:check`, which exits non-zero
+   > when any attribute is missing.
 
    | Attribute | Type |
    | --- | --- |
@@ -187,6 +195,11 @@ and kept somewhere you control.
 
 ### 9.3 Reviewing and exporting codes
 
+**`npm run export:contacts`** writes `brevo-export-<date>.csv` (gitignored)
+with `EMAIL`, `DISCOUNT_CODE`, `DISCOUNT_PCT`, `SIGNUP_SOURCE`, `SIGNUP_TS`, and
+`EMAIL_BLACKLISTED`. It paginates the whole list and warns if any contact is
+missing a code. Schedule this — it is the only backup (§9.2).
+
 **Brevo UI** — Contacts → Lists → *(your website list)* → **Export contacts**.
 Include attributes; you get a CSV with `EMAIL`, `DISCOUNT_CODE`, `DISCOUNT_PCT`,
 `SIGNUP_SOURCE`, `SIGNUP_TS`. This is the file you reconcile against.
@@ -256,45 +269,69 @@ Shopify checkout that does not exist in v1 and says nothing about email capture,
 Brevo, or discount codes — the one thing the site actually collects. That is the
 most concrete item on this page.
 
-Minimum before you send traffic:
+**Status as of 2026-09-08 — the first three are now implemented:**
 
-1. **A line of consent copy under the email field** saying what they are signing
-   up for — the code plus launch news — and that they can unsubscribe.
-2. **A privacy section covering the capture**: what is stored (email + code +
-   timestamp), that Brevo is the processor, how long it is kept, and how to be
-   deleted.
-3. **Delete the Shopify paragraph** from `/privacy`, or scope it to v2.
-4. Decide whether the code email should carry an unsubscribe link. It needs a
-   real unsubscribe destination first — do not ship a decorative one.
+1. ✅ **Consent copy** under the email field on every capture surface, linking
+   to `/privacy`. Edit it at `emailDiscount.consentCopy` in `lib/admin.ts`.
+2. ✅ **A working unsubscribe.** Every code email carries a link to
+   `/unsubscribe`, which sets Brevo's global `emailBlacklisted` flag and drops
+   the list membership. Ownership is proved with the recipient's own discount
+   code, so no new secret or token table was needed, and the page confirms
+   before acting — mail scanners prefetch links, so a GET must never opt
+   someone out.
+3. ✅ **Privacy policy** rewritten to describe what actually happens: what is
+   stored, that Brevo is the processor, retention, deletion, and that the site
+   sets no cookies and runs no analytics.
+4. ⬜ **Legal review.** Both `/privacy` and `/terms` state on their face that
+   they have not been reviewed by a lawyer. That is honest, not sufficient.
 
 **Deletion requests** are served by deleting the Brevo contact, which also
 destroys the code (§9.2). Say so when you answer one.
 
 ## 11. Before-launch checklist
 
-Everything still outstanding. "Blocks launch" means the site is misleading or
-broken without it, not merely unpolished.
+Updated 2026-09-08. "Blocks launch" means the site is misleading or broken
+without it, not merely unpolished.
+
+### Done in code
+
+| Item | Where |
+| --- | --- |
+| Consent line on every email capture surface | `emailDiscount.consentCopy` → `EmailDiscountForm` |
+| Working unsubscribe — link in every code email, `/unsubscribe` page, Brevo opt-out | `components/forms/unsubscribe-*`, `app/unsubscribe/` |
+| Privacy policy rewritten to what the site actually does | `app/privacy/page.tsx` |
+| Terms corrected — no Shopify checkout, discount-code terms added | `app/terms/page.tsx` |
+| Per-IP rate limiting on both public Server Actions | `lib/rate-limit.ts` |
+| Brevo attribute setup + verification | `npm run brevo:setup` / `brevo:check` |
+| Scheduled-export tooling | `npm run export:contacts` |
+| Served-page smoke test in CI | `npm run smoke` |
+
+### Still outstanding
 
 | # | Item | Blocks launch | Owner |
 | --- | --- | --- | --- |
-| 1 | Consent copy under the email field (§10) | Yes | You + copy |
-| 2 | Privacy policy: email capture, Brevo, retention, deletion; drop Shopify (§10) | Yes | You + legal |
-| 3 | Pick a redemption route — A, B, or C (§9.4, OQ-2) | Yes | You |
-| 4 | `support@gripfit.com` mailbox — `mailto:` links bounce until it exists (OQ-4) | Yes | You |
-| 5 | Kickstarter campaign URL → `links.crowdfundingUrl` (OQ-1) | Yes | You |
-| 6 | Scheduled export of the Brevo list as the only backup (§9.3, OQ-9) | Yes | You |
-| 7 | Terms of service — placeholder copy, unreviewed | Yes | Legal |
-| 8 | Product photography — hero and `/product` show "TBD" tiles | No | Design |
-| 9 | OG image, Twitter handle, manifest icons (`app/layout.tsx` TODO) | No | Design |
-| 10 | `/science` citations — real DOIs, currently plain rows | No | You |
-| 11 | Final tagline and logo (DECISIONS §16 Q5, Q6) | No | You + design |
-| 12 | Cookie-consent banner — scope undecided (OQ-8) | Undecided | You |
-| 13 | Rate limiting on the email Server Action (§9.5) | No | Eng |
-| 14 | E2E test that renders a page — no test does today | No | Eng |
+| 1 | **Choose a redemption route** — A, B, or C (§9.4, OQ-2) | Yes | You |
+| 2 | `support@gripfit.com` mailbox — `mailto:` links bounce until it exists (OQ-4) | Yes | You |
+| 3 | Legal review of `/privacy` and `/terms` — both say they are unreviewed | Yes | Legal |
+| 4 | Kickstarter campaign URL → `links.crowdfundingUrl` (OQ-1) | Yes | You |
+| 5 | Actually schedule `npm run export:contacts` somewhere (cron, CI, calendar) | Yes | You |
+| 6 | Product photography — hero and `/product` show "TBD" tiles | No | Design |
+| 7 | OG image, Twitter handle, manifest icons (`app/layout.tsx` TODO) | No | Design |
+| 8 | `/science` citations — real DOIs, currently plain rows | No | You |
+| 9 | Final tagline and logo (DECISIONS §16 Q5, Q6) | No | You + design |
+| 10 | Browser-driven test that invokes a Server Action (§ below) | No | Eng |
 
-Item 14 is worth its place: a `"use server"` export bug shipped to production
-and 500'd every form page while `next build` stayed green and 78 unit tests
-passed. Nothing in CI renders a page, so nothing caught it.
+**On item 10.** `npm run smoke` requests every page and would catch a render
+failure, but it only issues GETs. The `"use server"` bug that reached
+production surfaced on the Action POST, and was verified *not* to be caught by
+the smoke test. `tests/server-actions.test.ts` guards that specific defect at
+source level and was verified to fail when reintroduced. Covering Action
+invocation for real needs Playwright, which remains deferred (EDD D-011).
+
+**Two test contacts** created during setup on 2026-09-08 have no
+`DISCOUNT_CODE` — they predate the attributes existing, and their codes were
+dropped on write and cannot be recovered. Delete them from Brevo before the
+first real export, or they will show as blanks.
 
 ## 12. Conventions
 

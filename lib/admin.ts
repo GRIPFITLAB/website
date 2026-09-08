@@ -128,6 +128,16 @@ export const emailDiscount = {
   /** Prefix on every generated discount code, e.g. `GF-7Q4KX2M9`.
    *  Letters/digits only; keep it short so it stays readable in an email. */
   codePrefix: "GF",
+  /** Consent line shown under the email field on every capture surface.
+   *
+   *  This is what makes the signup defensible: submitting the form adds the
+   *  address to a marketing list, so the visitor has to be told what they are
+   *  agreeing to, and how to leave, at the point of consent — not afterwards
+   *  (docs/ADMIN.md §10). The privacy link is appended by the component.
+   *  If you reword this, keep the three facts: what they get, that we email
+   *  about the campaign, and that unsubscribing is available. */
+  consentCopy:
+    "By entering your email you'll get your discount code and occasional updates about the pre-order campaign. No spam, and you can unsubscribe from any email.",
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────

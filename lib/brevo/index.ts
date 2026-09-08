@@ -6,6 +6,7 @@ import { env, requireEnv } from "@/lib/env";
 import type {
   BrevoContact,
   SendTransactionalEmailInput,
+  UnsubscribeContactInput,
   UpsertContactInput,
 } from "@/lib/brevo/types";
 
@@ -16,11 +17,20 @@ import type {
  * Brevo is the system of record for captured emails and their discount
  * codes — there is no local database (EDD D-004).
  *
- * **Setup prerequisite:** the custom contact attributes `DISCOUNT_CODE`
- * (text), `DISCOUNT_PCT` (number), `SIGNUP_SOURCE` (text), and
- * `SIGNUP_TS` (text) must exist in the Brevo account before
- * `upsertContact` will accept them. Brevo rejects writes to attributes
- * it doesn't know about.
+ * **Setup prerequisite — silent failure if skipped.** The custom contact
+ * attributes `DISCOUNT_CODE` (text), `DISCOUNT_PCT` (number),
+ * `SIGNUP_SOURCE` (text), and `SIGNUP_TS` (text) must exist in the Brevo
+ * account first.
+ *
+ * Brevo does **not** reject a write to an attribute it does not know. It
+ * returns 2xx and silently drops the unknown fields, so the signup looks
+ * entirely successful — contact created, code emailed — while the code is
+ * never stored. That breaks idempotency (R-012: every re-submit mints a new
+ * code) and leaves no record to reconcile against (R-015), because Brevo is
+ * the only store. This was live in production on 2026-09-08.
+ *
+ * `npm run brevo:check` verifies the attributes exist; `npm run brevo:setup`
+ * creates any that are missing.
  */
 
 export {
@@ -60,6 +70,29 @@ export async function upsertContact({
       updateEnabled: true,
       ...(attributes ? { attributes } : {}),
       ...(listIds && listIds.length > 0 ? { listIds } : {}),
+    },
+  });
+}
+
+/**
+ * Opt a contact out of all email.
+ *
+ * `emailBlacklisted` is Brevo's own global opt-out flag, so it survives
+ * being re-added to a list later — safer than only dropping the list
+ * membership, which a subsequent `upsertContact` would silently undo.
+ * The list is removed too, so exports stop including them.
+ *
+ * Idempotent: unsubscribing an already-unsubscribed contact is a no-op.
+ */
+export async function unsubscribeContact({
+  email,
+  listIds,
+}: UnsubscribeContactInput): Promise<void> {
+  await brevoFetch(`/contacts/${encodeURIComponent(email)}`, {
+    method: "PUT",
+    body: {
+      emailBlacklisted: true,
+      ...(listIds && listIds.length > 0 ? { unlinkListIds: listIds } : {}),
     },
   });
 }

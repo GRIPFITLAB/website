@@ -42,7 +42,7 @@ drives them to purchase the GripFit device, and links them to the iOS app.
 | Email capture store | Brevo Contacts (custom attributes) | No database in v1. Brevo is the system of record for captured emails and their discount codes. |
 | Tests | **Vitest** (unit) + `next build` as the integration gate | Native ESM/TS, no config beyond a path alias. Rendering is covered by the build, which fails if a page throws while prerendering. |
 | CI | GitHub Actions — lint → typecheck → test → build | Runs on every PR and push to `main`, with no secrets, proving the zero-config deploy still works. |
-| Analytics | Vercel Analytics + Shopify reports | Free, sufficient for v1 |
+| Analytics | **None installed.** Vercel Analytics was planned but never added; Shopify is parked. | Revisit when there is traffic worth measuring |
 | State | RSC + URL state + minimal client (cart only via React Context + cookie) | No Redux / Zustand |
 | Node | 22 LTS — pinned via `.nvmrc` (added in Step 1 cleanup) | Matches Vercel current LTS |
 | Package manager | npm | Default, zero-config on Vercel |
@@ -267,7 +267,7 @@ non-technical contributor needs edit access.
 | OG images | Per-page via Next.js Metadata API |
 | Structured data | Product schema on PDP, Organization schema sitewide |
 | Canonical URLs | Enforced via Metadata API |
-| Analytics | Vercel Analytics (no GA4 until needed) |
+| Analytics | None installed (Vercel Analytics planned, never added; no GA4) |
 
 ---
 

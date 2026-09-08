@@ -3,6 +3,7 @@
 import { sendTransactionalEmail } from "@/lib/brevo";
 import { siteConfig } from "@/lib/config";
 import { env, isContactEmailConfigured } from "@/lib/env";
+import { checkRateLimit, clientKey } from "@/lib/rate-limit";
 
 import {
   contactSchema,
@@ -60,6 +61,18 @@ export async function submitContact(
   }
 
   const { name, email, message } = parsed.data;
+
+  const limit = checkRateLimit(await clientKey("contact"), {
+    limit: 3,
+    windowMs: 10 * 60 * 1000,
+  });
+  if (!limit.ok) {
+    return {
+      status: "error",
+      message:
+        "You've sent a few messages already. Give it a few minutes before sending another.",
+    };
+  }
 
   if (!isContactEmailConfigured || !env.CONTACT_EMAIL_TO) {
     console.warn(

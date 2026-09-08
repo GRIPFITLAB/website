@@ -8,6 +8,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+
+- **Working unsubscribe.** Every discount email now carries an unsubscribe
+  link; `/unsubscribe` confirms, then sets Brevo's global `emailBlacklisted`
+  flag and drops the list membership. The recipient's own discount code is the
+  ownership proof, so no new secret or token store was needed. Removal happens
+  on submit, never on page load — mail scanners prefetch links, and a GET that
+  unsubscribed would opt people out who never clicked. Unknown addresses and
+  wrong codes return identical wording, so the page cannot be used to test
+  list membership. [R-014]
+- Consent line on every email-capture surface, linking to `/privacy`. The
+  footer form writes to the same marketing list as the modal, so it carries
+  the same disclosure. Editable at `emailDiscount.consentCopy`. [R-042]
+- Per-IP rate limiting on both public Server Actions — 5 signups and 3 contact
+  messages per 10 minutes. In-process and best-effort by design: the realistic
+  abuse is one script hammering one form, and a distributed limiter would mean
+  a paid datastore that EDD D-004 rejected. [R-042]
+- `npm run brevo:setup` / `brevo:check` — create or verify the custom contact
+  attributes. `--check` exits non-zero, so it can gate a release. [R-011]
+- `npm run export:contacts` — paginated CSV export of the signup list, and the
+  only backup of issued codes until OQ-9 is answered. Output is gitignored; it
+  contains real addresses. [R-015]
+- `npm run smoke` — starts the production server and requests every page,
+  wired into CI after `build`. Routes are discovered from the `app/` tree, so
+  new pages are covered automatically. [R-030] [R-032]
+- `tests/rate-limit.test.ts` and `tests/unsubscribe-action.test.ts`; 95 tests
+  total. [R-030]
 - `docs/ADMIN.md` §9–§11 — the discount-code runbook. §9: code anatomy, the
   Brevo-only storage model and what it risks, UI + API export, and three
   redemption routes with a recommendation (OQ-2 is an operational decision, not
@@ -73,6 +99,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   **Action required:** rename this key in the Vercel dashboard. [R-043]
 
 ### Fixed
+
+- **Discount codes were never being stored.** The four custom contact
+  attributes did not exist in the Brevo account, and Brevo does not reject a
+  write to an unknown attribute — it returns 2xx and silently drops the field.
+  Every signal we had said success: contact created, code emailed, API happy.
+  The code simply vanished. That broke idempotency (R-012 — every re-submit
+  minted a new code) and left nothing to reconcile against (R-015), Brevo
+  being the only store. Attributes created on 2026-09-08 and persistence
+  verified end to end. The two contacts captured before then have no code and
+  cannot be backfilled. Every doc that claimed Brevo "rejects writes to
+  attributes it doesn't know" has been corrected. [R-011] [R-012]
+- `/privacy` described a Shopify checkout that does not exist and never
+  mentioned the email capture — the only data the site collects. Rewritten to
+  cover what is stored, Brevo as processor, retention, deletion, and the
+  absence of cookies and analytics. [R-020]
+- `/terms` likewise claimed payment is taken via Shopify. Replaced with the
+  campaign hand-off, plus discount-code terms (personal to the address, no
+  cash value, lapse if the campaign does not run). [R-020]
+- README, EDD, and DECISIONS all claimed Vercel Analytics was in use. No
+  analytics package has ever been installed. Corrected, which also resolves
+  OQ-8: no cookies, so no consent banner is required. [R-020]
 - A Brevo `401` now says what to change. Brevo answers every auth failure with
   `Key not found` — which reads as though the *contact* was missing — so the log
   named nothing actionable. The key's shape now distinguishes an SMTP key

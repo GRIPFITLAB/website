@@ -35,6 +35,10 @@ yarn-error.log*
 # list of variables, and lib/env.ts is the schema.
 .env*
 
+# Brevo contact exports — these hold real email addresses and discount
+# codes. scripts/export-brevo-contacts.mjs writes this pattern by default.
+brevo-export-*.csv
+
 # vercel
 .vercel
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { discountConfig } from "@/lib/config";
 import { markEmailDiscountDismissed } from "@/lib/email-discount-events";
+import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 import { submitEmailDiscount } from "./email-discount-action";
@@ -83,6 +85,22 @@ export function EmailDiscountForm({
     );
   }
 
+  // ── Consent line (shared by both variants) ───────────────────────
+  // Rendered on every surface, not just the modal: the footer form writes to
+  // the same marketing list, so it carries the same disclosure (ADMIN.md §10).
+  const consent = (
+    <p className="text-[11px] leading-[1.5] text-text-tertiary">
+      {discountConfig.email.consentCopy}{" "}
+      <Link
+        href={routes.privacy.href}
+        className="underline underline-offset-2 hover:text-text-secondary"
+      >
+        Privacy
+      </Link>
+      .
+    </p>
+  );
+
   // ── Honeypot block (shared by both variants) ─────────────────────
   const honeypot = (
     <div
@@ -144,6 +162,7 @@ export function EmailDiscountForm({
             {state.message}
           </p>
         )}
+        {consent}
         {honeypot}
       </form>
     );
@@ -195,10 +214,7 @@ export function EmailDiscountForm({
           : `Send my ${discountConfig.email.percentOff * 100}% code`}
       </Button>
 
-      <p className="text-center text-[11px] leading-[1.5] text-text-tertiary">
-        No spam. Unsubscribe anytime. We&apos;ll only email you about
-        pre-order updates.
-      </p>
+      <div className="text-center">{consent}</div>
     </form>
   );
 }

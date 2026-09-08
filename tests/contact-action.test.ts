@@ -13,6 +13,15 @@ const envState = vi.hoisted(() => ({
   contactEmailTo: "support@example.com" as string | undefined,
 }));
 
+// Server Actions consult a per-IP rate limiter, which reads request headers.
+// There is no request scope under Vitest, so the header bag is stubbed and the
+// limiter is reset per test; `tests/rate-limit.test.ts` covers the limiter.
+const { __resetRateLimits } = await import("@/lib/rate-limit");
+
+vi.mock("next/headers", () => ({
+  headers: async () => new Map([["x-forwarded-for", "203.0.113.10"]]),
+}));
+
 vi.mock("@/lib/brevo", () => brevo);
 
 vi.mock("@/lib/env", () => ({
@@ -42,6 +51,7 @@ const valid = {
 };
 
 beforeEach(() => {
+  __resetRateLimits();
   envState.isContactEmailConfigured = true;
   envState.contactEmailTo = "support@example.com";
   brevo.sendTransactionalEmail.mockResolvedValue(undefined);

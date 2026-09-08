@@ -34,7 +34,7 @@ Q3).
 - Brevo for all outbound email + email capture (typed `fetch` wrapper in `lib/brevo/`)
 - Shopify Storefront API (typed `fetch` wrapper — parked for v2)
 - Vitest units + GitHub Actions CI (lint → typecheck → test → build)
-- Vercel hosting + Vercel Analytics
+- Vercel hosting (no analytics package installed — see DECISIONS §12)
 
 ## Local development
 

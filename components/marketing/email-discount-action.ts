@@ -4,6 +4,7 @@ import { getContact, sendTransactionalEmail, upsertContact } from "@/lib/brevo";
 import { discountConfig, getStackedPreorderPricing, siteConfig } from "@/lib/config";
 import { generateDiscountCode } from "@/lib/discount-code";
 import { env, isBrevoConfigured } from "@/lib/env";
+import { checkRateLimit, clientKey } from "@/lib/rate-limit";
 
 import {
   emailDiscountSchema,
@@ -56,6 +57,20 @@ export async function submitEmailDiscount(
 
   const email = parsed.data.email.toLowerCase();
 
+  // Re-submitting the same address is harmless (the same code comes back),
+  // so the limit exists to stop one source enumerating many addresses.
+  const limit = checkRateLimit(await clientKey("email-discount"), {
+    limit: 5,
+    windowMs: 10 * 60 * 1000,
+  });
+  if (!limit.ok) {
+    return {
+      status: "error",
+      message:
+        "That's a few too many tries. Give it a few minutes and try again.",
+    };
+  }
+
   if (!isBrevoConfigured) {
     console.warn(
       "[email-discount] Brevo not configured — submission accepted, no code sent.",
@@ -96,8 +111,8 @@ export async function submitEmailDiscount(
           }
         : {
             subject: `Your ${siteConfig.name} pre-order code: ${code}`,
-            htmlContent: discountEmailHtml(code),
-            textContent: discountEmailText(code),
+            htmlContent: discountEmailHtml(code, email),
+            textContent: discountEmailText(code, email),
           }),
     });
 
@@ -109,12 +124,28 @@ export async function submitEmailDiscount(
   }
 }
 
+/**
+ * Absolute unsubscribe URL for one recipient, or `null` when `SITE_URL` is
+ * unset (local dev, a preview without a domain) — in which case the email
+ * falls back to naming the support address instead of linking nowhere.
+ *
+ * The discount code doubles as the ownership proof, so no extra secret or
+ * token store is needed. See `components/forms/unsubscribe-action.ts`.
+ */
+function unsubscribeUrl(email: string, code: string): string | null {
+  if (!siteConfig.url) return null;
+  const url = new URL("/unsubscribe", siteConfig.url);
+  url.searchParams.set("e", email);
+  url.searchParams.set("c", code);
+  return url.toString();
+}
+
 /* ── Fallback email body ──────────────────────────────────────────────
  * Used when BREVO_DISCOUNT_TEMPLATE_ID is unset. Inline styles only —
  * email clients ignore <style> blocks and external CSS.
  * ------------------------------------------------------------------ */
 
-function discountEmailText(code: string): string {
+function discountEmailText(code: string, email: string): string {
   const { formattedList, formattedStacked } = getStackedPreorderPricing();
   const campaignPct = Math.round(discountConfig.preorder.percentOff * 100);
   const emailPct = Math.round(discountConfig.email.percentOff * 100);
@@ -127,10 +158,14 @@ function discountEmailText(code: string): string {
     "The campaign isn't live yet. Keep this email: we'll write to you the day it opens, with instructions for applying your code.",
     "",
     `— The ${siteConfig.name} team`,
+    "",
+    unsubscribeUrl(email, code)
+      ? `Don't want these emails? Unsubscribe: ${unsubscribeUrl(email, code)}`
+      : `Don't want these emails? Reply to this message and we'll remove you.`,
   ].join("\n");
 }
 
-function discountEmailHtml(code: string): string {
+function discountEmailHtml(code: string, email: string): string {
   const { formattedList, formattedStacked } = getStackedPreorderPricing();
   const campaignPct = Math.round(discountConfig.preorder.percentOff * 100);
   const emailPct = Math.round(discountConfig.email.percentOff * 100);
@@ -152,7 +187,15 @@ function discountEmailHtml(code: string): string {
           <p style="margin:0 0 28px;font-size:15px;line-height:1.6;color:#4a453d;">
             The campaign isn't live yet. Keep this email — we'll write to you the day it opens, with instructions for applying your code.
           </p>
-          <p style="margin:0;font-size:13px;line-height:1.6;color:#8a8378;">— The ${siteConfig.name} team</p>
+          <p style="margin:0 0 28px;font-size:13px;line-height:1.6;color:#8a8378;">— The ${siteConfig.name} team</p>
+          <p style="margin:0;padding-top:20px;border-top:1px solid #e6ddd1;font-size:12px;line-height:1.6;color:#8a8378;">
+            You're receiving this because you asked for a pre-order code at ${siteConfig.name}.
+            ${
+              unsubscribeUrl(email, code)
+                ? `<a href="${unsubscribeUrl(email, code)}" style="color:#8a8378;text-decoration:underline;">Unsubscribe</a>.`
+                : `Reply to this message and we'll remove you.`
+            }
+          </p>
         </td></tr>
       </table>
     </td></tr>

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: `Terms of service for ${siteConfig.name}.`,
 };
 
-const updated = "April 26, 2026";
+const updated = "September 8, 2026";
 
 export default function TermsPage() {
   return (
@@ -23,35 +23,45 @@ export default function TermsPage() {
       <div className="mt-14 flex flex-col gap-10 text-[16px] leading-[1.8] text-text-secondary">
         <Section title="Overview">
           <p>
-            This is a placeholder terms-of-service document. The text
-            below is{" "}
-            <strong className="text-text-primary">not legal advice</strong>{" "}
-            and will be replaced with reviewed copy before {siteConfig.name}{" "}
+            These terms describe how {siteConfig.name} operates today: no
+            payment is taken on this site, and pre-orders run through a
+            crowdfunding campaign. The text is{" "}
+            <strong className="text-text-primary">
+              not legal advice and has not been reviewed by a lawyer
+            </strong>
+            ; it will be replaced with reviewed copy before {siteConfig.name}{" "}
             ships.
           </p>
         </Section>
 
-        <Section title="Pre-orders">
+        <Section title="Pre-orders and the campaign">
           <p>
-            By placing a pre-order you authorize us, via Shopify, to
-            charge your selected payment method when your unit ships. You
-            can cancel your pre-order any time before shipment for a full
-            refund by emailing{" "}
-            <a
-              href={`mailto:${externalLinks.supportEmail}`}
-              className="text-accent underline-offset-4 hover:underline"
-            >
-              {externalLinks.supportEmail}
-            </a>
-            .
+            This site does not take payment. Pre-orders are handled entirely by
+            the crowdfunding campaign, and the platform&apos;s own terms govern
+            your pledge, when you are charged, and cancellation.
+          </p>
+        </Section>
+
+        <Section title="Discount codes">
+          <p>
+            A discount code issued from this site is personal to the email
+            address it was sent to, has no cash value, and applies only to a
+            pre-order placed through our crowdfunding campaign. One code is
+            issued per email address; asking again returns the same code.
+          </p>
+          <p>
+            We may decline to honour a code that appears to have been shared,
+            automated, or obtained in bulk. If the campaign does not go ahead,
+            codes simply lapse and nothing is owed.
           </p>
         </Section>
 
         <Section title="Returns">
           <p>
-            Once your unit has shipped, returns are accepted within 30
-            days of delivery for unused devices in their original
-            packaging.
+            Once your unit has shipped, returns are accepted within 30 days of
+            delivery for unused devices in their original packaging. Pledges
+            made through the campaign are additionally subject to that
+            platform&apos;s refund rules.
           </p>
         </Section>
 

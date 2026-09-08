@@ -125,5 +125,5 @@ a local database.
 | OQ-5 | Brevo list ID for website signups — new list, or shared with the iOS app list? | R-011. |
 | OQ-6 | App Store URL for "Get the app" CTAs (DECISIONS §16 Q8). | Minor CTA; currently hidden. |
 | OQ-7 | Timing for final copy, product renders, app screenshots, logo, tagline (DECISIONS §16 Q5, Q6, Q9, Q11). | R-020, R-021, R-022. |
-| OQ-8 | Cookie-consent banner — DECISIONS §12 says "add"; is it launch-scope? | Compliance. |
+| OQ-8 | ~~Cookie-consent banner~~ — **RESOLVED 2026-09-08: not required.** No analytics package is installed and the site sets no cookies; the only client storage is localStorage for the pop-up-dismissed flag, which never leaves the device. Revisit if analytics is ever added. | Compliance. |
 | OQ-9 | Any backup store for captured email+code beyond Brevo? | Data durability. |

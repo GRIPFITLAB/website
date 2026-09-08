@@ -70,6 +70,7 @@ export const discountConfig = {
     headline: emailDiscount.headline,
     body: emailDiscount.body,
     confirmationCopy: emailDiscount.confirmationCopy,
+    consentCopy: emailDiscount.consentCopy,
     /** Surfaced to humans as e.g. "EXTRA 15% OFF". Computed; do not edit. */
     get label(): string {
       return `EXTRA ${Math.round(this.percentOff * 100)}% OFF`;

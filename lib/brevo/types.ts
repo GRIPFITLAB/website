@@ -50,6 +50,12 @@ export interface UpsertContactInput {
   listIds?: number[];
 }
 
+export interface UnsubscribeContactInput {
+  email: string;
+  /** Lists to drop the contact from, in addition to the global opt-out. */
+  listIds?: number[];
+}
+
 /** Brevo's error envelope: `{ code, message }`. */
 export interface BrevoErrorBody {
   code?: string;

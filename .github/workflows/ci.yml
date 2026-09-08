@@ -29,7 +29,13 @@ jobs:
 
       - run: npm test
 
-      # The build is the integration test: every route must still
-      # prerender. It runs with no secrets on purpose — the site has to
-      # stay deployable before Brevo credentials exist (PRD R-014).
+      # The build proves every route still compiles and prerenders. It runs
+      # with no secrets on purpose — the site has to stay deployable before
+      # Brevo credentials exist (PRD R-014).
       - run: npm run build
+
+      # A build that succeeds is not a page that serves. This starts the
+      # production server and requests every route, which is the only gate
+      # that catches a module throwing at request time. GETs only — see the
+      # limits documented in scripts/smoke.mjs.
+      - run: npm run smoke

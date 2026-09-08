@@ -1,11 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-// `lib/brevo/client.ts` imports "server-only", which throws outside a React
-// Server Component. Every other suite mocks `@/lib/brevo` wholesale and never
-// loads the real module; this one tests it directly, so the guard is stubbed.
-vi.mock("server-only", () => ({}));
-
-const { describeBrevoAuthFailure } = await import("@/lib/brevo/client");
+import { describeBrevoAuthFailure } from "@/lib/brevo/client";
 
 /**
  * Brevo answers every auth failure with `401: Key not found`, whatever the
