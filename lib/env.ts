@@ -17,6 +17,43 @@
 
 import { z } from "zod";
 
+/**
+ * Coerce a hand-entered origin into a URL Zod will accept.
+ *
+ * The realistic mistake is a missing scheme — `gripfit.com` pasted into
+ * the Vercel dashboard — which `z.url()` rejects outright and which then
+ * fails the whole production build. Adding the scheme and dropping a
+ * trailing slash makes that input work without loosening validation for
+ * genuinely malformed values.
+ *
+ * Exported for `tests/env.test.ts`.
+ */
+export function normalizeSiteUrl(raw: string): string {
+  const trimmed = raw.trim();
+
+  // A bare host (`gripfit.com`) is the realistic dashboard typo. Anything
+  // that already declares a scheme is passed through for `new URL` to judge
+  // — prepending to it is how an earlier version turned `http://` into the
+  // superficially-valid `https://http:`.
+  const candidate = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+
+  try {
+    const url = new URL(candidate);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return candidate; // let Zod report it
+    }
+    // Re-serialise as the origin: canonical, no trailing slash. A path is
+    // dropped deliberately — `sitemap.ts` / `robots.ts` resolve absolute
+    // hrefs against this, which discards a base path anyway, so keeping
+    // one would only imply support the site does not have.
+    return url.origin;
+  } catch {
+    return candidate; // malformed — let Zod produce the error message
+  }
+}
+
 const envSchema = z.object({
   NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN: z
     .string()
@@ -30,10 +67,21 @@ const envSchema = z.object({
   /** Absolute public origin, e.g. `https://gripfit.com`. Read only from
    *  Server Components / route handlers (`sitemap.ts`, `robots.ts`,
    *  `layout.tsx` metadata) — it has no `NEXT_PUBLIC_` prefix, so it is
-   *  `undefined` in the client bundle. */
+   *  `undefined` in the client bundle.
+   *
+   *  Normalised by {@link normalizeSiteUrl} first, so a bare hostname
+   *  typed into the Vercel dashboard still validates. A value that is
+   *  still unparseable after that is a hard error rather than a silent
+   *  fallback: an empty `sitemap.xml` and a missing `metadataBase` are
+   *  invisible in production, whereas a failed deploy is not. */
   SITE_URL: z
-    .string()
-    .url()
+    .preprocess(
+      (value) =>
+        typeof value === "string" ? normalizeSiteUrl(value) : value,
+      // http/https only — `z.url()` alone accepts any scheme, including
+      // `ftp://`, which is never a valid public site origin.
+      z.url({ protocol: /^https?$/ }),
+    )
     .optional(),
 
   SHOPIFY_STOREFRONT_API_VERSION: z.string().default("2025-04"),

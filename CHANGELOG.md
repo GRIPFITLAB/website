@@ -27,6 +27,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   between the on-site holding page and the live Kickstarter URL, adding
   `target="_blank"` + `rel="noopener noreferrer"` only for external
   targets. [R-041]
+- `tests/env.test.ts` — 14 tests covering `SITE_URL` normalisation and the
+  blank-value filter, including a regression for a scheme-only value
+  (`http://`) being rewritten into the superficially-valid `https://http:`.
+  [R-014] [R-030]
 - Vitest unit suite: 62 tests across pricing maths, `admin.ts` → `config.ts`
   invariants, copy/number agreement, discount-code generation, both Server
   Actions (Brevo mocked), and route-map ⇔ `app/` parity. [R-030]
@@ -91,6 +95,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the R-014 guarantee that an unset variable disables its feature instead of
   breaking boot. CI never caught this because CI defines no variables at all.
   [R-014]
+- `SITE_URL` set to a bare hostname (`gripfit.com`) failed the production build:
+  `z.url()` requires a scheme, and the whole deploy died on `Invalid URL`. The
+  value is now normalised before validation — a missing scheme becomes `https://`,
+  whitespace and trailing slashes are dropped, and the result is canonicalised to
+  its origin. Validation itself was *tightened* at the same time: only `http`/`https`
+  are accepted, where plain `z.url()` also allowed `ftp://`. A value that is still
+  unparseable remains a hard build error — an empty `sitemap.xml` is invisible in
+  production, a failed deploy is not. [R-043]
 
 ### Removed
 
