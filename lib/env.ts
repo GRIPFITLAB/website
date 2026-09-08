@@ -118,7 +118,15 @@ export type Env = z.infer<typeof envSchema>;
  * in R-014: an unset variable disables its feature, it never breaks boot.
  */
 const definedEnv = Object.fromEntries(
-  Object.entries(process.env).filter(([, value]) => value !== ""),
+  Object.entries(process.env)
+    // Trim first: a value pasted into a dashboard field often carries a
+    // trailing newline or space, which survives into an API header and
+    // gets the request rejected for reasons the log line never explains.
+    .map(([key, value]) => [
+      key,
+      typeof value === "string" ? value.trim() : value,
+    ])
+    .filter(([, value]) => value !== ""),
 );
 
 const parsed = envSchema.safeParse(definedEnv);

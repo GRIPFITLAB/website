@@ -67,6 +67,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   **Action required:** rename this key in the Vercel dashboard. [R-043]
 
 ### Fixed
+- A Brevo `401` now says what to change. Brevo answers every auth failure with
+  `Key not found` — which reads as though the *contact* was missing — so the log
+  named nothing actionable. The key's shape now distinguishes an SMTP key
+  (`xsmtpsib-`) used against the REST API, a malformed/truncated value, and a
+  well-formed key that was revoked or belongs to another account. The key itself
+  is never logged. [R-010]
+- Env values are trimmed before validation, so a trailing newline or space picked
+  up pasting into the Vercel dashboard can no longer travel into an API header and
+  cause an unexplained rejection. [R-014]
 
 - `robots.txt` allowed indexing in every environment, so Vercel preview
   deployments were crawlable and competing with production. Non-production

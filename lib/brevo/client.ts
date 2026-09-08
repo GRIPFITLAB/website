@@ -19,14 +19,48 @@ const BREVO_API_BASE = "https://api.brevo.com/v3";
 /** Give up rather than hold a Server Action open indefinitely. */
 const REQUEST_TIMEOUT_MS = 10_000;
 
+/**
+ * Why a Brevo 401 happened, in terms of something to go and change.
+ *
+ * Brevo answers every auth failure with `Key not found`, which reads like
+ * the *contact* was not found and says nothing about the cause. The key
+ * shape distinguishes the common mistakes without ever logging the key.
+ *
+ * Exported for `tests/brevo-client.test.ts`.
+ */
+export function describeBrevoAuthFailure(apiKey: string): string {
+  if (apiKey.startsWith("xsmtpsib-")) {
+    return (
+      "BREVO_API_KEY is an SMTP key. The v3 REST API needs an API key: " +
+      "Brevo → SMTP & API → API keys (it starts `xkeysib-`)."
+    );
+  }
+  if (!apiKey.startsWith("xkeysib-")) {
+    return (
+      "BREVO_API_KEY does not look like a Brevo v3 API key — expected an " +
+      "`xkeysib-` prefix. Check for a truncated paste or a wrong value."
+    );
+  }
+  return (
+    "BREVO_API_KEY is well-formed but Brevo rejected it. It has most likely " +
+    "been revoked/regenerated, or belongs to a different Brevo account."
+  );
+}
+
 /** A non-2xx response from Brevo, with the parsed error envelope. */
 export class BrevoHttpError extends Error {
   readonly status: number;
   readonly body: BrevoErrorBody;
 
-  constructor(status: number, body: BrevoErrorBody, path: string) {
+  constructor(
+    status: number,
+    body: BrevoErrorBody,
+    path: string,
+    hint?: string,
+  ) {
     super(
-      `Brevo ${path} failed with ${status}: ${body.message ?? "no message"}`,
+      `Brevo ${path} failed with ${status}: ${body.message ?? "no message"}` +
+        (hint ? ` — ${hint}` : ""),
     );
     this.name = "BrevoHttpError";
     this.status = status;
@@ -92,7 +126,12 @@ export async function brevoFetch<T>(
     } catch {
       errorBody = { message: await response.text().catch(() => "") };
     }
-    throw new BrevoHttpError(response.status, errorBody, path);
+    throw new BrevoHttpError(
+      response.status,
+      errorBody,
+      path,
+      response.status === 401 ? describeBrevoAuthFailure(apiKey) : undefined,
+    );
   }
 
   // 204 No Content — e.g. a successful contact update.
