@@ -10,7 +10,6 @@
 ```bash
 nvm use                         # Node 22 LTS (.nvmrc)
 npm install
-cp .env.example .env.local      # optional — app boots with no vars set
 npm run dev                     # http://localhost:3000
 ```
 
@@ -62,8 +61,13 @@ opening in a new tab. No other file changes.
 
 ## 4. Environment variables
 
-Schema + validation: [`lib/env.ts`](../lib/env.ts) (Zod). Template: `.env.example`.
+Schema + validation: [`lib/env.ts`](../lib/env.ts) (Zod). The table below is
+the authoritative list — there is no committed `.env.example`. For local work,
+hand-write a `.env.local` with only the keys you actually need.
 All are optional at boot; features degrade to a logging fallback when unset.
+A variable left **blank** counts as unset — `lib/env.ts` drops empty values
+before validating, so an empty field in the Vercel dashboard disables its
+feature rather than failing the build (R-014).
 
 | Var | Scope | Needed | Purpose |
 | --- | --- | --- | --- |
@@ -73,7 +77,7 @@ All are optional at boot; features degrade to a logging fallback when unset.
 | `BREVO_SENDER_NAME` | server | optional | outbound display name |
 | `BREVO_DISCOUNT_TEMPLATE_ID` | server | optional | Brevo template for the code email; inline HTML used if unset |
 | `CONTACT_EMAIL_TO` | server | before launch | support inbox for contact-form mail (PRD OQ-4) |
-| `NEXT_PUBLIC_SITE_URL` | public | before launch | absolute URLs for `sitemap.xml`, `robots.txt`, OG tags |
+| `SITE_URL` | server | before launch | absolute URLs for `sitemap.xml`, `robots.txt`, OG tags |
 | `NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN` | public | v2 only | parked Shopify client |
 | `NEXT_PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN` | public | v2 only | parked Shopify client |
 | `SHOPIFY_STOREFRONT_API_VERSION` | server | v2 only | defaults to `2025-04` |
@@ -87,7 +91,7 @@ this repo (DECISIONS §12).
 - Vercel auto-deploys: preview per PR, production on `main`.
 - The site is deploy-ready with **zero** env vars — forms accept input and log
   instead of sending.
-- Before attaching the production domain: set `NEXT_PUBLIC_SITE_URL`, then the
+- Before attaching the production domain: set `SITE_URL`, then the
   Brevo + contact vars, then run the smoke test in §7.
 
 ## 6. CI

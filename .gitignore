@@ -30,11 +30,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files — never commit real values
+# env files — never commit real values.
+# There is no committed template: docs/ADMIN.md §4 is the authoritative
+# list of variables, and lib/env.ts is the schema.
 .env*
-# ...except the template, which holds only key names and setup notes.
-# Without this, `cp .env.example .env.local` fails on a fresh clone.
-!.env.example
 
 # vercel
 .vercel

@@ -28,7 +28,7 @@ export const siteConfig = {
   ...siteIdentity,
   /** Public site origin from the environment (e.g.
    *  `https://gripfit.com`). Falls back to `null` until set. */
-  url: env.NEXT_PUBLIC_SITE_URL ?? null,
+  url: env.SITE_URL ?? null,
 } as const;
 
 export const productConfig = {

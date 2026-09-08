@@ -25,7 +25,7 @@
  *
  *   • Pricing math / formatters → lib/config.ts (`getPreorderPricing`,
  *     `getStackedPreorderPricing`, `formatUSD`)
- *   • Environment-derived values (NEXT_PUBLIC_SITE_URL, Brevo keys,
+ *   • Environment-derived values (SITE_URL, Brevo keys,
  *     Shopify keys) → lib/env.ts and `.env.local`
  *   • Page-specific marketing copy (feature blurbs, science citations,
  *     setup steps) → the TSX of the relevant page / component

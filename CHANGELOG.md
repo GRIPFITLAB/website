@@ -53,6 +53,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   [R-041]
 - `@types/node` bumped `^20` → `^22` to match Node 22 in `.nvmrc`; the stale
   pin blocked the vitest install. [R-030]
+- `NEXT_PUBLIC_SITE_URL` → **`SITE_URL`**. The origin is only ever read on the
+  server (`app/sitemap.ts`, `app/robots.ts`, `app/layout.tsx` metadata), so the
+  `NEXT_PUBLIC_` prefix was shipping it to the client bundle for no reason.
+  **Action required:** rename this key in the Vercel dashboard. [R-043]
 
 ### Fixed
 
@@ -80,6 +84,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `CONTACT_EMAIL_FROM` keys are gone, all `BREVO_*` keys are present, and
   each is annotated with where to find its value and whether it blocks
   launch. [R-014]
+- A variable that was **present but blank** crashed the build. `KEY=` (a copied
+  template line, or an empty field in the Vercel dashboard) arrives as `""`,
+  which is *present*, so `.optional()` did not apply and `.min(1)` / `.url()`
+  rejected it. `lib/env.ts` now drops empty values before validating, restoring
+  the R-014 guarantee that an unset variable disables its feature instead of
+  breaking boot. CI never caught this because CI defines no variables at all.
+  [R-014]
 
 ### Removed
 
@@ -87,3 +98,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   — orphaned since the Jun 28 2026 home-page revamp, with no importers.
 - Resend configuration (`RESEND_API_KEY`, `CONTACT_EMAIL_FROM`,
   `isResendConfigured`), superseded by Brevo. [R-010]
+- `.env.example` and its `!.env.example` exception in `.gitignore`. It was a
+  third copy of a list already maintained in `docs/ADMIN.md` §4 and `lib/env.ts`,
+  and copying it was what produced the blank-variable crash above. `.gitignore`
+  now matches `.env*` with no exception. [R-014]

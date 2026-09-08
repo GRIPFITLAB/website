@@ -12,13 +12,23 @@
 further can be verified end-to-end until Brevo is configured, because every
 test mocks it.
 
-Immediate action: the **Brevo manual checklist** below, then the smoke test
-(`docs/ADMIN.md` §7–8).
+Immediate action, in order:
+
+1. Set the env vars in **Vercel → Settings → Environment Variables** — note the
+   origin key is now `SITE_URL`, **not** `NEXT_PUBLIC_SITE_URL`.
+2. The **Brevo manual checklist** below (custom attributes first — Brevo rejects
+   writes to attributes it doesn't know).
+3. The smoke test (`docs/ADMIN.md` §7–8) against the preview deploy.
+
+Blank values are safe: an empty field reads as unset and disables that feature
+rather than failing the build.
 
 ## Recently completed — 2026-09-07
 
 | Shipped | Requirements |
 | --- | --- |
+| `SITE_URL` replaces `NEXT_PUBLIC_SITE_URL` (server-only origin) — **rename the key in Vercel** | R-043 |
+| Blank env vars no longer crash the build; `.env.example` removed as a redundant third list | R-014 |
 | MSRP $149 · campaign 25% · email +15% stacked → $94.99 (36.25% off) | R-002…R-005 |
 | `lib/brevo/` typed client; both Server Actions on Brevo; env schema + flags | R-010, R-013, R-014 |
 | Unique per-email discount codes, stored on the Brevo contact, idempotent | R-011, R-012 |

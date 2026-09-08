@@ -135,7 +135,7 @@ Errors: `BrevoHttpError` (status + Brevo error body). All calls `cache: "no-stor
 | `BREVO_SENDER_NAME` | server | optional | display name on outbound mail |
 | `BREVO_DISCOUNT_TEMPLATE_ID` | server | optional | Brevo template for the code email; inline HTML fallback if unset |
 | `CONTACT_EMAIL_TO` | server | before launch | support inbox for contact-form mail (OQ-4) |
-| `NEXT_PUBLIC_SITE_URL` | public | before launch | absolute URLs for sitemap/robots/OG |
+| `SITE_URL` | server | before launch | absolute URLs for sitemap/robots/OG |
 
 `isBrevoConfigured = Boolean(BREVO_API_KEY && BREVO_SENDER_EMAIL)`. When false,
 both actions log a warning and return their existing "received, delivery pending"
@@ -163,6 +163,8 @@ Each `D-xxx` records the choice and the alternative rejected.
 | D-013 | Dismissal state read via `useSyncExternalStore`, with all storage access behind fail-silent helpers. | `useState` + `useEffect` mount-gate (the prior code) — trips `react-hooks/set-state-in-effect`, and its unguarded `setItem` throws where browsers block site data, breaking the page right after a successful signup. localStorage *is* external state; modelling it as such removes both faults. |
 | D-014 | Copy/number agreement enforced by a test (`tests/copy.test.ts`) rather than by comment discipline. | Trusting the "update both" comment in `lib/admin.ts` — percentages live twice (a number for maths, a sentence for humans) and the failure mode is silent and public: a "30% off" banner on a 25%-off product. |
 | D-015 | Retain `lib/shopify/` despite the no-dead-code sweep. | Deleting it with the other orphans — Decisions §7 keeps it for the v2 commerce relight, and unlike `InTheBox`/`Readiness` it has a documented forward purpose. It has no importers, so it costs nothing in the bundle. |
+| D-016 | `SITE_URL` is server-only (no `NEXT_PUBLIC_` prefix). | Keeping `NEXT_PUBLIC_SITE_URL` — every consumer (`sitemap.ts`, `robots.ts`, `layout.tsx` metadata) renders on the server, so the prefix only widened the client bundle and implied the value was needed in the browser. |
+| D-017 | No committed env template; `docs/ADMIN.md` §4 + `lib/env.ts` are the only variable lists, and empty values are dropped before validation. | Keeping `.env.example` — a third copy of the same list that drifts (it already went stale on the `RESEND_*` → `BREVO_*` swap), and copying it produced `KEY=` lines that crashed the build. Also rejected: making the schema accept `""` per-field — `z.preprocess` on every optional key is noisier than one filter and easy to forget on the next key added. |
 
 ## 6. Traceability
 
@@ -175,7 +177,7 @@ Each `D-xxx` records the choice and the alternative rejected.
 | R-011 | §3.1, §4.1, §4.2 (`upsertContact` + `sendTransactionalEmail`), D-004 |
 | R-012 | §3.2 code format + idempotent generation, D-005 |
 | R-013 | §4.1 `submitContact`, §4.2 `sendTransactionalEmail`, §4.3 `CONTACT_EMAIL_TO` |
-| R-014 | §1 deploy-without-config invariant, §4.3 `isBrevoConfigured`, D-008 |
+| R-014 | §1 deploy-without-config invariant, §4.3 `isBrevoConfigured`, D-008, D-017 (blank = unset) |
 | R-015 | §3.1 (exportable attributes); runbook in ADMIN.md; D-006 |
 | R-020 | Content pass in page TSX; not an architecture change |
 | R-021 | `next/image` + `public/product/`, `public/app/`; DECISIONS §3 imagery rules |
@@ -187,7 +189,7 @@ Each `D-xxx` records the choice and the alternative rejected.
 | R-040 | DECISIONS §6 / `lib/routes.ts` / `app/**/page.tsx` |
 | R-041 | §1, `lib/config.ts → campaign`, `app/kickstarter/page.tsx`, D-012 |
 | R-042 | `EmailDiscount*` components + `lib/email-discount-events.ts` storage helpers, `DiscountBanner`, D-013 |
-| R-043 | `app/sitemap.ts`, `app/robots.ts` (non-production disallows all), Metadata API; structured data TODO |
+| R-043 | `app/sitemap.ts`, `app/robots.ts` (non-production disallows all), Metadata API, `SITE_URL` / D-016; structured data TODO |
 | R-044 | `app/globals.css` + `design.md`; DECISIONS §3 |
 | R-045 | §7 (Lighthouse / build); DECISIONS §13 |
 | R-046 | RSC-default; `"use client"` only in interactive components; DECISIONS §8 |

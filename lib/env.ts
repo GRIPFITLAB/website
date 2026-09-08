@@ -26,7 +26,12 @@ const envSchema = z.object({
     .string()
     .min(1)
     .optional(),
-  NEXT_PUBLIC_SITE_URL: z
+
+  /** Absolute public origin, e.g. `https://gripfit.com`. Read only from
+   *  Server Components / route handlers (`sitemap.ts`, `robots.ts`,
+   *  `layout.tsx` metadata) — it has no `NEXT_PUBLIC_` prefix, so it is
+   *  `undefined` in the client bundle. */
+  SITE_URL: z
     .string()
     .url()
     .optional(),
@@ -54,7 +59,21 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
-const parsed = envSchema.safeParse(process.env);
+/**
+ * Treat an empty value as "unset" before validating.
+ *
+ * A variable that exists but has no value — a blank field in the Vercel
+ * dashboard, or a `KEY=` line in a hand-written `.env.local` — arrives as
+ * `""`, not `undefined`. An empty string is *present*, so `.optional()`
+ * does not apply to it and `.min(1)` / `.url()` / `.coerce.number()` all
+ * reject it, crashing the build. Dropping empties preserves the contract
+ * in R-014: an unset variable disables its feature, it never breaks boot.
+ */
+const definedEnv = Object.fromEntries(
+  Object.entries(process.env).filter(([, value]) => value !== ""),
+);
+
+const parsed = envSchema.safeParse(definedEnv);
 
 if (!parsed.success) {
   console.error(

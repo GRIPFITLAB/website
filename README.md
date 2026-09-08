@@ -40,10 +40,12 @@ Q3).
 
 ```bash
 nvm use            # Node 22 LTS, see .nvmrc
-cp .env.example .env.local   # optional — the app runs with nothing set
 npm install
 npm run dev        # http://localhost:3000
 ```
+
+No env file is required — the app runs with nothing set. See
+[`docs/ADMIN.md`](./docs/ADMIN.md) §4 for the variable list.
 
 Useful scripts:
 
@@ -95,7 +97,7 @@ added as the corresponding build steps land.
 The site is **deploy-ready to Vercel right now** with no env vars set. The
 build is `npm run build` clean; all 13 routes statically prerender, and CI
 proves the zero-config build keeps working. Before launch, set
-`NEXT_PUBLIC_SITE_URL` (absolute URLs for `sitemap.xml` / `robots.txt` /
+`SITE_URL` (absolute URLs for `sitemap.xml` / `robots.txt` /
 OG tags) and the `BREVO_*` + `CONTACT_EMAIL_TO` keys (nothing is emailed
 until they exist — forms accept input and log instead).
 
