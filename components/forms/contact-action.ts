@@ -1,10 +1,13 @@
 "use server";
 
-import { z } from "zod";
-
 import { sendTransactionalEmail } from "@/lib/brevo";
 import { siteConfig } from "@/lib/config";
 import { env, isContactEmailConfigured } from "@/lib/env";
+
+import {
+  contactSchema,
+  type ContactFormState,
+} from "./contact-schema";
 
 /**
  * Contact form → Brevo transactional email (PRD R-013).
@@ -20,29 +23,6 @@ import { env, isContactEmailConfigured } from "@/lib/env";
  * When Brevo isn't configured the action still validates, logs, and
  * reports success so the form stays usable pre-launch (PRD R-014).
  */
-export const contactSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(80),
-  email: z.string().trim().email("Enter a valid email address").max(160),
-  message: z
-    .string()
-    .trim()
-    .min(10, "Message must be at least 10 characters")
-    .max(2000, "Message is too long"),
-  /** Honeypot — bots fill it in, humans never see it. */
-  website: z.string().max(0, "Spam detected").optional(),
-});
-
-export type ContactFormState =
-  | { status: "idle" }
-  | { status: "success"; message: string }
-  | {
-      status: "error";
-      message: string;
-      fieldErrors?: Partial<Record<"name" | "email" | "message", string>>;
-    };
-
-export const initialContactState: ContactFormState = { status: "idle" };
-
 const SUCCESS_MESSAGE =
   "Thanks — we received your message and will reply within 1–2 business days.";
 

@@ -24,8 +24,9 @@ vi.mock("@/lib/env", () => ({
   },
 }));
 
-const { submitContact, initialContactState } = await import(
-  "@/components/forms/contact-action"
+const { submitContact } = await import("@/components/forms/contact-action");
+const { initialContactState } = await import(
+  "@/components/forms/contact-schema"
 );
 
 function form(fields: Record<string, string>): FormData {

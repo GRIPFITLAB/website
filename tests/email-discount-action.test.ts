@@ -35,8 +35,11 @@ vi.mock("@/lib/env", () => ({
   },
 }));
 
-const { submitEmailDiscount, initialEmailDiscountState } = await import(
+const { submitEmailDiscount } = await import(
   "@/components/marketing/email-discount-action"
+);
+const { initialEmailDiscountState } = await import(
+  "@/components/marketing/email-discount-schema"
 );
 const { discountConfig } = await import("@/lib/config");
 const { isValidDiscountCode } = await import("@/lib/discount-code");

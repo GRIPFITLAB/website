@@ -8,11 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
+import { submitContact } from "./contact-action";
 import {
   initialContactState,
-  submitContact,
   type ContactFormState,
-} from "./contact-action";
+} from "./contact-schema";
 
 export function ContactForm() {
   const [state, formAction, pending] = useActionState<

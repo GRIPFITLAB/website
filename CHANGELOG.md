@@ -27,6 +27,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   between the on-site holding page and the live Kickstarter URL, adding
   `target="_blank"` + `rel="noopener noreferrer"` only for external
   targets. [R-041]
+- `tests/server-actions.test.ts` — asserts every `"use server"` module exports
+  only async functions. Source-level on purpose: `next build` compiles the
+  broken form cleanly and prerenders all 13 routes, so a green build is not
+  evidence against this defect. [R-030]
 - `tests/env.test.ts` — 14 tests covering `SITE_URL` normalisation and the
   blank-value filter, including a regression for a scheme-only value
   (`http://`) being rewritten into the superficially-valid `https://http:`.
@@ -95,6 +99,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the R-014 guarantee that an unset variable disables its feature instead of
   breaking boot. CI never caught this because CI defines no variables at all.
   [R-014]
+- **Every page containing a form 500'd in production.** `contact-action.ts` and
+  `email-discount-action.ts` are `"use server"` modules but each exported a Zod
+  schema and an initial-state object alongside its Action. Next.js permits only
+  async function exports there and throws on module evaluation — `A "use server"
+  file can only export async functions, found object` — so `/kickstarter`,
+  `/contact`, and the footer form were unreachable. The schemas and state now
+  live in `contact-schema.ts` / `email-discount-schema.ts`. Present since the
+  Brevo migration; never caught because the build passes and no test rendered a
+  page. [R-011] [R-013]
 - `SITE_URL` set to a bare hostname (`gripfit.com`) failed the production build:
   `z.url()` requires a scheme, and the whole deploy died on `Invalid URL`. The
   value is now normalised before validation — a missing scheme becomes `https://`,

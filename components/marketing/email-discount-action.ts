@@ -1,11 +1,14 @@
 "use server";
 
-import { z } from "zod";
-
 import { getContact, sendTransactionalEmail, upsertContact } from "@/lib/brevo";
 import { discountConfig, getStackedPreorderPricing, siteConfig } from "@/lib/config";
 import { generateDiscountCode } from "@/lib/discount-code";
 import { env, isBrevoConfigured } from "@/lib/env";
+
+import {
+  emailDiscountSchema,
+  type EmailDiscountState,
+} from "./email-discount-schema";
 
 /**
  * Email-discount capture — the extra-15%-off flow shared by the modal,
@@ -25,23 +28,6 @@ import { env, isBrevoConfigured } from "@/lib/env";
  * reports success — the site has to stay deployable and demoable before
  * credentials land (PRD R-014).
  */
-export const emailDiscountSchema = z.object({
-  email: z.string().trim().email("Enter a valid email address").max(160),
-  /** Honeypot — bots fill it in, humans never see it. */
-  website: z.string().max(0, "Spam detected").optional(),
-});
-
-export type EmailDiscountState =
-  | { status: "idle" }
-  | { status: "success"; message: string }
-  | {
-      status: "error";
-      message: string;
-      fieldErrors?: { email?: string };
-    };
-
-export const initialEmailDiscountState: EmailDiscountState = { status: "idle" };
-
 const GENERIC_ERROR =
   "We couldn't send your code just now. Please try again in a moment.";
 

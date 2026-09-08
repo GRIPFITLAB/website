@@ -9,11 +9,11 @@ import { discountConfig } from "@/lib/config";
 import { markEmailDiscountDismissed } from "@/lib/email-discount-events";
 import { cn } from "@/lib/utils";
 
+import { submitEmailDiscount } from "./email-discount-action";
 import {
   initialEmailDiscountState,
-  submitEmailDiscount,
   type EmailDiscountState,
-} from "./email-discount-action";
+} from "./email-discount-schema";
 
 /**
  * EmailDiscountForm — reusable client form that wraps the

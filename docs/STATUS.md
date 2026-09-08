@@ -30,6 +30,7 @@ rather than failing the build.
 | `SITE_URL` replaces `NEXT_PUBLIC_SITE_URL` (server-only origin) — **rename the key in Vercel** | R-043 |
 | Blank env vars no longer crash the build; `.env.example` removed as a redundant third list | R-014 |
 | `SITE_URL` accepts a bare hostname (`gripfit.com`); http/https enforced; `tests/env.test.ts` added | R-043, R-030 |
+| Server Actions split from their schemas — every form page was 500ing in production | R-011, R-013 |
 | MSRP $149 · campaign 25% · email +15% stacked → $94.99 (36.25% off) | R-002…R-005 |
 | `lib/brevo/` typed client; both Server Actions on Brevo; env schema + flags | R-010, R-013, R-014 |
 | Unique per-email discount codes, stored on the Brevo contact, idempotent | R-011, R-012 |
