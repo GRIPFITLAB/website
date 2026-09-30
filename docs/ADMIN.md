@@ -311,7 +311,7 @@ without it, not merely unpolished.
 | # | Item | Blocks launch | Owner |
 | --- | --- | --- | --- |
 | 1 | **Choose a redemption route** — A, B, or C (§9.4, OQ-2) | Yes | You |
-| 2 | `support@gripfit.com` mailbox — `mailto:` links bounce until it exists (OQ-4) | Yes | You |
+| 2 | Branded `support@gripfit.com` mailbox — `links.supportEmail` points at `avdevdesk@gmail.com` meanwhile, so nothing bounces (OQ-4) | No | You |
 | 3 | Legal review of `/privacy` and `/terms` — both say they are unreviewed | Yes | Legal |
 | 4 | Kickstarter campaign URL → `links.crowdfundingUrl` (OQ-1) | Yes | You |
 | 5 | Actually schedule `npm run export:contacts` somewhere (cron, CI, calendar) | Yes | You |

@@ -163,12 +163,12 @@ export const links = {
    *  `productSettings.preorder = false` and uncomment the Shopify
    *  imports in /product. */
   shopifyCheckoutHost: "checkout.gripfit.com",
-  /** Support / contact email shown to visitors (footer, setup page).
-   *  TODO(Decisions.md §16 Q7): this mailbox does not exist yet — stand
-   *  it up before launch, or the `mailto:` links bounce. Where the
-   *  *contact form* delivers is separate and env-driven
-   *  (`CONTACT_EMAIL_TO`), so the two can differ during setup. */
-  supportEmail: "support@gripfit.com",
+  /** Support / contact email shown to visitors (footer, setup page,
+   *  /privacy, /terms, /unsubscribe). Swap to a `@gripfit.com` address
+   *  once that mailbox exists. Where the *contact form* delivers is
+   *  separate and env-driven (`CONTACT_EMAIL_TO`), so the two can
+   *  differ. */
+  supportEmail: "avdevdesk@gmail.com",
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────

@@ -119,7 +119,7 @@ Implementation rules:
 | Apex points to | Vercel |
 | Shopify store URL | TBD — likely `gripfit.myshopify.com` initially |
 | Branded checkout subdomain | `checkout.gripfit.com` → Shopify |
-| Email domain | `support@gripfit.com` |
+| Email domain | eventually `support@gripfit.com`; `avdevdesk@gmail.com` is the interim public address (§16 Q16) |
 | Vercel team / project name | `gripfit-web` |
 
 ---
@@ -556,9 +556,11 @@ abstract per §3 — hero product tile, PDP photography slot, and the
 `AppShowcase` phone mockups all await real renders and screenshots
 (Q9, Q11). None of this blocks deployment; all of it blocks *launch*.
 
-**Q16 — Support mailbox. ⏳ OPEN.** `links.supportEmail`
-(`support@gripfit.com`) is displayed in the footer and on `/setup` but
-the mailbox does not exist — those `mailto:` links currently bounce.
+**Q16 — Support mailbox. ⚠️ INTERIM.** `links.supportEmail` is
+`avdevdesk@gmail.com`, a real monitored inbox, so the `mailto:` links in
+the footer, `/setup`, `/privacy`, `/terms`, and `/unsubscribe` no longer
+bounce. Still open: moving to a branded `support@gripfit.com` address
+once the domain's mail is stood up — a one-line change in `lib/admin.ts`.
 Separately, `CONTACT_EMAIL_TO` (where the contact form delivers) and
 `BREVO_SENDER_EMAIL` (a Brevo-verified sender) must be set before
 launch or no mail is sent at all.

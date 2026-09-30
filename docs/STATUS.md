@@ -24,7 +24,8 @@ What is left is genuinely external:
 1. **Pick a redemption route** (ADMIN §9.4 — recommendation is the secret
    Kickstarter reward tier). Codes are being issued now and the email already
    promises a launch announcement.
-2. **Stand up `support@gripfit.com`** — `mailto:` links bounce until it exists.
+2. **Stand up `support@gripfit.com`** — optional polish now; the site points at
+   `avdevdesk@gmail.com`, which works, so nothing bounces.
 3. **Legal review** of `/privacy` and `/terms`. Both are now accurate and both
    say on their face that they are unreviewed.
 4. **Schedule `npm run export:contacts`.** It is the only backup of every
@@ -75,7 +76,7 @@ none of which any existing gate caught — see the 2026-09-08 row below.
 | 1 | **Consent copy** under the email field | R-042 | You + copy |
 | 2 | **Privacy policy** rewrite: email capture, Brevo, retention, deletion; drop Shopify | R-020 | You + legal |
 | 3 | **Choose a redemption route** (ADMIN §9.4) | R-015, OQ-2 | You |
-| 4 | Stand up `support@gripfit.com` | OQ-4 | You |
+| 4 | Stand up `support@gripfit.com` (cosmetic — `avdevdesk@gmail.com` works today) | OQ-4 | You |
 | 5 | Scheduled Brevo export — the only backup of every code | OQ-9 | You |
 | 6 | Terms of service review | R-020 | Legal |
 | 7 | Structured data + OG images | R-043 | — |
@@ -108,7 +109,6 @@ Full detail, with a blocks-launch column: **`docs/ADMIN.md` §11**.
 | What a discount code *does* | Kickstarter redemption mechanism — likely secret reward tiers, not a typed code | PRD OQ-2 · Decisions §16 Q14 |
 | Live campaign CTA | Kickstarter campaign not built; `/kickstarter` holding page covers the gap meanwhile | Decisions §16 Q10 |
 | Launch-ready pages | Final copy, product renders, app screenshots, logo, tagline | Decisions §16 Q15, Q5, Q6, Q9, Q11 |
-| `mailto:` links in the footer / `/setup` | `support@gripfit.com` mailbox doesn't exist yet | Decisions §16 Q16 |
 | Success measurement | No numeric targets set for capture rate / click-through | PRD OQ-3 |
 | Compliance sign-off | Cookie-consent banner decision | PRD OQ-8 |
 
