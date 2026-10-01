@@ -81,6 +81,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- `/privacy` and `/terms` now cover both the website and the iOS app in one
+  policy each, replacing the website-only interim copy. They describe
+  Firebase, Apple subscriptions, and in-app deletion alongside the site's
+  Brevo email capture and contact form.
+  Kept to the minimum for launch: no legal entity, governing law, or hardware
+  returns / warranty terms, and the "not reviewed by a lawyer" notice is gone
+  from the pages — legal review is still open (ADMIN §11). [R-020]
 - Pricing: MSRP $135 → **$149**, campaign discount 30% → **25%**, email
   signup discount unchanged at **15% stacked** on the campaign price.
   Stacked pre-order price is now **$94.99** (36.25% off MSRP).

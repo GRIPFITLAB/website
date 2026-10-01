@@ -2,7 +2,7 @@
 
 **Phase:** v1 functional — email capture verified live; pending consent/privacy copy,
 redemption decision, final content, campaign URL
-**Updated:** 2026-09-08
+**Updated:** 2026-09-30
 
 ---
 
@@ -26,18 +26,21 @@ What is left is genuinely external:
    promises a launch announcement.
 2. **Stand up `support@gripfit.com`** — optional polish now; the site points at
    `avdevdesk@gmail.com`, which works, so nothing bounces.
-3. **Legal review** of `/privacy` and `/terms`. Both are now accurate and both
-   say on their face that they are unreviewed.
+3. **Legal review** of `/privacy` and `/terms`. Rewritten 2026-09-30 to cover
+   the website and the iOS app at launch minimum. They no longer say they are
+   unreviewed, and they still are. No legal entity, governing law, or hardware
+   returns / warranty terms.
 4. **Schedule `npm run export:contacts`.** It is the only backup of every
    issued code.
 5. Final renders, copy, DOIs, logo, tagline, and the live campaign URL.
 
 Full detail with a blocks-launch column: `docs/ADMIN.md` §11.
 
-## Recently completed — 2026-09-07 / 09-08
+## Recently completed — 2026-09-07 → 09-30
 
 | Shipped | Requirements |
 | --- | --- |
+| **09-30** `/privacy` + `/terms` rewritten to cover website and iOS app, launch-minimum; legal review deferred | R-020 |
 | **09-08** `SITE_URL` replaces `NEXT_PUBLIC_SITE_URL` (server-only origin) | R-043 |
 | **09-08** Blank env vars no longer crash the build; `.env.example` removed as a redundant third list | R-014 |
 | **09-08** `SITE_URL` accepts a bare hostname; http/https enforced; `tests/env.test.ts` | R-043, R-030 |
@@ -74,11 +77,11 @@ none of which any existing gate caught — see the 2026-09-08 row below.
 | Order | Work | Requirements | Blocked on |
 | --- | --- | --- | --- |
 | 1 | **Consent copy** under the email field | R-042 | You + copy |
-| 2 | **Privacy policy** rewrite: email capture, Brevo, retention, deletion; drop Shopify | R-020 | You + legal |
+| 2 | **Privacy policy** legal review — copy shipped 09-30, unreviewed | R-020 | Legal |
 | 3 | **Choose a redemption route** (ADMIN §9.4) | R-015, OQ-2 | You |
 | 4 | Stand up `support@gripfit.com` (cosmetic — `avdevdesk@gmail.com` works today) | OQ-4 | You |
 | 5 | Scheduled Brevo export — the only backup of every code | OQ-9 | You |
-| 6 | Terms of service review | R-020 | Legal |
+| 6 | Terms of service legal review — copy shipped 09-30; add entity, governing law, returns / warranty | R-020 | Legal |
 | 7 | Structured data + OG images | R-043 | — |
 | 8 | Final copy pass on every page | R-020 | Copy |
 | 9 | Real product renders + app screenshots | R-021 | Design |

@@ -282,8 +282,10 @@ most concrete item on this page.
 3. ✅ **Privacy policy** rewritten to describe what actually happens: what is
    stored, that Brevo is the processor, retention, deletion, and that the site
    sets no cookies and runs no analytics.
-4. ⬜ **Legal review.** Both `/privacy` and `/terms` state on their face that
-   they have not been reviewed by a lawyer. That is honest, not sufficient.
+4. ⬜ **Legal review.** `/privacy` and `/terms` were rewritten on 2026-09-30
+   to cover both the website and the iOS app and no longer carry an
+   "unreviewed" notice — but they still have not been reviewed by a lawyer.
+   Neither names a legal entity or a governing law.
 
 **Deletion requests** are served by deleting the Brevo contact, which also
 destroys the code (§9.2). Say so when you answer one.
@@ -299,8 +301,8 @@ without it, not merely unpolished.
 | --- | --- |
 | Consent line on every email capture surface | `emailDiscount.consentCopy` → `EmailDiscountForm` |
 | Working unsubscribe — link in every code email, `/unsubscribe` page, Brevo opt-out | `components/forms/unsubscribe-*`, `app/unsubscribe/` |
-| Privacy policy rewritten to what the site actually does | `app/privacy/page.tsx` |
-| Terms corrected — no Shopify checkout, discount-code terms added | `app/terms/page.tsx` |
+| Privacy policy covers the website (Brevo, contact form, no cookies) and the iOS app (Firebase, Apple) | `app/privacy/page.tsx` |
+| Terms cover the website, the app, the Kickstarter hand-off, and discount codes | `app/terms/page.tsx` |
 | Per-IP rate limiting on both public Server Actions | `lib/rate-limit.ts` |
 | Brevo attribute setup + verification | `npm run brevo:setup` / `brevo:check` |
 | Scheduled-export tooling | `npm run export:contacts` |
@@ -312,7 +314,7 @@ without it, not merely unpolished.
 | --- | --- | --- | --- |
 | 1 | **Choose a redemption route** — A, B, or C (§9.4, OQ-2) | Yes | You |
 | 2 | Branded `support@gripfit.com` mailbox — `links.supportEmail` points at `avdevdesk@gmail.com` meanwhile, so nothing bounces (OQ-4) | No | You |
-| 3 | Legal review of `/privacy` and `/terms` — both say they are unreviewed | Yes | Legal |
+| 3 | Legal review of `/privacy` and `/terms` — add legal entity name and governing law; confirm hardware returns / warranty terms | Yes | Legal |
 | 4 | Kickstarter campaign URL → `links.crowdfundingUrl` (OQ-1) | Yes | You |
 | 5 | Actually schedule `npm run export:contacts` somewhere (cron, CI, calendar) | Yes | You |
 | 6 | Product photography — hero and `/product` show "TBD" tiles | No | Design |

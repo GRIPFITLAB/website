@@ -7,7 +7,9 @@ export const metadata: Metadata = {
   description: `How ${siteConfig.name} collects, uses, and protects your data.`,
 };
 
-const updated = "September 8, 2026";
+const updated = "September 2026 (v1.0.0)";
+
+const linkClass = "text-accent underline-offset-4 hover:underline";
 
 export default function PrivacyPage() {
   return (
@@ -16,61 +18,127 @@ export default function PrivacyPage() {
       <h1 className="font-display text-display-xl text-text-primary">
         Privacy policy
       </h1>
-      <p className="mt-6 text-sm text-text-tertiary">
-        Last updated {updated}
-      </p>
 
       <div className="mt-14 flex flex-col gap-10 text-[16px] leading-[1.8] text-text-secondary">
-        <Section title="Overview">
+        <Section title="Scope">
           <p>
-            This policy describes what {siteConfig.name} actually collects
-            today: an email address if you ask for a pre-order discount code,
-            and whatever you send us through the contact form. Nothing else.
-          </p>
-          <p>
-            It has{" "}
-            <strong className="text-text-primary">
-              not yet been reviewed by a lawyer
-            </strong>{" "}
-            and is not legal advice. It is written to be accurate rather than
-            complete — where it is silent, assume we are not doing the thing.
+            This policy covers this website and the GripFit app. They collect
+            different information, so each section below says which one it
+            applies to.
           </p>
         </Section>
 
-        <Section title="Pre-order discount emails">
+        <Section title="Information We Collect">
+          <Subheading>On this website</Subheading>
           <p>
-            If you submit your email address to receive a pre-order discount
-            code, we store that address together with the code we issued you,
-            the discount percentage, and the date you signed up.
+            If you enter your email address to receive a pre-order discount
+            code or campaign updates, we store that address together with the
+            code we issued you, the discount percentage, the date you signed
+            up, and the fact that you signed up through the website.
           </p>
           <p>
-            We use it to send you the code, and to email you about the
-            crowdfunding campaign — most importantly when it opens. We will not
-            sell it, and we will not pass it to anyone else for their own
-            marketing.
+            If you use the contact form, we collect your name, email address,
+            and your message.
           </p>
           <p>
-            <strong className="text-text-primary">
-              You can unsubscribe from any email we send you.
-            </strong>{" "}
-            Every message includes an unsubscribe link. Unsubscribing stops all
-            email from us; any discount code we already issued stays valid.
+            Like any website, our hosting provider processes the requests your
+            browser makes, including your IP address, in its server logs. We
+            also use your IP address briefly to limit how often our forms can
+            be submitted, which protects them from abuse.
+          </p>
+          <p>
+            This website sets no cookies and runs no analytics or advertising
+            trackers. A few preferences, such as whether you have dismissed the
+            discount pop-up, are kept in your browser&apos;s local storage on
+            your own device and are never sent to us.
+          </p>
+
+          <Subheading>In the GripFit app</Subheading>
+          <p>
+            GripFit collects grip strength measurement data, device connection
+            information, and basic account details (email, display name) to
+            provide and improve our services. You may optionally share your age
+            and gender. We also collect usage events generated as you use the
+            app, including app opens, session length, recording timestamps, and
+            which hand you used; you can turn this off at any time with the
+            Share Data switch in Settings. We collect data you provide directly
+            when creating an account and data generated automatically through
+            your use of the app, including grip force readings, session
+            timestamps, and device identifiers.
+          </p>
+          <p>
+            If the app crashes, a crash report is sent to us so we can fix the
+            problem. It contains technical details about the crash and your
+            device (model, operating system version, app version) together with
+            your account identifier, and no other personal information. If you
+            choose to send us feedback from Settings, we receive your message,
+            its category, and your device model and operating system version so
+            we can reproduce the issue. If you subscribe to GripFit Pro, we
+            store the status of your subscription (plan, expiry, renewal)
+            alongside your account; payment details are handled entirely by
+            Apple and never reach us.
           </p>
         </Section>
 
-        <Section title="The contact form">
+        <Section title="How We Use Your Data">
           <p>
-            When you use the contact form we collect your name, email address,
-            and your message, and we use them solely to reply to you.
+            Email addresses submitted on this website are used to send you your
+            discount code and occasional updates about the pre-order campaign.
+            Every message includes an unsubscribe link. Contact form
+            submissions are used to reply to you.
+          </p>
+          <p>
+            App data is used to display your grip strength history, track
+            progress over time, and sync your recordings across devices.
+            Optional age and gender, together with usage events, help us
+            understand retention and how people use GripFit. Aggregated,
+            anonymized data may be used to improve the app experience and
+            develop new features.
+          </p>
+          <p>We do not sell your personal data to third parties.</p>
+        </Section>
+
+        <Section title="Data Storage & Security">
+          <p>
+            Email addresses and contact form messages submitted on this website
+            are stored and delivered through Brevo, our email provider. The
+            website itself is hosted by Vercel.
+          </p>
+          <p>
+            App data is stored using Google Firebase infrastructure with
+            encryption in transit and at rest. Authentication is handled
+            through Firebase Authentication.
+          </p>
+          <p>
+            We implement industry-standard security measures to protect your
+            information. No method of transmission or storage is completely
+            secure, so we cannot guarantee absolute security.
           </p>
         </Section>
 
-        <Section title="Who processes this data">
+        <Section title="Data Retention & Deletion">
           <p>
-            We use{" "}
+            Email addresses and messages submitted on this website are kept for
+            as long as they are needed for the pre-order campaign or to answer
+            your enquiry. You can ask us to delete them at any time by emailing{" "}
+            <SupportEmail />.
+          </p>
+          <p>
+            You may delete your app account and associated data at any time
+            from Settings. Account deletion removes your profile, every
+            recording, your usage analytics, and your subscription history from
+            our servers immediately. Crash reports and feedback you have
+            already sent are retained for up to 90 days for diagnostics and are
+            not linked back to a deleted account.
+          </p>
+        </Section>
+
+        <Section title="Third-Party Services">
+          <p>
+            This website uses{" "}
             <a
               href="https://www.brevo.com/legal/privacypolicy/"
-              className="text-accent underline-offset-4 hover:underline"
+              className={linkClass}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -79,66 +147,64 @@ export default function PrivacyPage() {
             to store contacts and send email, and{" "}
             <a
               href="https://vercel.com/legal/privacy-policy"
-              className="text-accent underline-offset-4 hover:underline"
+              className={linkClass}
               target="_blank"
               rel="noopener noreferrer"
             >
               Vercel
             </a>{" "}
-            to host the site. Brevo holds your email address and discount code;
-            Vercel processes the requests your browser makes, including your IP
-            address in its server logs.
+            for hosting. Pre-orders are placed through Kickstarter; if you back
+            the campaign, Kickstarter collects your pledge and payment details
+            under its own privacy policy.
           </p>
           <p>
-            This site sets{" "}
-            <strong className="text-text-primary">no cookies</strong> and runs
-            no analytics or advertising trackers. Some preferences — whether
-            you have dismissed the discount pop-up, for instance — are kept in
-            your browser&apos;s local storage on your own device, and are never
-            sent to us.
+            The GripFit app uses Google Firebase for authentication, data
+            storage, and crash reporting (Firebase Crashlytics). You may sign
+            in with an email address and password, with Google Sign-In, or with
+            Sign in with Apple. Subscriptions are processed by Apple through
+            the App Store.
           </p>
-        </Section>
-
-        <Section title="How long we keep it">
           <p>
-            Email addresses captured for a discount code are kept until the
-            crowdfunding campaign has concluded and orders are fulfilled, or
-            until you unsubscribe or ask us to delete them — whichever comes
-            first. Contact-form messages are kept as long as needed to resolve
-            what you wrote in about.
+            These services have their own privacy policies that govern their
+            handling of your data. GripFit does not use advertising networks
+            and does not track you across other companies&apos; apps or
+            websites.
           </p>
         </Section>
 
-        <Section title="Your rights">
+        <Section title="Children & Updates">
           <p>
-            You can ask for a copy of your data, a correction to it, or its
-            deletion, by emailing{" "}
-            <a
-              href={`mailto:${externalLinks.supportEmail}`}
-              className="text-accent underline-offset-4 hover:underline"
-            >
-              {externalLinks.supportEmail}
-            </a>
-            . Deleting your record also deletes the discount code attached to
-            it — if you sign up again afterwards you will be issued a new one.
+            GripFit is not directed to children under 13. We may update this
+            policy from time to time; the date at the bottom of this page shows
+            when it was last revised.
           </p>
         </Section>
 
         <Section title="Contact">
           <p>
-            Questions about this policy? Email{" "}
-            <a
-              href={`mailto:${externalLinks.supportEmail}`}
-              className="text-accent underline-offset-4 hover:underline"
-            >
-              {externalLinks.supportEmail}
-            </a>
-            .
+            If you have questions about this privacy policy, please contact us
+            at <SupportEmail />.
           </p>
         </Section>
       </div>
+
+      <p className="mt-14 border-t border-border-hairline pt-8 text-sm text-text-tertiary">
+        Last updated: {updated}
+      </p>
     </article>
   );
+}
+
+function SupportEmail() {
+  return (
+    <a href={`mailto:${externalLinks.supportEmail}`} className={linkClass}>
+      {externalLinks.supportEmail}
+    </a>
+  );
+}
+
+function Subheading({ children }: { children: React.ReactNode }) {
+  return <h3 className="font-medium text-text-primary">{children}</h3>;
 }
 
 function Section({
