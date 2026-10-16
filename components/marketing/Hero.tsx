@@ -57,12 +57,12 @@ export function Hero() {
             aria-hidden
             className="pointer-events-none absolute left-1/2 top-1/2 size-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/20 blur-[90px]"
           />
-          <figure className="relative w-full max-w-[420px] drop-shadow-[0_40px_80px_rgba(2,6,23,0.7)]">
+          <figure className="relative w-full max-w-[500px] drop-shadow-[0_40px_80px_rgba(2,6,23,0.7)]">
             <Image
               src={heroScreen}
               alt="GripFit device paired with the iPhone app showing a live force reading"
               priority
-              sizes="(min-width: 768px) 420px, 90vw"
+              sizes="(min-width: 768px) 500px, 90vw"
               className="h-auto w-full"
             />
           </figure>

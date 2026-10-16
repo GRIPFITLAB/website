@@ -9,7 +9,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground hover:bg-accent-bright hover:shadow-[var(--shadow-glow)]",
+          "bg-primary text-primary-foreground hover:bg-accent-bright",
         /** Discount UI only (design.md §2 — promo). */
         promo:
           "bg-promo text-promo-foreground hover:bg-promo-bright",

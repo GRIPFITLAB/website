@@ -30,13 +30,6 @@ interface Slide {
 
 const slides: ReadonlyArray<Slide> = [
   {
-    eyebrow: "Live force",
-    title: "See the full force curve.",
-    body: "Watch force build, peak, and fade in real time. More signal than a single max — and a live number to push past.",
-    image: screenForceCurve,
-    alt: "GripFit app recording a squeeze with the live force curve",
-  },
-  {
     eyebrow: "Today's score",
     title: "One number you can act on.",
     body: "Your readiness score compares today's grip to your personal baseline, on a 0–100 scale. Push when it's high. Recover when it's not.",
@@ -49,6 +42,13 @@ const slides: ReadonlyArray<Slide> = [
     body: "From one week to all-time, your trend line shows where you're headed before you feel it. Underneath: peak force, left/right balance, and AM vs PM strength, every session.",
     image: screenLongevity,
     alt: "GripFit app metrics screen with peak force, left/right balance, and AM vs PM strength",
+  },
+  {
+    eyebrow: "Live force",
+    title: "See the full force curve.",
+    body: "Watch force build, peak, and fade in real time. More signal than a single max — and a live number to push past.",
+    image: screenForceCurve,
+    alt: "GripFit app recording a squeeze with the live force curve",
   },
 ];
 

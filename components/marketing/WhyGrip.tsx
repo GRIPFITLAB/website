@@ -23,7 +23,7 @@ const points: ReadonlyArray<{ title: string; body: string }> = [
   },
   {
     title: "Precise enough to trust the trend.",
-    body: "NIST-traceable load cells make the small day-to-day changes real. That's what turns a number into a trend, and a trend into a decision: push or recover.",
+    body: "A custom load cell, calibrated against NIST-certified references, makes the small day-to-day changes real. That's what turns a number into a trend, and a trend into a decision: push or recover.",
   },
 ];
 
