@@ -13,7 +13,7 @@ const linkClass = "text-accent-bright underline-offset-4 hover:underline";
 
 export default function TermsPage() {
   return (
-    <article className="mx-auto w-full max-w-3xl px-5 py-20 md:px-10 md:py-28">
+    <article className="mx-auto w-full max-w-7xl px-5 py-20 md:px-10 md:py-28">
       <p className="text-eyebrow mb-6 text-text-tertiary">Terms</p>
       <h1 className="font-display text-display-xl text-text-primary">
         Terms of service
