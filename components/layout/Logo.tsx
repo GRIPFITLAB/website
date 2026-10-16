@@ -23,12 +23,12 @@ interface LogoProps {
  * references the logo asset.
  */
 export function Logo({ className, size = 18, iconOnly = false, asLink = true }: LogoProps) {
-  const markSize = Math.round(size * 1.5);
+  const markSize = Math.round(size * 1.2);
 
   const inner = (
     <span
       className={cn(
-        "inline-flex items-center gap-2.5 text-text-primary",
+        "inline-flex items-center gap-2 text-text-primary",
         asLink && "transition-opacity hover:opacity-80",
         className,
       )}
