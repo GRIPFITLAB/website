@@ -78,7 +78,13 @@ export const trackingConfig = {
   metaPixelId: env.NEXT_PUBLIC_META_PIXEL_ID ?? null,
 } as const;
 
-export const externalLinks = links;
+/** Mailboxes come from `EMAIL_SUPPORT` / `EMAIL_LEGAL` (falling back to
+ *  `lib/admin.ts`). Server-only — read in Server Components. */
+export const externalLinks = {
+  ...links,
+  supportEmail: env.EMAIL_SUPPORT,
+  legalEmail: env.EMAIL_LEGAL,
+} as const;
 
 /**
  * Where every campaign CTA points, and how to render the link.

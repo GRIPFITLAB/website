@@ -122,11 +122,11 @@ Implementation rules:
 
 | Item | Decision |
 | --- | --- |
-| Apex domain | TBD — likely `gripfit.com` |
+| Apex domain | `gripfitlab.com` (decided Oct 15, 2026) |
 | Apex points to | Vercel |
 | Shopify store URL | TBD — likely `gripfit.myshopify.com` initially |
-| Branded checkout subdomain | `checkout.gripfit.com` → Shopify |
-| Email domain | eventually `support@gripfit.com`; `avdevdesk@gmail.com` is the interim public address (§16 Q16) |
+| Branded checkout subdomain | `checkout.gripfitlab.com` → Shopify |
+| Email domain | `support@gripfitlab.com` — public support address and Brevo sender (§16 Q16) |
 | Vercel team / project name | `gripfit-web` |
 
 ---
@@ -200,7 +200,7 @@ parked). App subscriptions stay in StoreKit 2.
 `/shipping`, blog, customer login, account dashboard, gift cards.
 
 The cart drawer is a global UI element, not a route. Checkout is hosted by
-Shopify on `checkout.gripfit.com`.
+Shopify on `checkout.gripfitlab.com`.
 
 ---
 
@@ -215,7 +215,7 @@ documents the planned v2 cart so that the parked `lib/shopify/` and
 | --- | --- |
 | Cart UI pattern | Drawer (slides in from right) |
 | Cart persistence | Shopify cart ID in HTTP-only cookie + localStorage backup |
-| Checkout host | Shopify (branded `checkout.gripfit.com` subdomain) |
+| Checkout host | Shopify (branded `checkout.gripfitlab.com` subdomain) |
 | Optimistic UI on add-to-cart | No — ship correct, polish later |
 | Quantity selector | Yes, in cart drawer |
 | Promo code field | Defer to Shopify checkout (don't replicate in cart) |
@@ -247,8 +247,8 @@ links an order # to an App Store account.
 
 | Form | Backend | Notification |
 | --- | --- | --- |
-| Contact | Server Action → Brevo transactional (`/smtp/email`) | Delivered to `CONTACT_EMAIL_TO`; `replyTo` is the submitter so replying answers them directly. Sender is always the verified Brevo address — sending as the visitor's domain would fail SPF/DKIM. |
-| Email-discount capture (extra 15% off, stacks on Kickstarter) | Server Action → Brevo Contacts (`/contacts`, `updateEnabled: true`) then Brevo transactional | Upserts the contact into `BREVO_WEBSITE_LIST_ID` with a unique `DISCOUNT_CODE` attribute, then emails the code. Three surfaces share the same `submitEmailDiscount` action and the same `EMAIL_DISCOUNT_DISMISSED_KEY` localStorage flag: (a) first-visit `<EmailDiscountModal />` mounted in `app/layout.tsx`, (b) always-visible `<EmailDiscountForm variant="footer" />` in the footer, (c) `<EmailDiscountTeaser />` next to every "Back the campaign" CTA. The teaser opens the modal via the `gripfit:open-email-discount` custom event (`lib/email-discount-events.ts`) — no Context provider, no prop drilling. |
+| Contact | Server Action → Brevo transactional (`/smtp/email`) | Delivered to `EMAIL_SUPPORT`; `replyTo` is the submitter so replying answers them directly. Sender is always the verified Brevo address — sending as the visitor's domain would fail SPF/DKIM. |
+| Email-discount capture (extra 15% off, stacks on Kickstarter) | Server Action → Brevo Contacts (`/contacts`, `updateEnabled: true`) then Brevo transactional | Upserts the contact into `BREVO_WEBSITE_LIST_ID` with a unique `DISCOUNT_CODE` attribute, then emails the code. Three surfaces share the same `submitEmailDiscount` action and the same `EMAIL_DISCOUNT_DISMISSED_KEY` localStorage flag: (a) first-visit `<EmailDiscountModal />` mounted in `app/layout.tsx`, (b) always-visible `<EmailDiscountForm variant="footer" />` in the footer, (c) `<EmailDiscountTeaser />` next to the "Back the campaign" CTA in the Hero and mobile menu (dropped from `ClosingCta` Oct 16, 2026 — the footer form sits directly below it). The teaser opens the modal via the `gripfit:open-email-discount` custom event (`lib/email-discount-events.ts`) — no Context provider, no prop drilling. |
 
 ---
 
@@ -432,7 +432,7 @@ Stop for review after each step. Do not proceed to the next step without explici
   - `lib/brevo/{client,types,index}.ts` — typed `fetch` wrapper, `BrevoHttpError` / `BrevoNetworkError`, 10s timeout.
   - `lib/discount-code.ts` — unique `GF-XXXXXXXX` codes, Crockford base32, `crypto.getRandomValues`.
   - `submitEmailDiscount` — validate → look up contact → reuse or mint a code → upsert into `BREVO_WEBSITE_LIST_ID` → send the code. Idempotent per address.
-  - `submitContact` — validate → Brevo transactional to `CONTACT_EMAIL_TO`, `replyTo` the submitter, submitted text HTML-escaped.
+  - `submitContact` — validate → Brevo transactional to `EMAIL_SUPPORT`, `replyTo` the submitter, submitted text HTML-escaped.
   - Both keep the degraded branch: with no Brevo env set they validate, log, and report success, so the zero-config deploy still works (CI proves it).
   - Rate limiting still deferred (§12) — honeypot only.
 - [ ] 10. SEO metadata, structured data, OG images (sitemap + robots already shipped in Step 4 prep; robots now disallows non-production).
@@ -497,9 +497,10 @@ the warm-ink accent (`--accent`). Replace this single file when the
 final mark lands; no other component references the logo asset
 directly.
 
-**Q7 — Domain (§4).** Apex domain still TBD. Not blocking scaffold,
-but blocking production deployment. The Shopify store URL portion of
-this question is parked alongside Shopify itself in v1.
+**Q7 — Domain (§4). ✅ RESOLVED (Oct 15, 2026).** Apex domain is
+`gripfitlab.com`; production sets `SITE_URL=https://gripfitlab.com`.
+The Shopify store URL portion of this question is parked alongside
+Shopify itself in v1.
 
 **Q8 — App Store link target.** Several sections will want a "Get the app"
 or "Pair your device" CTA pointing to the iOS app. Provide the App Store
@@ -567,14 +568,15 @@ the page are **not verifiable** and must be replaced with real papers
 + DOIs before launch (owner: AS). Imagery is done — full-resolution
 iPhone renders landed Oct 15 PM.
 
-**Q16 — Support mailbox. ⚠️ INTERIM.** `links.supportEmail` is
-`avdevdesk@gmail.com`, a real monitored inbox, so the `mailto:` links in
-the footer, `/setup`, `/privacy`, `/terms`, and `/unsubscribe` no longer
-bounce. Still open: moving to a branded `support@gripfit.com` address
-once the domain's mail is stood up — a one-line change in `lib/admin.ts`.
-Separately, `CONTACT_EMAIL_TO` (where the contact form delivers) and
-`BREVO_SENDER_EMAIL` (a Brevo-verified sender) must be set before
-launch or no mail is sent at all.
+**Q16 — Support mailbox. ✅ RESOLVED (Oct 15, 2026).** `links.supportEmail`
+is `support@gripfitlab.com`, set up in Brevo via the Vercel integration;
+overridden by the `EMAIL_SUPPORT` env var. It backs the `mailto:` links in
+the footer, `/setup`, and `/unsubscribe`, is the contact-form inbox, and is
+the sender of automated mail unless `BREVO_SENDER_EMAIL` is set.
+`links.legalEmail` (`legal@gripfitlab.com`, overridden by `EMAIL_LEGAL`)
+backs `/privacy` and `/terms`.
+Both are live Zoho mailboxes as of Oct 16, 2026. Sending still needs
+`BREVO_API_KEY`.
 
 **Q17 — Price-experiment range. ⚠️ DECIDED, CONFIRM.** The brief gave
 "e.g. 75–150" as an example range. Retail is $149, so a $150

@@ -168,7 +168,7 @@ export default function PrivacyPage() {
             as long as they are needed for the Kickstarter campaign or to answer
             your enquiry. Price-test records are deleted or anonymised within
             12 months of the campaign closing. You can ask us to delete your
-            data at any time by emailing <SupportEmail />.
+            data at any time by emailing <LegalEmail />.
           </p>
           <p>
             You may delete your app account and associated data at any time
@@ -250,7 +250,7 @@ export default function PrivacyPage() {
         <Section title="Contact">
           <p>
             If you have questions about this privacy policy, please contact us
-            at <SupportEmail />.
+            at <LegalEmail />.
           </p>
         </Section>
       </div>
@@ -262,10 +262,10 @@ export default function PrivacyPage() {
   );
 }
 
-function SupportEmail() {
+function LegalEmail() {
   return (
-    <a href={`mailto:${externalLinks.supportEmail}`} className={linkClass}>
-      {externalLinks.supportEmail}
+    <a href={`mailto:${externalLinks.legalEmail}`} className={linkClass}>
+      {externalLinks.legalEmail}
     </a>
   );
 }

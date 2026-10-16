@@ -65,7 +65,7 @@ export const routes: Record<RouteKey, Route> = {
     key: "contact",
     href: "/contact",
     label: "Contact",
-    surface: { primaryNav: false, footer: true },
+    surface: { primaryNav: true, footer: true },
   },
   privacy: {
     key: "privacy",

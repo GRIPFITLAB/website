@@ -48,8 +48,8 @@ What is left is genuinely external:
 1. **Pick a redemption route** (ADMIN §9.4 — recommendation is the secret
    Kickstarter reward tier). Codes are being issued now and the email already
    promises a launch announcement.
-2. **Stand up `support@gripfit.com`** — optional polish now; the site points at
-   `avdevdesk@gmail.com`, which works, so nothing bounces.
+2. **Confirm `support@gripfitlab.com` receives mail** — the site now links to
+   it (set up in Brevo 10-15); send a test message before launch.
 3. **Legal review** of `/privacy` and `/terms`. Rewritten 2026-09-30 to cover
    the website and the iOS app at launch minimum. They no longer say they are
    unreviewed, and they still are. No legal entity, governing law, or hardware
@@ -103,7 +103,7 @@ none of which any existing gate caught — see the 2026-09-08 row below.
 | 1 | **Consent copy** under the email field | R-042 | You + copy |
 | 2 | **Privacy policy** legal review — copy shipped 09-30, unreviewed | R-020 | Legal |
 | 3 | **Choose a redemption route** (ADMIN §9.4) | R-015, OQ-2 | You |
-| 4 | Stand up `support@gripfit.com` (cosmetic — `avdevdesk@gmail.com` works today) | OQ-4 | You |
+| 4 | Confirm `support@gripfitlab.com` receives mail (now live on the site) | OQ-4 | You |
 | 5 | Scheduled Brevo export — the only backup of every code | OQ-9 | You |
 | 6 | Terms of service legal review — copy shipped 09-30; add entity, governing law, returns / warranty | R-020 | Legal |
 | 7 | Structured data + OG images | R-043 | — |
@@ -126,7 +126,7 @@ Full detail, with a blocks-launch column: **`docs/ADMIN.md` §11**.
 3. Verify a sender address or domain.
 4. Generate a v3 API key.
 5. Set `BREVO_API_KEY`, `BREVO_WEBSITE_LIST_ID`, `BREVO_SENDER_EMAIL`,
-   `CONTACT_EMAIL_TO` (and optionally `BREVO_SENDER_NAME`,
+   `EMAIL_SUPPORT` (and optionally `BREVO_SENDER_NAME`,
    `BREVO_DISCOUNT_TEMPLATE_ID`) in Vercel and `.env.local`.
 
 ## Blocked

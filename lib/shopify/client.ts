@@ -85,7 +85,7 @@ function buildEndpoint(): string {
   const domain = requireEnv("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN");
   const version = env.SHOPIFY_STOREFRONT_API_VERSION;
   // Domain may be "gripfit.myshopify.com" or a custom domain
-  // ("shop.gripfit.com"). Both formats accept /api/<version>/graphql.json.
+  // ("shop.gripfitlab.com"). Both formats accept /api/<version>/graphql.json.
   return `https://${domain}/api/${version}/graphql.json`;
 }
 

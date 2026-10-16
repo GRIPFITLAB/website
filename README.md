@@ -97,7 +97,7 @@ added as the corresponding build steps land.
 
 The site is **deploy-ready to Vercel right now** with no env vars set. The
 build is `npm run build` clean; CI proves the zero-config build keeps
-working. Before launch, set `SITE_URL`, the `BREVO_*` + `CONTACT_EMAIL_TO`
+working. Before launch, set `SITE_URL`, the `BREVO_*` + `EMAIL_SUPPORT`
 keys, and — before any ads run — `EXPERIMENT_SECRET`,
 `FIREBASE_SERVICE_ACCOUNT_JSON`, `NEXT_PUBLIC_META_PIXEL_ID`,
 `META_CAPI_ACCESS_TOKEN` (`docs/ADMIN.md` §4). Unset integrations log

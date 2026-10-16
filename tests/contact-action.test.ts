@@ -44,7 +44,7 @@ vi.mock("@/lib/env", () => ({
   },
   isFirebaseConfigured: false,
   get env() {
-    return { CONTACT_EMAIL_TO: envState.contactEmailTo, FIRESTORE_COLLECTION_PREFIX: "web_" };
+    return { EMAIL_SUPPORT: envState.contactEmailTo, FIRESTORE_COLLECTION_PREFIX: "web_" };
   },
 }));
 

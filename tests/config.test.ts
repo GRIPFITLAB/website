@@ -50,8 +50,8 @@ describe("admin values reach the typed config", () => {
     expect(discountConfig.experiment).toBe(priceExperiment);
   });
 
-  it("re-exports the link surface unchanged", () => {
-    expect(externalLinks).toBe(links);
+  it("re-exports the link surface, mailboxes defaulting to admin values", () => {
+    expect(externalLinks).toEqual(links);
   });
 });
 
@@ -100,6 +100,10 @@ describe("price experiment settings", () => {
 describe("no placeholder values ship as live config", () => {
   it("has a real support email", () => {
     expect(externalLinks.supportEmail).toMatch(/^[^@\s]+@[^@\s]+\.[^@\s]+$/);
+  });
+
+  it("has a real legal email", () => {
+    expect(externalLinks.legalEmail).toMatch(/^[^@\s]+@[^@\s]+\.[^@\s]+$/);
   });
 
   it("has a non-empty tagline and description", () => {

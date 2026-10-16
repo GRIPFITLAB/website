@@ -139,10 +139,10 @@ export default function TermsPage() {
           <p>
             If you have questions about these terms, please contact us at{" "}
             <a
-              href={`mailto:${externalLinks.supportEmail}`}
+              href={`mailto:${externalLinks.legalEmail}`}
               className={linkClass}
             >
-              {externalLinks.supportEmail}
+              {externalLinks.legalEmail}
             </a>
             .
           </p>

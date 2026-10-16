@@ -17,10 +17,12 @@
 
 import { z } from "zod";
 
+import { links } from "./admin";
+
 /**
  * Coerce a hand-entered origin into a URL Zod will accept.
  *
- * The realistic mistake is a missing scheme — `gripfit.com` pasted into
+ * The realistic mistake is a missing scheme — `gripfitlab.com` pasted into
  * the Vercel dashboard — which `z.url()` rejects outright and which then
  * fails the whole production build. Adding the scheme and dropping a
  * trailing slash makes that input work without loosening validation for
@@ -31,7 +33,7 @@ import { z } from "zod";
 export function normalizeSiteUrl(raw: string): string {
   const trimmed = raw.trim();
 
-  // A bare host (`gripfit.com`) is the realistic dashboard typo. Anything
+  // A bare host (`gripfitlab.com`) is the realistic dashboard typo. Anything
   // that already declares a scheme is passed through for `new URL` to judge
   // — prepending to it is how an earlier version turned `http://` into the
   // superficially-valid `https://http:`.
@@ -64,7 +66,7 @@ const envSchema = z.object({
     .min(1)
     .optional(),
 
-  /** Absolute public origin, e.g. `https://gripfit.com`. Read only from
+  /** Absolute public origin, e.g. `https://gripfitlab.com`. Read only from
    *  Server Components / route handlers (`sitemap.ts`, `robots.ts`,
    *  `layout.tsx` metadata) — it has no `NEXT_PUBLIC_` prefix, so it is
    *  `undefined` in the client bundle.
@@ -91,14 +93,20 @@ const envSchema = z.object({
   BREVO_API_KEY: z.string().min(1).optional(),
   /** Numeric id of the Brevo list captured email-discount signups join. */
   BREVO_WEBSITE_LIST_ID: z.coerce.number().int().positive().optional(),
-  /** A sender address verified in Brevo. Unverified senders bounce. */
+  /** A sender address verified in Brevo. Unverified senders bounce.
+   *  Falls back to `EMAIL_SUPPORT` when unset. */
   BREVO_SENDER_EMAIL: z.string().email().optional(),
   BREVO_SENDER_NAME: z.string().min(1).default("GripFit"),
   /** Optional Brevo template for the discount-code email. When unset the
    *  action sends the built-in inline HTML instead. */
   BREVO_DISCOUNT_TEMPLATE_ID: z.coerce.number().int().positive().optional(),
-  /** Inbox the contact form delivers to. */
-  CONTACT_EMAIL_TO: z.string().email().optional(),
+
+  // ── Public mailboxes ─────────────────────────────────────────────
+  /** Support address: shown to visitors and the inbox the contact form
+   *  delivers to. Server-only, so it is never read in client components. */
+  EMAIL_SUPPORT: z.string().email().default(links.supportEmail),
+  /** Legal address shown on `/privacy` and `/terms`. */
+  EMAIL_LEGAL: z.string().email().default(links.legalEmail),
 
   // ── Price experiment ─────────────────────────────────────────────
   /** HMAC secret that signs the visitor's price-assignment cookie so a
@@ -163,7 +171,10 @@ if (!parsed.success) {
   throw new Error("Invalid environment variables — see logs for details.");
 }
 
-export const env: Env = parsed.data;
+export const env: Env = {
+  ...parsed.data,
+  BREVO_SENDER_EMAIL: parsed.data.BREVO_SENDER_EMAIL ?? parsed.data.EMAIL_SUPPORT,
+};
 
 /**
  * Throw a descriptive error if a required env var is missing.
@@ -192,14 +203,15 @@ export const isShopifyConfigured = Boolean(
     env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN,
 );
 
-/** Enough config to send mail through Brevo. */
+/** Enough config to send mail through Brevo. The sender always resolves
+ *  (falls back to `EMAIL_SUPPORT`), so in practice this is the API key. */
 export const isBrevoConfigured = Boolean(
   env.BREVO_API_KEY && env.BREVO_SENDER_EMAIL,
 );
 
 /** Brevo is configured *and* we know where contact-form mail goes. */
 export const isContactEmailConfigured = Boolean(
-  isBrevoConfigured && env.CONTACT_EMAIL_TO,
+  isBrevoConfigured && env.EMAIL_SUPPORT,
 );
 
 /** Firestore lead / visitor database is reachable. */

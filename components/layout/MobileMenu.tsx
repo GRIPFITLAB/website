@@ -17,7 +17,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { campaign, campaignBannerCopy, discountConfig } from "@/lib/config";
-import { primaryNavRoutes, routes } from "@/lib/routes";
+import { primaryNavRoutes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 export function MobileMenu() {
@@ -49,7 +49,7 @@ export function MobileMenu() {
         </SheetHeader>
 
         <nav className="flex flex-col px-6 pt-6">
-          {[...primaryNavRoutes, routes.contact].map((route) => {
+          {primaryNavRoutes.map((route) => {
             const active =
               pathname === route.href ||
               (route.href !== "/" && pathname.startsWith(route.href));

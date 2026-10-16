@@ -134,7 +134,7 @@ Errors: `BrevoHttpError` (status + Brevo error body). All calls `cache: "no-stor
 | `BREVO_SENDER_EMAIL` | server | before launch | verified Brevo sender (OQ-4) |
 | `BREVO_SENDER_NAME` | server | optional | display name on outbound mail |
 | `BREVO_DISCOUNT_TEMPLATE_ID` | server | optional | Brevo template for the code email; inline HTML fallback if unset |
-| `CONTACT_EMAIL_TO` | server | before launch | support inbox for contact-form mail (OQ-4) |
+| `EMAIL_SUPPORT` | server | before launch | support inbox for contact-form mail (OQ-4) |
 | `SITE_URL` | server | before launch | absolute URLs for sitemap/robots/OG |
 
 `isBrevoConfigured = Boolean(BREVO_API_KEY && BREVO_SENDER_EMAIL)`. When false,
@@ -176,7 +176,7 @@ Each `D-xxx` records the choice and the alternative rejected.
 | R-010 | §2 stack, §4.2, D-002, D-003 |
 | R-011 | §3.1, §4.1, §4.2 (`upsertContact` + `sendTransactionalEmail`), D-004 |
 | R-012 | §3.2 code format + idempotent generation, D-005 |
-| R-013 | §4.1 `submitContact`, §4.2 `sendTransactionalEmail`, §4.3 `CONTACT_EMAIL_TO` |
+| R-013 | §4.1 `submitContact`, §4.2 `sendTransactionalEmail`, §4.3 `EMAIL_SUPPORT` |
 | R-014 | §1 deploy-without-config invariant, §4.3 `isBrevoConfigured`, D-008, D-017 (blank = unset) |
 | R-015 | §3.1 (exportable attributes); runbook in ADMIN.md §9 (anatomy, storage, export, redemption options) + §10 (consent/privacy obligations); D-006 |
 | R-020 | Content pass in page TSX; not an architecture change |

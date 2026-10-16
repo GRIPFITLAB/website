@@ -17,22 +17,22 @@ const siteUrlField = z
 
 describe("normalizeSiteUrl", () => {
   it("adds https:// to a bare hostname", () => {
-    expect(normalizeSiteUrl("gripfit.com")).toBe("https://gripfit.com");
-    expect(normalizeSiteUrl("www.gripfit.com")).toBe("https://www.gripfit.com");
+    expect(normalizeSiteUrl("gripfitlab.com")).toBe("https://gripfitlab.com");
+    expect(normalizeSiteUrl("www.gripfitlab.com")).toBe("https://www.gripfitlab.com");
   });
 
   it("leaves an existing scheme alone", () => {
     expect(normalizeSiteUrl("http://localhost:3000")).toBe(
       "http://localhost:3000",
     );
-    expect(normalizeSiteUrl("https://gripfit.com")).toBe("https://gripfit.com");
+    expect(normalizeSiteUrl("https://gripfitlab.com")).toBe("https://gripfitlab.com");
   });
 
   it("trims whitespace and trailing slashes", () => {
-    expect(normalizeSiteUrl("  https://gripfit.com/  ")).toBe(
-      "https://gripfit.com",
+    expect(normalizeSiteUrl("  https://gripfitlab.com/  ")).toBe(
+      "https://gripfitlab.com",
     );
-    expect(normalizeSiteUrl("gripfit.com///")).toBe("https://gripfit.com");
+    expect(normalizeSiteUrl("gripfitlab.com///")).toBe("https://gripfitlab.com");
   });
 
   it("does not manufacture a valid URL out of a scheme-only value", () => {
@@ -43,13 +43,13 @@ describe("normalizeSiteUrl", () => {
   });
 
   it("leaves a non-http scheme for the validator to reject", () => {
-    expect(normalizeSiteUrl("ftp://gripfit.com")).toBe("ftp://gripfit.com");
+    expect(normalizeSiteUrl("ftp://gripfitlab.com")).toBe("ftp://gripfitlab.com");
   });
 });
 
 describe("SITE_URL schema field", () => {
   it("accepts a bare hostname — the Vercel-dashboard typo that broke the build", () => {
-    expect(siteUrlField.parse("gripfit.com")).toBe("https://gripfit.com");
+    expect(siteUrlField.parse("gripfitlab.com")).toBe("https://gripfitlab.com");
   });
 
   it("passes an absent value through as undefined", () => {
@@ -62,7 +62,7 @@ describe("SITE_URL schema field", () => {
     "not a url",
     "javascript:alert(1)",
     "http://a b.com",
-    "ftp://gripfit.com",
+    "ftp://gripfitlab.com",
   ])("still rejects %j", (value) => {
     expect(() => siteUrlField.parse(value)).toThrow();
   });

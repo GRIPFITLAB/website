@@ -163,9 +163,14 @@ export const links = {
   /** App Store URL for the iOS app. `null` hides the App Store CTA. */
   iosAppStore: null as string | null,
   /** Shopify checkout host — parked for v2. */
-  shopifyCheckoutHost: "checkout.gripfit.com",
-  /** Support / contact email shown to visitors. */
-  supportEmail: "avdevdesk@gmail.com",
+  shopifyCheckoutHost: "checkout.gripfitlab.com",
+  /** Support / contact email shown to visitors, the contact-form inbox, and
+   *  the default sender of automated email. Fallback only — `EMAIL_SUPPORT`
+   *  (and `BREVO_SENDER_EMAIL` for the sender) override it. */
+  supportEmail: "support@gripfitlab.com",
+  /** Legal / privacy contact on `/privacy` and `/terms`. Fallback only —
+   *  `EMAIL_LEGAL` overrides it. */
+  legalEmail: "legal@gripfitlab.com",
 } as const;
 
 export const adminConfig = {

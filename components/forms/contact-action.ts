@@ -13,7 +13,7 @@ import { emailTheme } from "@/lib/theme";
 import { contactSchema, type ContactFormState } from "./contact-schema";
 
 /**
- * Contact form → (1) Brevo transactional email to `CONTACT_EMAIL_TO`, and
+ * Contact form → (1) Brevo transactional email to `EMAIL_SUPPORT`, and
  * (2) a Firestore `{prefix}contacts` document so nothing is lost if the
  * inbox is misconfigured. Firestore is written after the response and
  * degrades to a log line when `FIREBASE_SERVICE_ACCOUNT_JSON` is unset.
@@ -72,9 +72,9 @@ export async function submitContact(
     recordContact({ name, email, message, visitorId: assignment?.visitorId ?? null }),
   );
 
-  if (!isContactEmailConfigured || !env.CONTACT_EMAIL_TO) {
+  if (!isContactEmailConfigured || !env.EMAIL_SUPPORT) {
     console.warn(
-      "[contact] Brevo/CONTACT_EMAIL_TO not configured — submission stored, no email sent.",
+      "[contact] Brevo/EMAIL_SUPPORT not configured — submission stored, no email sent.",
       { name, email },
     );
     return { status: "success", message: SUCCESS_MESSAGE };
@@ -82,7 +82,7 @@ export async function submitContact(
 
   try {
     await sendTransactionalEmail({
-      to: [{ email: env.CONTACT_EMAIL_TO }],
+      to: [{ email: env.EMAIL_SUPPORT }],
       replyTo: { email, name },
       subject: `${siteConfig.name} contact form — ${name}`,
       textContent: [`From: ${name} <${email}>`, "", message].join("\n"),

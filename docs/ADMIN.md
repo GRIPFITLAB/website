@@ -42,7 +42,8 @@ price, percent, or URL literal.
 | Cookie-notice copy | `trackingSettings.cookieNoticeCopy` | — |
 | Crowdfunding URL | `links.crowdfundingUrl` | — |
 | App Store URL | `links.iosAppStore` (`null` hides the CTA) | — |
-| Support email | `links.supportEmail` | — |
+| Support email (also default sender + contact-form inbox) | `links.supportEmail` | `support@gripfitlab.com` |
+| Legal email (`/privacy`, `/terms`) | `links.legalEmail` | `legal@gripfitlab.com` |
 | Brand name, tagline, description, footer blurb | `siteIdentity.*` | — |
 
 **Live pricing:** Retail `$149`; Kickstarter `$112` by default, or a
@@ -83,10 +84,11 @@ feature rather than failing the build (R-014).
 | --- | --- | --- | --- |
 | `BREVO_API_KEY` | server | before launch | Brevo v3 API auth |
 | `BREVO_WEBSITE_LIST_ID` | server | before launch | list for captured email-discount signups (confirm list ID — PRD OQ-5) |
-| `BREVO_SENDER_EMAIL` | server | before launch | verified Brevo sender address (PRD OQ-4) |
+| `BREVO_SENDER_EMAIL` | server | optional | verified Brevo sender; defaults to `EMAIL_SUPPORT` |
 | `BREVO_SENDER_NAME` | server | optional | outbound display name |
 | `BREVO_DISCOUNT_TEMPLATE_ID` | server | optional | Brevo template for the code email; inline HTML used if unset |
-| `CONTACT_EMAIL_TO` | server | before launch | support inbox for contact-form mail (PRD OQ-4) |
+| `EMAIL_SUPPORT` | server | optional | support address shown on the site + contact-form inbox; defaults to `links.supportEmail` |
+| `EMAIL_LEGAL` | server | optional | legal address on `/privacy` + `/terms`; defaults to `links.legalEmail` |
 | `SITE_URL` | server | before launch | absolute URLs for `sitemap.xml`, `robots.txt`, OG tags |
 | `EXPERIMENT_SECRET` | server | **before ads run** | ≥16 random chars; signs the `gf_exp` price cookie so visitors can't forge a price. Unset = public dev key (warned in prod) |
 | `FIREBASE_SERVICE_ACCOUNT_JSON` | server | before ads run | Firebase service-account JSON (raw or base64) with Firestore access — the lead / visitor DB. Unset = leads only logged + stored in Brevo |
@@ -157,12 +159,12 @@ Do these in the Brevo dashboard before setting the env vars.
 
 ## 8. Brevo smoke test (pre-launch, manual — R-033)
 
-1. Deploy a preview with real `BREVO_*` + `CONTACT_EMAIL_TO` set.
+1. Deploy a preview with real `BREVO_*` + `EMAIL_SUPPORT` set.
 2. Submit the email-discount modal with a real inbox you control.
 3. Confirm: (a) code email arrives, (b) Brevo shows a new contact in
    `BREVO_WEBSITE_LIST_ID` with a `DISCOUNT_CODE` attribute.
 4. Re-submit the same email → same code re-sent, no second contact, no new code.
-5. Submit `/contact` → confirm mail lands in `CONTACT_EMAIL_TO` and that
+5. Submit `/contact` → confirm mail lands in `EMAIL_SUPPORT` and that
    hitting reply addresses the submitter, not the sender address.
 
 ## 9. Discount codes — anatomy, storage, review, redemption
@@ -333,7 +335,7 @@ without it, not merely unpolished.
 | # | Item | Blocks launch | Owner |
 | --- | --- | --- | --- |
 | 1 | **Choose a redemption route** — A, B, or C (§9.4, OQ-2) | Yes | You |
-| 2 | Branded `support@gripfit.com` mailbox — `links.supportEmail` points at `avdevdesk@gmail.com` meanwhile, so nothing bounces (OQ-4) | No | You |
+| 2 | Confirm `support@gripfitlab.com` (`links.supportEmail`) receives mail — needs MX / forwarding on the domain (OQ-4) | No | You |
 | 3 | Legal review of `/privacy` and `/terms` — add legal entity name and governing law; confirm hardware returns / warranty terms | Yes | Legal |
 | 4 | Kickstarter campaign URL → `links.crowdfundingUrl` (OQ-1) | Yes | You |
 | 5 | Actually schedule `npm run export:contacts` somewhere (cron, CI, calendar) | Yes | You |
