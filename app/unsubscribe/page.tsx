@@ -42,7 +42,7 @@ export default async function UnsubscribePage({
             emails. If you no longer have it, email{" "}
             <a
               href={`mailto:${externalLinks.supportEmail}`}
-              className="text-accent underline underline-offset-4"
+              className="text-accent-bright underline underline-offset-4"
             >
               {externalLinks.supportEmail}
             </a>{" "}
@@ -52,7 +52,7 @@ export default async function UnsubscribePage({
       </section>
 
       <p className="mt-8 text-[13px] leading-[1.7] text-text-tertiary">
-        Unsubscribing stops all email from us. Any pre-order discount code we
+        Unsubscribing stops all email from us. Any Super Early Bird code we
         already sent you stays valid.
       </p>
     </article>

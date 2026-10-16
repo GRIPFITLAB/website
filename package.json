@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "smoke": "node scripts/smoke.mjs",
     "export:contacts": "node scripts/export-brevo-contacts.mjs",
+    "export:leads": "node scripts/export-leads.mjs",
     "brevo:setup": "node scripts/setup-brevo-attributes.mjs",
     "brevo:check": "node scripts/setup-brevo-attributes.mjs --check"
   },
@@ -20,6 +21,7 @@
     "@fontsource-variable/inter-tight": "^5.2.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "firebase-admin": "^13.10.0",
     "lucide-react": "^1.11.0",
     "next": "16.2.4",
     "react": "19.2.4",

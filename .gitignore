@@ -39,6 +39,13 @@ yarn-error.log*
 # codes. scripts/export-brevo-contacts.mjs writes this pattern by default.
 brevo-export-*.csv
 
+# Original full-size renders / logo source (multi-MB). The web-sized
+# derivatives live in public/app and public/brand and ARE committed.
+/assets/source/
+
+# Firestore lead / visitor exports (real emails). scripts/export-leads.mjs.
+/exports/
+
 # vercel
 .vercel
 

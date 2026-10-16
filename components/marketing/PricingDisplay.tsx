@@ -1,74 +1,103 @@
-import { discountConfig, getPreorderPricing } from "@/lib/config";
+"use client";
+
+import { usePricing } from "@/components/experiment/PricingContext";
+import { discountConfig } from "@/lib/config";
+import type { PriceTier } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
 /**
- * PricingDisplay — strike-through list price, big sale price, savings
- * pill, and free-shipping note (when applicable).
+ * PricingDisplay — the three tiers, always in this order:
+ *
+ *   Super Early Bird (promo tint, "unlocked with your email")
+ *   Kickstarter      (the campaign price — may be per-visitor)
+ *   Retail           (struck through)
+ *
+ * Prices come from `usePricing()` so the visitor's assigned Kickstarter
+ * price flows through automatically. No literals here.
  *
  * Variants:
- *   - `hero`   72px sale price; flush-left, home-page hero.
- *   - `card`   72px sale price; default, for in-page pricing recaps.
- *   - `pdp`    88px sale price; for the product detail page.
- *
- * Single source of truth for pricing math is `lib/config.ts`. The
- * component is a Server Component — discount values are baked at build.
+ *   - `full`    hero / kickstarter page — three columns with hairlines.
+ *   - `compact` one line, for the modal and tight slots.
  */
-
-interface PricingDisplayProps {
-  variant?: "hero" | "card" | "pdp";
-  className?: string;
-}
-
 export function PricingDisplay({
-  variant = "card",
+  variant = "full",
   className,
-}: PricingDisplayProps) {
-  const { formattedSale, formattedList } = getPreorderPricing();
-  const { freeShipping } = discountConfig.preorder;
+}: {
+  variant?: "full" | "compact";
+  className?: string;
+}) {
+  const pricing = usePricing();
 
-  const sizeClass = {
-    hero: "text-[56px] md:text-[72px]",
-    card: "text-[56px] md:text-[72px]",
-    pdp: "text-[64px] md:text-[88px]",
-  }[variant];
-
-  const listSizeClass = {
-    hero: "text-base md:text-lg",
-    card: "text-base md:text-lg",
-    pdp: "text-lg md:text-xl",
-  }[variant];
+  if (variant === "compact") {
+    return (
+      <p className={cn("flex flex-wrap items-baseline gap-x-3 gap-y-1 tabular-nums", className)}>
+        <span className="font-display text-[28px] font-medium leading-none tracking-[-0.02em] text-promo">
+          {pricing.superEarlyBird.formatted}
+        </span>
+        <span className="text-[13px] text-text-secondary">
+          {pricing.superEarlyBird.label} · {pricing.kickstarter.label}{" "}
+          {pricing.kickstarter.formatted} ·{" "}
+          <s className="text-text-tertiary">{pricing.retail.formatted}</s> {pricing.retail.label}
+        </span>
+      </p>
+    );
+  }
 
   return (
     <div className={cn("flex flex-col", className)}>
-      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-        <span
-          className={cn(
-            "font-display font-medium leading-none tracking-[-0.025em] text-text-primary tabular-nums",
-            sizeClass,
-          )}
-        >
-          {formattedSale}
-        </span>
-        <span
-          aria-hidden
-          className={cn(
-            "font-display font-medium tabular-nums text-text-tertiary line-through decoration-text-tertiary/60",
-            listSizeClass,
-          )}
-        >
-          {formattedList}
-        </span>
-        <span className="sr-only">
-          Sale price {formattedSale}, originally {formattedList}.
-        </span>
-        <span className="inline-flex items-center rounded-full bg-promo-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-promo">
-          {discountConfig.preorder.label}
-        </span>
-      </div>
-      <p className="mt-3 text-sm text-text-tertiary">
+      <dl className="grid divide-y divide-border-hairline overflow-hidden rounded-2xl border border-border-default bg-bg-elevated/60 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        {pricing.tiers.map((tier) => (
+          <Tier key={tier.key} tier={tier} />
+        ))}
+      </dl>
+      <p className="mt-3 text-[13px] text-text-tertiary">
         USD · one-time
-        {freeShipping ? " · free US shipping during pre-order" : ""}
+        {pricing.freeShipping ? " · free US shipping on Kickstarter" : ""}
       </p>
+    </div>
+  );
+}
+
+function Tier({ tier }: { tier: PriceTier }) {
+  const isPromo = tier.key === "superEarlyBird";
+  const isRetail = tier.key === "retail";
+  return (
+    <div
+      className={cn(
+        // Phone: label + price on one row. ≥sm: stacked column tile.
+        "relative flex items-center justify-between gap-3 px-4 py-4 sm:flex-col sm:items-start sm:gap-2 sm:py-5 md:px-6 md:py-6",
+        isPromo && "bg-promo-soft",
+      )}
+    >
+      <dt
+        className={cn(
+          "text-eyebrow",
+          isPromo ? "text-promo" : "text-text-tertiary",
+        )}
+      >
+        {tier.label}
+      </dt>
+      <dd className="flex flex-col items-end gap-1 sm:items-start sm:gap-1.5">
+        <span
+          className={cn(
+            "font-display font-medium leading-none tabular-nums tracking-[-0.03em]",
+            "text-[28px] sm:text-[40px] md:text-[48px]",
+            isRetail ? "text-text-tertiary line-through decoration-[2px]" : "text-text-primary",
+          )}
+        >
+          {tier.formatted}
+        </span>
+        <span className="text-right text-[12px] leading-[1.4] text-text-secondary sm:text-left">
+          {isPromo
+            ? discountConfig.campaign.superEarlyBirdNote
+            : isRetail
+              ? "After the campaign"
+              : tier.badge
+                ? `${tier.badge.toLowerCase()} retail`
+                : ""}
+        </span>
+      </dd>
+      {isPromo ? <span className="sr-only">Best price.</span> : null}
     </div>
   );
 }

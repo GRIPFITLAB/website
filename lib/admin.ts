@@ -3,45 +3,44 @@
  *   GripFit — admin / control panel
  *
  *   THIS IS THE ONLY FILE YOU NEED TO EDIT TO CHANGE
- *   prices, discounts, banner copy, links, and product naming
+ *   prices, the price experiment, discounts, copy, links, and naming
  *   across the entire marketing site.
  *
- *   Edit a value below, save, and on the next dev-server reload (or
- *   deploy) the change is live everywhere — banners, hero, PDP,
- *   modal, footer, nav, mobile menu, sitemap, etc. No component holds
- *   a price, percent, or URL literal.
+ *   Edit a value below, save, and on the next deploy the change is live
+ *   everywhere — banner, hero, modal, footer, nav, emails, sitemap. No
+ *   component holds a price, percent, or URL literal.
  *
  * ── How this file is organised ─────────────────────────────────────────────
  *
- *   1. Site identity     (name, tagline, description)
- *   2. Product           (name, list price USD, Shopify handle)
- *   3. Campaign discount (Kickstarter pre-order — % off + free shipping)
- *   4. Email discount    (first-visit modal — extra % that STACKS on the
- *                         campaign discount)
- *   5. External links    (crowdfunding URL, App Store, support email,
- *                         Shopify host parked for v2)
+ *   1. Site identity      (name, tagline, description)
+ *   2. Product + pricing  (retail price, default Kickstarter price)
+ *   3. Price experiment   (Meta-ads A/B price range — the demand curve test)
+ *   4. Campaign           (Kickstarter — free shipping, CTA label)
+ *   5. Email discount     (Super Early Bird — extra % off for an email)
+ *   6. Tracking           (cookie notice toggle; the Pixel id lives in env)
+ *   7. External links     (Kickstarter URL, App Store, support email)
+ *
+ * ── Pricing model ──────────────────────────────────────────────────────────
+ *
+ *   Three tiers are shown everywhere, always in this order:
+ *
+ *     Super Early Bird  = Kickstarter price × (1 − emailDiscount.percentOff)
+ *                         — unlocked by signing up with an email.
+ *     Kickstarter       = the campaign price. Either the fixed default
+ *                         below, or — when the price experiment is on — a
+ *                         random integer in the experiment's range, assigned
+ *                         once per visitor and remembered in a cookie.
+ *     Retail            = productSettings.retailPriceUSD (struck through).
+ *
+ *   Percent-off badges are computed from these numbers (lib/pricing.ts), so
+ *   nothing here says "25%" in prose that could drift from the maths.
  *
  * ── What does NOT live here ────────────────────────────────────────────────
  *
- *   • Pricing math / formatters → lib/config.ts (`getPreorderPricing`,
- *     `getStackedPreorderPricing`, `formatUSD`)
- *   • Environment-derived values (SITE_URL, Brevo keys,
- *     Shopify keys) → lib/env.ts and `.env.local`
- *   • Page-specific marketing copy (feature blurbs, science citations,
- *     setup steps) → the TSX of the relevant page / component
- *
- * ── Updating the percent off ───────────────────────────────────────────────
- *
- *   If you change `campaignDiscount.percentOff`, also update
- *   `campaignDiscount.bannerCopy` (and any percent reference in
- *   `emailDiscount.headline` / `emailDiscount.body`) so the human-readable
- *   copy matches the new number. The `label` shown on pills and the
- *   strike-through pricing on Hero / PDP recompute themselves
- *   automatically (see lib/config.ts → discountConfig.*.label).
- *
- *   `tests/copy.test.ts` asserts these sentences agree with the numbers,
- *   so `npm test` (and CI) will fail loudly if you change one and not
- *   the other.
+ *   • Pricing math / formatters → lib/pricing.ts
+ *   • Env-derived values (SITE_URL, Brevo, Firebase, Meta keys) → lib/env.ts
+ *   • Page copy (section headlines, setup steps) → the TSX of that page
+ *   • Colours / fonts → design.md, app/globals.css, lib/theme.ts
  *
  * ──────────────────────────────────────────────────────────────────────── */
 
@@ -50,138 +49,131 @@
 // ─────────────────────────────────────────────────────────────────────────
 
 export const siteIdentity = {
-  /** Brand name used in <title>, OG tags, footer wordmark, contact-form
-   *  reply-from address, etc. */
+  /** Brand name used in <title>, OG tags, footer wordmark, email sender. */
   name: "GripFit",
-  /** TODO(Decisions.md §16 Q5): final tagline. Short, declarative,
-   *  performance-coded. Used as the hero eyebrow and meta description hint. */
-  tagline: "Measure every squeeze.",
-  /** One-sentence product summary. Powers the default OG description and
-   *  the marketing-site `meta description`. Keep ≤ 160 chars. */
+  /** Hero H1 and <title>. */
+  tagline: "A readiness signal based on effort, not HRV.",
+  /** One-sentence summary. Powers the meta description and the footer
+   *  blurb's first line. Keep ≤ 160 chars. */
   description:
-    "GripFit is a precision hand dynamometer that pairs with iOS to track peak force, endurance, and fatigue in real time.",
+    "GripFit is a precision hand dynamometer engineered for athletes and health-conscious people who want real-time readiness intelligence.",
+  /** Second footer sentence. */
+  footerBlurb:
+    "A readiness signal based on effort, not HRV — one daily squeeze tells you whether to push or recover. Grip strength is a clinically backed marker for longevity and overall fitness.",
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────
-// 2. Product
+// 2. Product + pricing
 // ─────────────────────────────────────────────────────────────────────────
 
 export const productSettings = {
-  /** Display name on the PDP, footer, cart copy. */
   name: "GripFit",
-  /** Shopify admin handle — only used when commerce relights in v2.
-   *  Decisions.md §7 / §16 Q3. Safe to leave as-is until then. */
+  /** Shopify handle — only used if commerce relights in v2. */
   handle: "gripfit",
-  /** **List price / MSRP in USD** — the sticker price.
-   *  All sale / discounted prices are computed from this number, so this
-   *  is the only price you ever need to change. */
-  listPriceUSD: 149,
-  /** v1 always true: every CTA on the site routes to the crowdfunding
-   *  campaign (`links.crowdfundingUrl`) instead of a Shopify checkout.
-   *  Flip to `false` once Shopify commerce relights in v2. */
+  /** **Retail price in USD** — the struck-through "Retail" tier. */
+  retailPriceUSD: 149,
+  /** **Default Kickstarter price in USD.** Used when the price experiment
+   *  is off, and for anyone without an assignment (bots, build-time
+   *  prerender). Whole dollars. */
+  kickstarterPriceUSD: 112,
+  /** v1 is always a Kickstarter pre-launch; flip when Shopify relights. */
   preorder: true,
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────
-// 3. Campaign discount  (Kickstarter / pre-order)
+// 3. Price experiment  (Meta ads A/B → demand curve)
 // ─────────────────────────────────────────────────────────────────────────
 
-export const campaignDiscount = {
-  /** Pre-order discount, expressed as 0–1.
-   *  e.g. `0.25` = 25% off the list price.
-   *  Sale price = `listPriceUSD × (1 − percentOff)`. */
-  percentOff: 0.25,
-  /** Toggle the "+ free US shipping" promise on the banner / PDP. */
-  freeShipping: true,
-  /** Sentence form for the site-wide banner above the nav.
-   *  Update this string if you change `percentOff` so the banner reads
-   *  the right percent. (`tests/copy.test.ts` fails the build if the
-   *  percent in this sentence drifts from `percentOff`.) */
-  bannerCopy: "Kickstarter pre-order: 25% off + free US shipping",
-  /** Button label used everywhere the campaign CTA appears: nav,
-   *  mobile menu, hero, PDP, banner. */
-  ctaLabel: "Back the campaign",
+export const priceExperiment = {
+  /** Master switch. `false` = everyone sees `kickstarterPriceUSD`. */
+  enabled: true,
+  /** Experiment id, stored on every visitor and lead so results can be
+   *  grouped. Change it to start a fresh experiment — every visitor gets a
+   *  new assignment. Letters, digits, dashes only (it lives in a cookie). */
+  id: "ks-price-2026-10",
+  /** Inclusive integer range the Kickstarter price is drawn from. Must stay
+   *  below `retailPriceUSD` or the "Retail" tier stops making sense
+   *  (`tests/pricing.test.ts` enforces this). */
+  minUSD: 75,
+  maxUSD: 140,
+  /** How long a visitor keeps their price, in days. */
+  cookieDays: 180,
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────
-// 4. Email-modal discount  (extra % off, stacks on the campaign discount)
+// 4. Campaign  (Kickstarter)
+// ─────────────────────────────────────────────────────────────────────────
+
+export const campaignSettings = {
+  /** Toggle the "free US shipping" promise on the banner / pricing. */
+  freeShipping: true,
+  /** Button label used everywhere the campaign CTA appears. */
+  ctaLabel: "Back on Kickstarter",
+  /** Tier names shown in the pricing display. */
+  tierLabels: {
+    superEarlyBird: "Super Early Bird",
+    kickstarter: "Kickstarter",
+    retail: "Retail",
+  },
+  /** One-line explanation under the Super Early Bird tier. */
+  superEarlyBirdNote: "Unlocked with your email",
+} as const;
+
+// ─────────────────────────────────────────────────────────────────────────
+// 5. Email discount  (Super Early Bird)
 // ─────────────────────────────────────────────────────────────────────────
 
 export const emailDiscount = {
-  /** Extra percent off, expressed as 0–1.
-   *
-   *  **STACKS on top of the Kickstarter campaign discount** — this is
-   *  a percent off the campaign sale price, not off the list. So the
-   *  effective combined discount on the list price is:
-   *
-   *      1 − (1 − campaignDiscount.percentOff) × (1 − emailDiscount.percentOff)
-   *
-   *  At 25% × 15% the visitor pays 63.75% of list = 36.25% off. */
+  /** Extra percent off the Kickstarter price, expressed as 0–1. */
   percentOff: 0.15,
-  /** Modal title. Update to match `percentOff` if you change it. */
-  headline: "Get an extra 15% off pre-order",
-  /** Modal body copy. Update both percents if you change the numbers. */
-  body: "Drop your email and we'll send you a private 15%-off code that stacks on top of the 25% Kickstarter discount.",
+  /** Modal / footer headline. The percent is interpolated from the number
+   *  above, so this string must contain `{percent}`. */
+  headline: "Get an extra {percent}% off on Kickstarter",
   /** Shown after a successful submission. */
   confirmationCopy:
-    "Done — your code is on the way. Check your inbox in a couple of minutes.",
-  /** Prefix on every generated discount code, e.g. `GF-7Q4KX2M9`.
-   *  Letters/digits only; keep it short so it stays readable in an email. */
+    "Done — your Super Early Bird code is on the way. Check your inbox in a couple of minutes.",
+  /** Prefix on every generated discount code, e.g. `GF-7Q4KX2M9`. */
   codePrefix: "GF",
-  /** Consent line shown under the email field on every capture surface.
-   *
-   *  This is what makes the signup defensible: submitting the form adds the
-   *  address to a marketing list, so the visitor has to be told what they are
-   *  agreeing to, and how to leave, at the point of consent — not afterwards
-   *  (docs/ADMIN.md §10). The privacy link is appended by the component.
-   *  If you reword this, keep the three facts: what they get, that we email
-   *  about the campaign, and that unsubscribing is available. */
+  /** The single consent / anti-spam line under the footer form. */
   consentCopy:
-    "By entering your email you'll get your discount code and occasional updates about the pre-order campaign. No spam, and you can unsubscribe from any email.",
+    "No spam. Unsubscribe anytime. We'll only email you about Kickstarter updates.",
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────
-// 5. External links
+// 6. Tracking
+// ─────────────────────────────────────────────────────────────────────────
+
+export const trackingSettings = {
+  /** Show the small cookie / tracking notice on first visit. */
+  showCookieNotice: true,
+  /** Notice copy. Keep it to one sentence; the Privacy link is appended. */
+  cookieNoticeCopy:
+    "We use a first-party cookie to remember your pricing and the Meta Pixel to measure our ads.",
+} as const;
+
+// ─────────────────────────────────────────────────────────────────────────
+// 7. External links
 // ─────────────────────────────────────────────────────────────────────────
 
 export const links = {
-  /** **Crowdfunding campaign URL** — the destination for every "Back
-   *  the campaign" / pre-order CTA on the site.
-   *
-   *  Leave `null` while the campaign is dark: every CTA then routes to
-   *  the on-site `/kickstarter` holding page, which explains that the
-   *  campaign is in progress and collects an email for launch notice.
-   *  Paste the live Kickstarter URL here on launch day and every CTA
-   *  site-wide switches to it (opening in a new tab) with no other edit.
-   *  Decisions.md §16 Q10. */
+  /** **Kickstarter campaign URL** — destination for every campaign CTA.
+   *  Leave `null` while the campaign is dark: CTAs route to the on-site
+   *  `/kickstarter` page instead. Paste the live URL here on launch day. */
   crowdfundingUrl: null as string | null,
-  /** App Store URL for the iOS companion app. Set to `null` to hide
-   *  the App Store CTA entirely (Decisions.md §16 Q8). */
+  /** App Store URL for the iOS app. `null` hides the App Store CTA. */
   iosAppStore: null as string | null,
-  /** Shopify checkout host — parked for v2 (Decisions.md §7).
-   *  Kept here so the v2 commerce relight only needs to flip
-   *  `productSettings.preorder = false` and uncomment the Shopify
-   *  imports in /product. */
+  /** Shopify checkout host — parked for v2. */
   shopifyCheckoutHost: "checkout.gripfit.com",
-  /** Support / contact email shown to visitors (footer, setup page,
-   *  /privacy, /terms, /unsubscribe). Swap to a `@gripfit.com` address
-   *  once that mailbox exists. Where the *contact form* delivers is
-   *  separate and env-driven (`CONTACT_EMAIL_TO`), so the two can
-   *  differ. */
+  /** Support / contact email shown to visitors. */
   supportEmail: "avdevdesk@gmail.com",
 } as const;
-
-// ─────────────────────────────────────────────────────────────────────────
-// Convenience aggregate — handy if you'd rather import one symbol.
-// (Most code in the app imports the typed configs from `lib/config.ts`,
-//  but having this object lets you `import { adminConfig } from "@/lib/admin"`
-//  in scripts / one-offs.)
-// ─────────────────────────────────────────────────────────────────────────
 
 export const adminConfig = {
   site: siteIdentity,
   product: productSettings,
-  campaignDiscount,
+  priceExperiment,
+  campaign: campaignSettings,
   emailDiscount,
+  tracking: trackingSettings,
   links,
 } as const;

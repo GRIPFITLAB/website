@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
 import { ContactForm } from "@/components/forms/ContactForm";
+import { Container } from "@/components/ui/section";
+import { Display, Eyebrow, Lead } from "@/components/ui/typography";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -10,22 +12,21 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <article className="mx-auto w-full max-w-3xl px-5 py-20 md:px-10 md:py-28">
-      <p className="text-eyebrow mb-6 text-text-tertiary">Contact</p>
-      <h1 className="font-display text-display-xl text-text-primary">
+    <Container className="max-w-3xl py-20 md:py-28">
+      <Eyebrow className="mb-6">Contact</Eyebrow>
+      <Display as="h1" size="xl">
         Talk to us.
-      </h1>
-      <p className="mt-6 max-w-xl text-[17px] leading-[1.7] text-text-secondary">
-        Pre-order questions, partnership inquiries, or athlete feedback —
-        drop a line and we&apos;ll reply within 1–2 business days.
-      </p>
+      </Display>
+      <Lead className="mt-6">
+        Kickstarter questions, partnerships, or feedback — we reply within 1–2 business days.
+      </Lead>
 
       <section
         aria-label="Contact form"
-        className="mt-14 rounded-2xl border border-border-default bg-bg-deep p-7 shadow-[var(--shadow-card)] md:p-10"
+        className="mt-14 rounded-2xl border border-border-default bg-bg-elevated p-7 shadow-[var(--shadow-card)] md:p-10"
       >
         <ContactForm />
       </section>
-    </article>
+    </Container>
   );
 }

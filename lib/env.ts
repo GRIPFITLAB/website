@@ -100,6 +100,30 @@ const envSchema = z.object({
   /** Inbox the contact form delivers to. */
   CONTACT_EMAIL_TO: z.string().email().optional(),
 
+  // ── Price experiment ─────────────────────────────────────────────
+  /** HMAC secret that signs the visitor's price-assignment cookie so a
+   *  visitor can't edit their own price. Any long random string. Also
+   *  read directly by `proxy.ts` (which doesn't import this module). */
+  EXPERIMENT_SECRET: z.string().min(16).optional(),
+
+  // ── Firebase (visitor + lead database) ───────────────────────────
+  /** Service-account JSON for the Firebase project the iOS app already
+   *  uses — pasted raw or base64-encoded. Server-only. Grants Firestore
+   *  access for `lib/experiment/store.ts`. */
+  FIREBASE_SERVICE_ACCOUNT_JSON: z.string().min(1).optional(),
+  /** Optional prefix for the website's Firestore collections, so they
+   *  sit apart from the app's data. */
+  FIRESTORE_COLLECTION_PREFIX: z.string().default("web_"),
+
+  // ── Meta (Pixel + Conversions API) ───────────────────────────────
+  /** Meta Pixel id. Public by design (it ships in the browser bundle). */
+  NEXT_PUBLIC_META_PIXEL_ID: z.string().regex(/^\d+$/).optional(),
+  /** Conversions API system-user token. Server-only. Enables server-side
+   *  Lead events deduplicated against the browser Pixel. */
+  META_CAPI_ACCESS_TOKEN: z.string().min(1).optional(),
+  /** Events Manager "Test events" code — set only while testing. */
+  META_TEST_EVENT_CODE: z.string().min(1).optional(),
+
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
@@ -176,4 +200,12 @@ export const isBrevoConfigured = Boolean(
 /** Brevo is configured *and* we know where contact-form mail goes. */
 export const isContactEmailConfigured = Boolean(
   isBrevoConfigured && env.CONTACT_EMAIL_TO,
+);
+
+/** Firestore lead / visitor database is reachable. */
+export const isFirebaseConfigured = Boolean(env.FIREBASE_SERVICE_ACCOUNT_JSON);
+
+/** Server-side Meta Conversions API can be called. */
+export const isMetaCapiConfigured = Boolean(
+  env.NEXT_PUBLIC_META_PIXEL_ID && env.META_CAPI_ACCESS_TOKEN,
 );

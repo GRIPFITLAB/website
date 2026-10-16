@@ -7,17 +7,13 @@ import { campaign, discountConfig } from "@/lib/config";
 import { primaryNavRoutes } from "@/lib/routes";
 
 /**
- * Sticky top navigation. Server component — interactivity (mobile menu,
- * cart drawer when it lands in Step 7) is delegated to small client islands.
- *
- * Editorial nav on the warm-cream canvas: hairline bottom border,
- * single warm-ink Pre-order pill CTA on the right (routes to the
- * crowdfunding URL), generous horizontal padding so the wordmark + nav
- * links breathe at any width.
+ * Sticky top navigation. Server Component — the mobile menu is the only
+ * client island. Hairline bottom border, translucent navy backdrop, one
+ * blue campaign CTA on the right.
  */
 export function Nav() {
   return (
-    <header className="sticky top-0 z-50 border-b border-border-hairline bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
+    <header className="sticky top-0 z-50 border-b border-border-hairline bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-6 px-5 md:h-[72px] md:px-10">
         <div className="flex flex-1 items-center">
           <Logo size={16} />
@@ -42,9 +38,9 @@ export function Nav() {
           <Button
             render={<Link href={campaign.href} {...campaign.linkProps} />}
             size="sm"
-            className="hidden h-9 px-5 text-[13px] font-semibold uppercase tracking-[0.08em] hover:shadow-[var(--shadow-glow)] md:inline-flex"
+            className="hidden h-9 px-5 text-[12px] font-semibold uppercase tracking-[0.08em] md:inline-flex"
           >
-            {discountConfig.preorder.ctaLabel}
+            {discountConfig.campaign.ctaLabel}
           </Button>
           <MobileMenu />
         </div>

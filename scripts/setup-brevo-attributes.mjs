@@ -57,6 +57,11 @@ const REQUIRED = [
   { name: "DISCOUNT_PCT", type: "float" },
   { name: "SIGNUP_SOURCE", type: "text" },
   { name: "SIGNUP_TS", type: "text" },
+  // Price experiment (DECISIONS.md §17)
+  { name: "VISITOR_ID", type: "text" },
+  { name: "EXPERIMENT_ID", type: "text" },
+  { name: "PRICE_ASSIGNED", type: "float" },
+  { name: "UTM_CAMPAIGN", type: "text" },
 ];
 
 const headers = { "api-key": apiKey, accept: "application/json" };

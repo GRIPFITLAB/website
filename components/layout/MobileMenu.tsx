@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { useCallback, useState } from "react";
 
+import { usePricing } from "@/components/experiment/PricingContext";
 import { Logo } from "@/components/layout/Logo";
 import { EmailDiscountTeaser } from "@/components/marketing/EmailDiscountTeaser";
 import { Button } from "@/components/ui/button";
@@ -15,29 +16,24 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { campaign, discountConfig } from "@/lib/config";
+import { campaign, campaignBannerCopy, discountConfig } from "@/lib/config";
 import { primaryNavRoutes, routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const pricing = usePricing();
 
-  // Closing on link click instead of via a route-change effect avoids the
-  // cascading re-render flagged by react-hooks/set-state-in-effect. Trade-off:
-  // the menu stays open on browser back/forward — acceptable for v1.
+  // Close on link click rather than a route-change effect (avoids the
+  // react-hooks/set-state-in-effect cascade).
   const close = useCallback(() => setOpen(false), []);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
         render={
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Open menu"
-            className="md:hidden"
-          />
+          <Button variant="ghost" size="icon" aria-label="Open menu" className="md:hidden" />
         }
       >
         <Menu className="size-5" />
@@ -52,8 +48,8 @@ export function MobileMenu() {
           </SheetTitle>
         </SheetHeader>
 
-        <nav className="flex flex-col px-6 pt-8">
-          {primaryNavRoutes.map((route) => {
+        <nav className="flex flex-col px-6 pt-6">
+          {[...primaryNavRoutes, routes.contact].map((route) => {
             const active =
               pathname === route.href ||
               (route.href !== "/" && pathname.startsWith(route.href));
@@ -63,44 +59,29 @@ export function MobileMenu() {
                 href={route.href}
                 onClick={close}
                 className={cn(
-                  "border-b border-border-hairline py-5 font-display text-2xl font-medium tracking-[-0.01em] transition-colors",
-                  active
-                    ? "text-accent"
-                    : "text-text-primary hover:text-accent",
+                  "border-b border-border-hairline py-5 font-display text-2xl font-medium tracking-[-0.02em] transition-colors",
+                  active ? "text-accent-bright" : "text-text-primary hover:text-accent-bright",
                 )}
               >
                 {route.label}
               </Link>
             );
           })}
-          <Link
-            href={routes.contact.href}
-            onClick={close}
-            className="border-b border-border-hairline py-5 font-display text-2xl font-medium tracking-[-0.01em] text-text-primary hover:text-accent"
-          >
-            {routes.contact.label}
-          </Link>
         </nav>
 
         <div className="px-6 pt-10">
           <Button
-            render={
-              <Link
-                href={campaign.href}
-                onClick={close}
-                {...campaign.linkProps}
-              />
-            }
-            className="h-12 w-full text-sm font-semibold uppercase tracking-[0.08em]"
+            render={<Link href={campaign.href} onClick={close} {...campaign.linkProps} />}
+            className="w-full"
             size="lg"
           >
-            {discountConfig.preorder.ctaLabel}
+            {discountConfig.campaign.ctaLabel}
           </Button>
-          <div className="mt-4 flex justify-center">
+          <div className="mt-5 flex justify-center">
             <EmailDiscountTeaser onClick={close} />
           </div>
-          <p className="mt-4 text-center text-xs text-text-tertiary">
-            {discountConfig.preorder.bannerCopy}
+          <p className="mt-5 text-center text-xs leading-[1.6] text-text-tertiary">
+            {campaignBannerCopy(pricing)}
           </p>
         </div>
       </SheetContent>

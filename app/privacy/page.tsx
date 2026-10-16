@@ -7,9 +7,9 @@ export const metadata: Metadata = {
   description: `How ${siteConfig.name} collects, uses, and protects your data.`,
 };
 
-const updated = "September 2026 (v1.0.0)";
+const updated = "October 2026 (v1.1.0)";
 
-const linkClass = "text-accent underline-offset-4 hover:underline";
+const linkClass = "text-accent-bright underline-offset-4 hover:underline";
 
 export default function PrivacyPage() {
   return (
@@ -31,10 +31,12 @@ export default function PrivacyPage() {
         <Section title="Information We Collect">
           <Subheading>On this website</Subheading>
           <p>
-            If you enter your email address to receive a pre-order discount
-            code or campaign updates, we store that address together with the
-            code we issued you, the discount percentage, the date you signed
-            up, and the fact that you signed up through the website.
+            If you enter your email address to receive a Super Early Bird
+            discount code or campaign updates, we store that address together
+            with the code we issued you, the discount percentage, the date you
+            signed up, the random visitor identifier described below, the
+            Kickstarter price you were shown, and the campaign link (if any)
+            that brought you to the site.
           </p>
           <p>
             If you use the contact form, we collect your name, email address,
@@ -46,11 +48,51 @@ export default function PrivacyPage() {
             also use your IP address briefly to limit how often our forms can
             be submitted, which protects them from abuse.
           </p>
+
+          <Subheading>Cookies and price testing</Subheading>
           <p>
-            This website sets no cookies and runs no analytics or advertising
-            trackers. A few preferences, such as whether you have dismissed the
-            discount pop-up, are kept in your browser&apos;s local storage on
-            your own device and are never sent to us.
+            Ahead of the Kickstarter campaign we test which pledge price to
+            launch at. When you first visit, our server generates a random
+            visitor identifier and assigns you a Kickstarter price from a
+            fixed range. Both are stored in a first-party cookie named{" "}
+            <code>gf_exp</code> (expires after 180 days) so that you see the
+            same price on every visit. The identifier is random and is not
+            derived from your name, email, device, or IP address. The
+            Kickstarter price shown here is for research; the price that
+            applies is the one published on Kickstarter when the campaign
+            opens.
+          </p>
+          <p>
+            If you arrive from an advert or a campaign link, we store the
+            campaign, ad set, ad, and UTM parameters from that link in a
+            second first-party cookie, <code>gf_attr</code> (180 days), so we
+            can tell which campaigns lead to signups.
+          </p>
+          <p>
+            We use the Meta Pixel and Meta&apos;s Conversions API to measure
+            how our adverts perform. The Pixel sets Meta&apos;s own cookies
+            (<code>_fbp</code>, <code>_fbc</code>) and reports page views and
+            signups to Meta together with the assigned price. When you sign
+            up we also send Meta a one-way hash of your email address so it
+            can match the signup to its advert without receiving your email
+            address in readable form. We never send your email address, name,
+            or message to Meta as plain text. You can opt out of Meta&apos;s
+            use of this data in your{" "}
+            <a
+              href="https://www.facebook.com/adpreferences/ad_settings"
+              className={linkClass}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Meta ad settings
+            </a>
+            , and block the Pixel with a content blocker; the site works
+            fully without it.
+          </p>
+          <p>
+            A few preferences, such as whether you have dismissed the discount
+            pop-up or the cookie notice, are kept in your browser&apos;s local
+            storage on your own device and are never sent to us.
           </p>
 
           <Subheading>In the GripFit app</Subheading>
@@ -83,9 +125,11 @@ export default function PrivacyPage() {
         <Section title="How We Use Your Data">
           <p>
             Email addresses submitted on this website are used to send you your
-            discount code and occasional updates about the pre-order campaign.
+            discount code and occasional updates about the Kickstarter campaign.
             Every message includes an unsubscribe link. Contact form
-            submissions are used to reply to you.
+            submissions are used to reply to you. Visitor identifiers, assigned
+            prices, and campaign parameters are used only in aggregate to
+            understand demand at different prices and which adverts work.
           </p>
           <p>
             App data is used to display your grip strength history, track
@@ -101,7 +145,9 @@ export default function PrivacyPage() {
         <Section title="Data Storage & Security">
           <p>
             Email addresses and contact form messages submitted on this website
-            are stored and delivered through Brevo, our email provider. The
+            are delivered through Brevo, our email provider, and stored in our
+            own database on Google Firebase (Cloud Firestore) alongside the
+            visitor identifier, assigned price, and campaign parameters. The
             website itself is hosted by Vercel.
           </p>
           <p>
@@ -119,9 +165,10 @@ export default function PrivacyPage() {
         <Section title="Data Retention & Deletion">
           <p>
             Email addresses and messages submitted on this website are kept for
-            as long as they are needed for the pre-order campaign or to answer
-            your enquiry. You can ask us to delete them at any time by emailing{" "}
-            <SupportEmail />.
+            as long as they are needed for the Kickstarter campaign or to answer
+            your enquiry. Price-test records are deleted or anonymised within
+            12 months of the campaign closing. You can ask us to delete your
+            data at any time by emailing <SupportEmail />.
           </p>
           <p>
             You may delete your app account and associated data at any time
@@ -153,9 +200,28 @@ export default function PrivacyPage() {
             >
               Vercel
             </a>{" "}
-            for hosting. Pre-orders are placed through Kickstarter; if you back
-            the campaign, Kickstarter collects your pledge and payment details
-            under its own privacy policy.
+            for hosting,{" "}
+            <a
+              href="https://firebase.google.com/support/privacy"
+              className={linkClass}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Google Firebase
+            </a>{" "}
+            for our database, and{" "}
+            <a
+              href="https://www.facebook.com/privacy/policy/"
+              className={linkClass}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Meta
+            </a>{" "}
+            for advert measurement (Pixel and Conversions API). Pledges are
+            placed through Kickstarter; if you back the campaign, Kickstarter
+            collects your pledge and payment details under its own privacy
+            policy.
           </p>
           <p>
             The GripFit app uses Google Firebase for authentication, data
@@ -166,9 +232,10 @@ export default function PrivacyPage() {
           </p>
           <p>
             These services have their own privacy policies that govern their
-            handling of your data. GripFit does not use advertising networks
-            and does not track you across other companies&apos; apps or
-            websites.
+            handling of your data. Beyond the Meta measurement described above,
+            GripFit does not use advertising networks and does not track you
+            across other companies&apos; apps or websites. The GripFit app
+            contains no advertising trackers.
           </p>
         </Section>
 

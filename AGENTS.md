@@ -3,76 +3,91 @@
 
 Project-specific rules for AI assistants. Read these before the Next.js notes below.
 
-1. **Read [`Decisions.md`](./Decisions.md) in full before changing anything.**
+1. **Read [`DECISIONS.md`](./DECISIONS.md) in full before changing anything.**
    §16 lists open questions — do not write code that depends on an unanswered
-   one without flagging it first.
-2. **Visual tokens are owned by [`design.md`](./design.md) + [`app/globals.css`](./app/globals.css).**
-   `design.md` is prose / intent; `app/globals.css` is the implementation.
-   Do not invent new colors, font families, or radii in component files —
-   extend `design.md` first, then mirror into `globals.css`. The old
-   `DESIGN_SYSTEM/` folder was the placeholder "Ethereal Tech" identity
-   and has been deleted.
-3. **The site is light-only with a warm-cream canvas.** `<html>` carries
-   no `dark` class — tokens live under `:root`. The default surface is
-   `--bg-canvas` (`#F3ECE2`, warm cream), **not** pure white. The brand
-   "accent" is the warm-ink `--accent` (`#1C1A17`, used as the primary
-   CTA fill, links, focus rings, the logo bar). A separate **terracotta**
-   `--promo` (`#B54A30`) is reserved for the pre-order discount UI only
-   (banner, strike-through pricing, email-modal CTA). Do not add a
-   dark-mode toggle. Do not use `--promo` for navigation, body emphasis,
-   or general dividers. The previous royal-purple direction was reversed
-   in the Apr 29, 2026 revamp; see Decisions.md §3.
-4. **No on-site Shopify cart in v1.** The first revision drives pre-orders
-   to the external crowdfunding URL defined in `lib/config.ts`
-   (`externalLinks.crowdfundingUrl`). The `lib/shopify/` client is parked
-   for v2 — files stay, but no component should `import` from it
-   (Decisions.md §7, §16 Q3). No waitlist email capture, no customer
-   accounts (Decisions.md §8). The discount UI is built into the v1
-   pages: a 30%-off + free-shipping Kickstarter pre-order banner on every
-   page, plus an email-capture flow that stacks an additional 15%-off
-   discount. The flow has three surfaces, all wired to the same Server
-   Action and the same `EMAIL_DISCOUNT_DISMISSED_KEY` localStorage flag:
-   (a) `<EmailDiscountModal />` mounted in `app/layout.tsx` (auto-opens
-   once on first visit, can be re-opened from anywhere via the
-   `gripfit:open-email-discount` custom event), (b) `<EmailDiscountForm
-   variant="footer" />` always-visible at the top of the footer, and
-   (c) `<EmailDiscountTeaser />` placed next to every "Back the
-   campaign" CTA (Hero, PDP, MobileMenu) to programmatically
-   open the modal.
-5. **No social-proof / athlete grid on the home page** (Decisions.md §6).
-   The home page comparison section pitting GripFit against a standard
-   dynamometer is the analogous visual slot.
-6. **Zero photography in v1.** Section "imagery slots" are abstract
-   warm-cream gradient panels + SVG glyphs (design.md §9). The
-   `AppShowcase` swipe gallery uses pure-CSS phone mockups, the hero
-   product slot is a labelled placeholder tile, and inner-page product
-   shots are explicitly labelled "TBD". Replace each placeholder when
-   the design team supplies real renders / screenshots.
-7. **Display font is Inter Tight, body is Inter.** Both are self-hosted
-   variable fonts under `/public/fonts`. Display weights stay light (400
-   for the largest sizes, 500 for headings) — this is the WHOOP-thin
-   look, slightly warmed by the cream canvas. No third font, no Geist
-   (deleted in the Apr 26, 2026 revamp).
-8. **Server Components by default.** Add `"use client"` only when the file
-   actually needs interactivity, browser APIs, or hooks. State for the
-   discount banner dismissal and the email modal lives in localStorage
-   only — no Redux / Zustand / SWR. The cart `Context` planned for v2 is
-   intentionally unimplemented in v1.
-9. **No hardcoded prices, product handles, API endpoints, or env values
-   in components.** Editable values live in **[`lib/admin.ts`](./lib/admin.ts)**
-   — the single "control panel" for price, campaign discount, email
-   discount, banner copy, links, and product naming. `lib/config.ts`
-   composes the typed `siteConfig`, `productConfig`, `discountConfig`,
-   and `externalLinks` exports from `admin.ts` and adds pricing helpers
-   (`getPreorderPricing`, `getStackedPreorderPricing`, `formatUSD`).
-   Components import from `lib/config.ts` as before; humans editing
-   values touch `lib/admin.ts`. Env-derived values stay in `lib/env.ts`.
-   Pre-order pricing is derived from `productSettings.listPriceUSD ×
-   campaignDiscount.percentOff`, so changing the discount only touches
-   one file.
-10. **Skills to consult:** `nextjs`, `shadcn`, `vercel-functions`. (No
-    `auth` — accounts disallowed in v1. No `shopify-*` skills until the
-    `lib/shopify/` client is reawakened in v2.)
+   one without flagging it first. §17 documents the price experiment.
+2. **Visual tokens are owned by [`design.md`](./design.md) + [`app/globals.css`](./app/globals.css) + [`lib/theme.ts`](./lib/theme.ts).**
+   `design.md` is prose / intent; `globals.css` is the Tailwind implementation;
+   `lib/theme.ts` is the same palette as TS literals for emails, `theme-color`,
+   and SVG. Raw colour values appear in those two code files and nowhere
+   else — `tests/theme.test.ts` asserts they agree. Layout and type
+   primitives live in `components/ui/section.tsx` (`Container`, `Section`,
+   `SectionHeader`), `components/ui/typography.tsx` (`Eyebrow`, `Display`,
+   `Lead`, `Meta`) and `components/ui/surface.tsx`; marketing components
+   compose those rather than restating class strings. To add a colour, font,
+   or radius: extend `design.md`, then mirror into `globals.css` and
+   `lib/theme.ts`.
+3. **The site is dark-only: deep-navy canvas + electric-blue accent, matching
+   the iOS app.** `color-scheme: dark`; tokens live under `:root`. Canvas is
+   `--bg-canvas` (`#0a1328`); the brand accent is `--accent` (`#3b82f6`, with
+   `--accent-bright` for text/links on dark) — primary CTA fill, links, focus
+   rings, the "G" mark. A separate **mint** `--promo` (`#34d399`) is reserved
+   for the Super Early Bird / discount UI only (banner, SEB tier, email CTA).
+   The saturated-blue `bg-inverted` band is used once per page (the
+   comparison). Do not add a light mode or a toggle. Do not use `--promo` for
+   navigation, body emphasis, or dividers. The warm-cream direction was
+   reversed in the Oct 15, 2026 launch revamp; see DECISIONS.md §3.
+4. **No on-site Shopify cart in v1.** CTAs drive to the external crowdfunding
+   URL in `lib/admin.ts` (`links.crowdfundingUrl`; `/kickstarter` holding page
+   while it is `null`). The `lib/shopify/` client is parked for v2 — files
+   stay, nothing imports from it (DECISIONS.md §7, §16 Q3). No customer
+   accounts (§8). The discount UI: a site-wide Kickstarter banner quoting the
+   visitor's Kickstarter and Super Early Bird prices, plus an email-capture
+   flow that unlocks the Super Early Bird price (extra 15% off Kickstarter).
+   Three surfaces share one Server Action (`submitEmailDiscount`) and one
+   `EMAIL_DISCOUNT_DISMISSED_KEY` localStorage flag: (a) `<EmailDiscountModal />`
+   in `app/layout.tsx` (auto-opens once; re-open anywhere via the
+   `gripfit:open-email-discount` event), (b) `<EmailDiscountForm
+   variant="footer" source="footer" showConsent />` at the top of the footer,
+   (c) `<EmailDiscountTeaser />` beside every "Back on Kickstarter" CTA.
+   Modal and `/kickstarter` cards are header + input only; the footer adds the
+   single consent line. Pass the correct `source` so the lead DB knows which
+   surface converted.
+5. **No social-proof / athlete grid on the home page** (DECISIONS.md §6).
+   The comparison band (GripFit vs a standard dynamometer) is the analogous
+   slot. There is no `/product` page — specs live in `components/marketing/Specs.tsx`
+   and `/product` 308-redirects home.
+6. **Real app screens only.** `public/app/screen-*.png` are the App Store
+   panels, rendered with `next/image` in `Hero` and `AppShowcase`. No stock
+   photography, no CSS phone mockups, no "TBD" / "placeholder" / "illustrative"
+   copy anywhere on the site. Originals are in `assets/source/` (gitignored);
+   the committed web-sized PNGs are derived from them.
+7. **Display font is Inter Tight (weight 500), body is Inter.** Both are
+   self-hosted variable fonts under `/public/fonts`. No third font.
+8. **Server Components by default.** Add `"use client"` only for
+   interactivity, browser APIs, or hooks. Client state is localStorage
+   (banner / modal / cookie-notice dismissal) plus the read-only
+   `PricingProvider` context seeded from the server — no Redux / Zustand /
+   SWR. Every page is dynamic because `app/layout.tsx` reads the visitor's
+   price assignment; that is intentional.
+9. **No hardcoded prices, product handles, API endpoints, env values, or
+   colours in components.** Editable values live in **[`lib/admin.ts`](./lib/admin.ts)**
+   — retail price, default Kickstarter price, experiment range, email
+   discount, tier labels, CTA label, links, support email, cookie-notice
+   copy. `lib/config.ts` composes the typed `siteConfig`, `productConfig`,
+   `discountConfig`, `trackingConfig`, `externalLinks`, `campaign` exports;
+   **`lib/pricing.ts`** owns all pricing math (`computePricing`, tier badges,
+   `campaignBannerCopy`). Components read prices through `usePricing()`
+   (client) or `getVisitorPricing()` (server) — never from `admin.ts`
+   directly — so the per-visitor experiment price flows everywhere. Sentences
+   that quote a number are generated, not typed; `tests/copy.test.ts` checks
+   them. Env-derived values stay in `lib/env.ts`.
+10. **Price experiment + tracking (DECISIONS.md §17).** `proxy.ts` assigns a
+    signed, httpOnly `gf_exp` cookie (visitor id + price) and a first-touch
+    `gf_attr` attribution cookie, and forwards them as request headers.
+    `lib/experiment/server.ts → getVisitorContext()` is the only way to read
+    them. Leads, visitors, and contact messages persist to Firestore via
+    `lib/experiment/store.ts`; Brevo stays the email/code provider. Meta
+    Pixel (`components/tracking/MetaPixel.tsx`) and Conversions API
+    (`lib/tracking/meta-capi.ts`) share a browser-generated `event_id` for
+    dedup. **Never send an email address or other directly identifying value
+    to Meta in ordinary event parameters** — hashed email in CAPI `user_data`
+    only. Any new cookie or tracker must be disclosed in `app/privacy/page.tsx`.
+    Every integration must no-op cleanly when its env var is unset.
+11. **Skills to consult:** `nextjs`, `shadcn`, `vercel-functions`,
+    `firebase-firestore` (for the lead store). (No `auth` — accounts
+    disallowed in v1. No `shopify-*` skills until `lib/shopify/` is
+    reawakened in v2.)
 <!-- END:gripfit-project-rules -->
 
 <!-- BEGIN:nextjs-agent-rules -->

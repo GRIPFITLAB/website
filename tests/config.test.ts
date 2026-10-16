@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  campaignDiscount,
+  campaignSettings,
   emailDiscount,
   links,
+  priceExperiment,
   productSettings,
   siteIdentity,
 } from "@/lib/admin";
@@ -27,9 +28,8 @@ describe("admin values reach the typed config", () => {
   it("passes product settings through", () => {
     expect(productConfig.base.name).toBe(productSettings.name);
     expect(productConfig.base.handle).toBe(productSettings.handle);
-    expect(productConfig.base.fallbackPriceUSD).toBe(
-      productSettings.listPriceUSD,
-    );
+    expect(productConfig.base.retailPriceUSD).toBe(productSettings.retailPriceUSD);
+    expect(productConfig.base.kickstarterPriceUSD).toBe(productSettings.kickstarterPriceUSD);
     expect(productConfig.base.preorder).toBe(productSettings.preorder);
   });
 
@@ -39,17 +39,15 @@ describe("admin values reach the typed config", () => {
     expect(siteConfig.description).toBe(siteIdentity.description);
   });
 
-  it("passes both discounts through", () => {
-    expect(discountConfig.preorder.percentOff).toBe(campaignDiscount.percentOff);
-    expect(discountConfig.preorder.freeShipping).toBe(
-      campaignDiscount.freeShipping,
-    );
-    expect(discountConfig.preorder.bannerCopy).toBe(campaignDiscount.bannerCopy);
-    expect(discountConfig.preorder.ctaLabel).toBe(campaignDiscount.ctaLabel);
+  it("passes campaign + email settings through", () => {
+    expect(discountConfig.campaign.freeShipping).toBe(campaignSettings.freeShipping);
+    expect(discountConfig.campaign.ctaLabel).toBe(campaignSettings.ctaLabel);
+    expect(discountConfig.campaign.tierLabels).toBe(campaignSettings.tierLabels);
 
     expect(discountConfig.email.percentOff).toBe(emailDiscount.percentOff);
-    expect(discountConfig.email.headline).toBe(emailDiscount.headline);
-    expect(discountConfig.email.body).toBe(emailDiscount.body);
+    expect(discountConfig.email.consentCopy).toBe(emailDiscount.consentCopy);
+    expect(discountConfig.email.confirmationCopy).toBe(emailDiscount.confirmationCopy);
+    expect(discountConfig.experiment).toBe(priceExperiment);
   });
 
   it("re-exports the link surface unchanged", () => {
@@ -57,10 +55,11 @@ describe("admin values reach the typed config", () => {
   });
 });
 
-describe("computed discount labels", () => {
-  it("derives the badge text from the percentage", () => {
-    expect(discountConfig.preorder.label).toBe("25% OFF");
-    expect(discountConfig.email.label).toBe("EXTRA 15% OFF");
+describe("computed labels", () => {
+  it("derives the email badge from the percentage", () => {
+    const pct = Math.round(emailDiscount.percentOff * 100);
+    expect(discountConfig.email.label).toBe(`EXTRA ${pct}% OFF`);
+    expect(discountConfig.email.headline).toContain(`${pct}%`);
   });
 });
 
@@ -82,6 +81,19 @@ describe("campaign link", () => {
   it("never points a CTA at a dead anchor", () => {
     expect(campaign.href).not.toBe("");
     expect(campaign.href).not.toBe("#");
+  });
+});
+
+describe("price experiment settings", () => {
+  it("has a sane integer range below retail", () => {
+    expect(Number.isInteger(priceExperiment.minUSD)).toBe(true);
+    expect(Number.isInteger(priceExperiment.maxUSD)).toBe(true);
+    expect(priceExperiment.minUSD).toBeLessThan(priceExperiment.maxUSD);
+    expect(priceExperiment.maxUSD).toBeLessThan(productSettings.retailPriceUSD);
+  });
+
+  it("has a cookie-safe experiment id", () => {
+    expect(priceExperiment.id).toMatch(/^[a-z0-9-]+$/);
   });
 });
 

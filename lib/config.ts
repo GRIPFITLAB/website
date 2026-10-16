@@ -1,100 +1,88 @@
 /**
- * Brand and product configuration.
+ * Typed site configuration.
  *
- * This file composes typed config objects from the values in `lib/admin.ts`
- * and adds pricing helpers on top. **You almost never need to edit this
- * file** — to change a price, percent, link, or copy string, edit
- * `lib/admin.ts` instead.
+ * Composes the plain values in `lib/admin.ts` into the objects components
+ * import. **You almost never need to edit this file** — to change a price,
+ * percent, link, or copy string, edit `lib/admin.ts`.
  *
- *   ┌─ lib/admin.ts          plain editable values (price, % off, copy, links)
- *   │
- *   └─ lib/config.ts (here)  typed exports + pricing helpers
- *                            (siteConfig, productConfig, discountConfig,
- *                             externalLinks, getPreorderPricing, …)
- *
- * Existing imports `from "@/lib/config"` continue to work unchanged.
+ *   lib/admin.ts    plain editable values
+ *   lib/pricing.ts  pricing math (computePricing, formatUSD, copy helpers)
+ *   lib/config.ts   typed exports: siteConfig, productConfig, discountConfig,
+ *                   externalLinks, campaign
  */
 
 import {
-  campaignDiscount,
+  campaignSettings,
   emailDiscount,
   links,
+  priceExperiment,
   productSettings,
   siteIdentity,
+  trackingSettings,
 } from "@/lib/admin";
 import { env } from "@/lib/env";
+import { emailDiscountHeadline } from "@/lib/pricing";
+
+export {
+  computePricing,
+  defaultPricing,
+  formatUSD,
+  campaignBannerCopy,
+  emailDiscountHeadline,
+} from "@/lib/pricing";
+export type { Pricing, PriceTier, TierKey } from "@/lib/pricing";
 
 export const siteConfig = {
   ...siteIdentity,
-  /** Public site origin from the environment (e.g.
-   *  `https://gripfit.com`). Falls back to `null` until set. */
+  /** Public site origin from the environment, or `null` until set. */
   url: env.SITE_URL ?? null,
 } as const;
 
 export const productConfig = {
-  /**
-   * The single product in v1 (Decisions.md §5).
-   * `handle` would be the Shopify admin handle if/when commerce relights
-   * — unused while v1 routes through crowdfunding (Decisions.md §16 Q3).
-   */
   base: {
     name: productSettings.name,
     handle: productSettings.handle,
-    /** List price in USD. Sale price = list × (1 − discount %). */
-    fallbackPriceUSD: productSettings.listPriceUSD,
+    retailPriceUSD: productSettings.retailPriceUSD,
+    kickstarterPriceUSD: productSettings.kickstarterPriceUSD,
     preorder: productSettings.preorder,
   },
 } as const;
 
 /**
- * Discount configuration — single source of truth for the v1 launch
- * pre-order pricing UI. Values come from `lib/admin.ts`; computed
- * `label` getters round percents for badge / pill display so banners
- * stay accurate when you change the percent.
- *
- * Decisions.md §5, §16 Q3.
+ * Discount / campaign configuration consumed by the UI.
+ * Values come from `lib/admin.ts`; derived labels are computed here.
  */
 export const discountConfig = {
-  preorder: {
-    percentOff: campaignDiscount.percentOff,
-    freeShipping: campaignDiscount.freeShipping,
-    bannerCopy: campaignDiscount.bannerCopy,
-    ctaLabel: campaignDiscount.ctaLabel,
-    /** Surfaced to humans as e.g. "40% OFF". Computed; do not edit. */
-    get label(): string {
-      return `${Math.round(this.percentOff * 100)}% OFF`;
-    },
+  campaign: {
+    freeShipping: campaignSettings.freeShipping,
+    ctaLabel: campaignSettings.ctaLabel,
+    tierLabels: campaignSettings.tierLabels,
+    superEarlyBirdNote: campaignSettings.superEarlyBirdNote,
   },
   email: {
     percentOff: emailDiscount.percentOff,
-    headline: emailDiscount.headline,
-    body: emailDiscount.body,
+    /** `"Get an extra 15% off on Kickstarter"` — percent interpolated. */
+    headline: emailDiscountHeadline(),
     confirmationCopy: emailDiscount.confirmationCopy,
     consentCopy: emailDiscount.consentCopy,
-    /** Surfaced to humans as e.g. "EXTRA 15% OFF". Computed; do not edit. */
-    get label(): string {
-      return `EXTRA ${Math.round(this.percentOff * 100)}% OFF`;
-    },
+    codePrefix: emailDiscount.codePrefix,
+    /** `"EXTRA 15% OFF"` */
+    label: `EXTRA ${Math.round(emailDiscount.percentOff * 100)}% OFF`,
   },
+  experiment: priceExperiment,
 } as const;
 
-/**
- * External-link surface — re-exported from `lib/admin.ts` so existing
- * imports (`externalLinks.supportEmail`, etc.) keep working.
- * Edit values in `lib/admin.ts → links`.
- */
+export const trackingConfig = {
+  ...trackingSettings,
+  /** Meta Pixel id — public by design, read from `NEXT_PUBLIC_META_PIXEL_ID`. */
+  metaPixelId: env.NEXT_PUBLIC_META_PIXEL_ID ?? null,
+} as const;
+
 export const externalLinks = links;
 
 /**
- * Where every "Back the campaign" CTA points, and how to render the link.
- *
- * While `links.crowdfundingUrl` is `null` the campaign is dark and CTAs
- * route to the on-site `/kickstarter` holding page. Paste the live
- * Kickstarter URL into `lib/admin.ts` and the same CTAs switch to it,
- * opening in a new tab — no component edits.
- *
- * Use `campaign.linkProps` on the `<Link>`/`<a>` so external targets get
- * `target="_blank"` + `rel="noopener noreferrer"` and internal ones don't.
+ * Where every campaign CTA points, and how to render the link.
+ * While `links.crowdfundingUrl` is null the CTA routes to `/kickstarter`.
  */
 export const campaign: {
   isLive: boolean;
@@ -108,58 +96,6 @@ export const campaign: {
       ? { target: "_blank", rel: "noopener noreferrer" }
       : {},
 };
-
-/**
- * Pricing helpers. Use these instead of computing prices in JSX.
- *
- *   const { sale, list, savings, formattedSale, formattedList } =
- *     getPreorderPricing();
- */
-export function getPreorderPricing() {
-  const list = productConfig.base.fallbackPriceUSD;
-  const sale = list * (1 - discountConfig.preorder.percentOff);
-  const savings = list - sale;
-  return {
-    list,
-    sale,
-    savings,
-    formattedList: formatUSD(list),
-    formattedSale: formatUSD(sale),
-    formattedSavings: formatUSD(savings),
-  };
-}
-
-/**
- * Pricing if the visitor also redeems the email-modal stacked discount.
- * Email % is multiplicative on top of the Kickstarter % (see the comment
- * on `discountConfig.email.percentOff`).
- */
-export function getStackedPreorderPricing() {
-  const { list, sale: campaignSale } = getPreorderPricing();
-  const stacked = campaignSale * (1 - discountConfig.email.percentOff);
-  const totalPercentOff = 1 - stacked / list;
-  return {
-    list,
-    campaignSale,
-    stacked,
-    savings: list - stacked,
-    totalPercentOff,
-    formattedList: formatUSD(list),
-    formattedCampaignSale: formatUSD(campaignSale),
-    formattedStacked: formatUSD(stacked),
-    formattedSavings: formatUSD(list - stacked),
-  };
-}
-
-export function formatUSD(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    // $47.50 not $47.5; $175 not $175.00
-    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
 
 export type SiteConfig = typeof siteConfig;
 export type ProductConfig = typeof productConfig;

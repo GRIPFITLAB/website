@@ -125,11 +125,11 @@ export function ScienceCarousel() {
                 {card.eyebrow}
               </p>
               <div className="flex items-baseline gap-2">
-                <span className="font-display text-[88px] font-medium leading-[0.95] tracking-[-0.025em] text-accent tabular-nums md:text-[120px]">
+                <span className="font-display text-[88px] font-medium leading-[0.95] tracking-[-0.025em] text-accent-bright tabular-nums md:text-[120px]">
                   {card.stat}
                 </span>
                 {card.unit ? (
-                  <span className="font-display text-2xl font-medium text-accent md:text-3xl">
+                  <span className="font-display text-2xl font-medium text-accent-bright md:text-3xl">
                     {card.unit}
                   </span>
                 ) : null}

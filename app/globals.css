@@ -39,8 +39,9 @@
 
 /* ============================================================
    Tailwind v4 theme — shadcn semantic tokens wired to GripFit.
-   Tokens defined under :root below; this block exposes the
-   project-specific design.md tokens to Tailwind utilities.
+   Raw values are defined under :root below AND mirrored in
+   lib/theme.ts for the few places that need a literal (meta
+   theme-color, HTML email). tests/theme.test.ts keeps them equal.
    ============================================================ */
 @theme inline {
   /* Fonts: literal names (the next/font @theme-inline gotcha) */
@@ -120,10 +121,8 @@
   --color-state-danger: var(--state-danger);
   --color-state-info: var(--state-info);
 
-  /* Radii — softer than the previous editorial scale to match the
-     Oura-leaning warm-cream direction. Buttons default to a full pill
-     via components/ui/button.tsx; cards use lg/xl.
-     Values per design.md §5. */
+  /* Radii — design.md §5. Buttons default to a full pill via
+     components/ui/button.tsx; cards use lg/xl. */
   --radius: 12px;
   --radius-sm: 6px;
   --radius-md: 12px;
@@ -132,42 +131,41 @@
   --radius-2xl: 32px;
   --radius-3xl: 40px;
 
-  /* GripFit shadows — exposed as Tailwind shadow-* utilities. */
-  --shadow-glow: 0 0 28px rgba(28, 26, 23, 0.12);
-  --shadow-glow-lg: 0 0 56px rgba(28, 26, 23, 0.16);
-  --shadow-card: 0 4px 24px rgba(28, 26, 23, 0.06);
-  --shadow-card-hover: 0 8px 36px rgba(28, 26, 23, 0.10);
+  /* Shadows — deep, cool drops on a navy canvas. */
+  --shadow-glow: 0 0 0 1px rgba(96, 165, 250, 0.35), 0 8px 32px rgba(59, 130, 246, 0.35);
+  --shadow-glow-lg: 0 0 80px rgba(59, 130, 246, 0.25);
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 12px 40px rgba(2, 6, 23, 0.45);
+  --shadow-card-hover: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 20px 60px rgba(2, 6, 23, 0.6);
 
-  /* Display type scale — utility names text-display-{size}.
-     WHOOP-thin: lighter weights + slightly relaxed tracking on big sizes. */
-  --text-display-3xl: clamp(72px, 11vw, 168px);
+  /* Display type scale — utility names text-display-{size}. */
+  --text-display-3xl: clamp(64px, 9.5vw, 148px);
   --text-display-3xl--line-height: 0.95;
-  --text-display-3xl--letter-spacing: -0.025em;
-  --text-display-3xl--font-weight: 400;
+  --text-display-3xl--letter-spacing: -0.035em;
+  --text-display-3xl--font-weight: 500;
 
-  --text-display-2xl: clamp(52px, 7.5vw, 108px);
+  --text-display-2xl: clamp(44px, 6.4vw, 92px);
   --text-display-2xl--line-height: 0.98;
-  --text-display-2xl--letter-spacing: -0.022em;
-  --text-display-2xl--font-weight: 400;
+  --text-display-2xl--letter-spacing: -0.032em;
+  --text-display-2xl--font-weight: 500;
 
-  --text-display-xl: clamp(40px, 5vw, 72px);
+  --text-display-xl: clamp(36px, 4.6vw, 64px);
   --text-display-xl--line-height: 1.02;
-  --text-display-xl--letter-spacing: -0.02em;
+  --text-display-xl--letter-spacing: -0.028em;
   --text-display-xl--font-weight: 500;
 
-  --text-display-lg: clamp(30px, 3.6vw, 48px);
+  --text-display-lg: clamp(28px, 3.3vw, 44px);
   --text-display-lg--line-height: 1.08;
-  --text-display-lg--letter-spacing: -0.018em;
+  --text-display-lg--letter-spacing: -0.022em;
   --text-display-lg--font-weight: 500;
 
-  --text-display-md: clamp(22px, 2.2vw, 32px);
+  --text-display-md: clamp(22px, 2.2vw, 30px);
   --text-display-md--line-height: 1.15;
-  --text-display-md--letter-spacing: -0.014em;
+  --text-display-md--letter-spacing: -0.016em;
   --text-display-md--font-weight: 500;
 
-  --text-display-sm: 20px;
-  --text-display-sm--line-height: 1.25;
-  --text-display-sm--letter-spacing: -0.01em;
+  --text-display-sm: 19px;
+  --text-display-sm--line-height: 1.3;
+  --text-display-sm--letter-spacing: -0.012em;
   --text-display-sm--font-weight: 500;
 
   --text-eyebrow: 11px;
@@ -177,85 +175,75 @@
 }
 
 /* ============================================================
-   GripFit warm-cream theme (the only theme — light-only since the
-   Apr 26, 2026 revamp; warm-cream + warm-ink palette adopted in
-   the Apr 29, 2026 revamp). Tokens map 1:1 to the table in
-   design.md §2.
+   GripFit navy theme (the only theme — dark-only since the
+   Oct 15, 2026 revamp to match the iOS app). Tokens map 1:1 to
+   the table in design.md §2 and to lib/theme.ts.
    ============================================================ */
 :root {
-  /* === GripFit raw tokens (read by design.md and components) === */
+  /* === GripFit raw tokens === */
 
-  /* Surfaces — warm cream canvas, slightly cooler ink for dark bands.
-     The cream is just-off-white with a touch of warm beige; pure white
-     reads sterile against this palette and breaks the editorial mood. */
-  --bg-canvas: #f3ece2;
-  --bg-elevated: #f8f3ea;
-  --bg-raised: #ede4d5;
-  --bg-deep: #e6dccb;
-  --bg-ink: #1c1a17;
-  --bg-ink-elevated: #28251f;
+  /* Surfaces — deep navy canvas, slightly lifted navy for cards. */
+  --bg-canvas: #0a1328;
+  --bg-elevated: #101c36;
+  --bg-raised: #16264a;
+  --bg-deep: #060c1a;
+  /* The inverted band is the app's saturated blue, not a light surface. */
+  --bg-ink: #1437a3;
+  --bg-ink-elevated: #1a46c4;
 
-  /* `--accent` is the brand "ink" — a deep warm charcoal used as the
-     primary CTA fill, link colour, and key accent. Solid; the soft tint
-     handles hover surfaces. DO NOT reassign this token to the soft tint
-     downstream; that breaks every text-accent / bg-accent / bg-primary
-     consumer (see git history Apr 26, 2026 PM). */
-  --accent: #1c1a17;
-  --accent-bright: #2a2620;
-  --accent-deep: #0f0d0a;
-  --accent-soft: rgba(28, 26, 23, 0.06);
-  --accent-glow: rgba(28, 26, 23, 0.12);
+  /* `--accent` is the brand blue — primary CTA fill, links, focus. */
+  --accent: #3b82f6;
+  --accent-bright: #60a5fa;
+  --accent-deep: #2563eb;
+  --accent-soft: rgba(59, 130, 246, 0.14);
+  --accent-glow: rgba(59, 130, 246, 0.35);
 
-  /* Promo accent — used ONLY for the discount banner / pre-order
-     savings badge / email-modal CTA. Warm terracotta sits inside the
-     cream palette; it pops against `--bg-canvas` without screaming. */
-  --promo: #b54a30;
-  --promo-bright: #c95a40;
-  --promo-deep: #8a3520;
-  --promo-soft: rgba(181, 74, 48, 0.08);
-  --promo-foreground: #ffffff;
+  /* Promo accent — ONLY for the Super Early Bird / discount UI. */
+  --promo: #34d399;
+  --promo-bright: #6ee7b7;
+  --promo-deep: #059669;
+  --promo-soft: rgba(52, 211, 153, 0.12);
+  --promo-foreground: #06201a;
 
-  /* Text — warm near-black on cream, cream on ink. */
-  --text-primary: #1c1a17;
-  --text-secondary: rgba(28, 26, 23, 0.65);
-  --text-tertiary: rgba(28, 26, 23, 0.45);
-  --text-disabled: rgba(28, 26, 23, 0.25);
-  --text-on-ink: #f3ece2;
-  --text-on-ink-secondary: rgba(243, 236, 226, 0.65);
-  --text-on-ink-tertiary: rgba(243, 236, 226, 0.45);
+  /* Text — cool white on navy; pure white on the blue band. */
+  --text-primary: #f5f8ff;
+  --text-secondary: rgba(245, 248, 255, 0.7);
+  --text-tertiary: rgba(245, 248, 255, 0.48);
+  --text-disabled: rgba(245, 248, 255, 0.28);
+  --text-on-ink: #ffffff;
+  --text-on-ink-secondary: rgba(255, 255, 255, 0.76);
+  --text-on-ink-tertiary: rgba(255, 255, 255, 0.56);
 
-  /* Borders — warm hairlines on cream, cream hairlines on ink. */
-  --border-hairline: rgba(28, 26, 23, 0.06);
-  --border-default: rgba(28, 26, 23, 0.12);
-  --border-strong: rgba(28, 26, 23, 0.2);
-  --border-on-ink: rgba(243, 236, 226, 0.14);
+  /* Borders — white hairlines at low alpha. */
+  --border-hairline: rgba(255, 255, 255, 0.08);
+  --border-default: rgba(255, 255, 255, 0.14);
+  --border-strong: rgba(255, 255, 255, 0.26);
+  --border-on-ink: rgba(255, 255, 255, 0.22);
 
-  --state-success: #5a7a3e;
-  --state-warning: #b88718;
-  --state-danger: #b54a30;
-  --state-info: #2f5e7a;
+  --state-success: #34d399;
+  --state-warning: #fbbf24;
+  --state-danger: #f87171;
+  --state-info: #60a5fa;
 
   /* === shadcn semantic tokens — point everything at GripFit raw tokens === */
   --background: var(--bg-canvas);
   --foreground: var(--text-primary);
-  --card: var(--bg-canvas);
+  --card: var(--bg-elevated);
   --card-foreground: var(--text-primary);
   --popover: var(--bg-elevated);
   --popover-foreground: var(--text-primary);
 
-  /* `primary` is the buy-CTA fill. Cream text on warm ink. */
+  /* `primary` is the CTA fill. White text on brand blue. */
   --primary: var(--accent);
-  --primary-foreground: var(--text-on-ink);
+  --primary-foreground: #ffffff;
 
-  --secondary: var(--bg-elevated);
+  --secondary: var(--bg-raised);
   --secondary-foreground: var(--text-primary);
 
-  --muted: var(--bg-elevated);
+  --muted: var(--bg-raised);
   --muted-foreground: var(--text-secondary);
 
-  /* When something has bg-accent, foreground should still be cream so
-     it reads as "filled ink button" — see Button default variant. */
-  --accent-foreground: var(--text-on-ink);
+  --accent-foreground: #ffffff;
 
   --destructive: var(--state-danger);
   --success: var(--state-success);
@@ -263,15 +251,8 @@
   --info: var(--state-info);
 
   --border: var(--border-default);
-  /*
-   * `--input` is the input/textarea border color (shadcn convention).
-   * 4% alpha was invisible on every cream/tan surface in the new theme;
-   * 22% gives a crisp, paper-like line on `--bg-canvas`, the contact-page
-   * `--bg-deep` card, and the modal `--bg-elevated` surface alike. The
-   * disabled-state background (`bg-input/50`) reads as a subtle warm gray.
-   */
-  --input: rgba(28, 26, 23, 0.22);
-  --ring: rgba(28, 26, 23, 0.45);
+  --input: rgba(255, 255, 255, 0.16);
+  --ring: rgba(96, 165, 250, 0.6);
 
   /* Charts (semantic state palette). */
   --chart-1: var(--accent);
@@ -284,11 +265,11 @@
   --sidebar: var(--bg-elevated);
   --sidebar-foreground: var(--text-primary);
   --sidebar-primary: var(--accent);
-  --sidebar-primary-foreground: var(--text-on-ink);
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: var(--accent-soft);
-  --sidebar-accent-foreground: var(--accent-deep);
+  --sidebar-accent-foreground: var(--accent-bright);
   --sidebar-border: var(--border-default);
-  --sidebar-ring: rgba(28, 26, 23, 0.45);
+  --sidebar-ring: var(--ring);
 }
 
 @layer base {
@@ -297,17 +278,21 @@
   }
   html {
     @apply bg-background text-foreground font-sans antialiased;
-    color-scheme: light;
+    color-scheme: dark;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* Lock the page bg to the canvas so overscroll on iOS / macOS
        doesn't reveal a different shell color. */
     background-color: var(--bg-canvas);
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
   body {
     @apply min-h-full;
-    /* Slight tabular numbers everywhere — performance product, numbers
-       are the hero content. */
     font-feature-settings: "ss01", "cv11", "tnum" 0;
   }
   h1,
@@ -317,20 +302,15 @@
   h5 {
     @apply font-display;
     font-feature-settings: "ss01", "cv11";
+    text-wrap: balance;
   }
-  /* Selection — warm ink tint. */
   ::selection {
     background-color: var(--accent-soft);
-    color: var(--accent-deep);
+    color: var(--accent-bright);
   }
 
-  /* Pointer-cursor on every interactive control.
-     Tailwind v4 dropped the `cursor: pointer` default on <button> to
-     match modern macOS-style UI conventions; we want it back so the
-     whole site feels clickable. Disabled controls revert to
-     `not-allowed`. Anything with `pointer-events: none` (the shadcn
-     button's disabled state, decorative wrappers, etc.) is unaffected
-     because the browser falls through to the underlying cursor. */
+  /* Pointer-cursor on every interactive control (Tailwind v4 dropped the
+     default on <button>). Disabled controls revert to not-allowed. */
   button,
   [role="button"],
   a[href],
@@ -340,8 +320,6 @@
   select,
   [role="tab"],
   [role="menuitem"],
-  [role="menuitemcheckbox"],
-  [role="menuitemradio"],
   [role="option"],
   [role="switch"],
   [role="checkbox"],
@@ -351,8 +329,7 @@
   input[type="reset"],
   input[type="checkbox"],
   input[type="radio"],
-  input[type="file"],
-  input[type="color"] {
+  input[type="file"] {
     cursor: pointer;
   }
 
@@ -366,9 +343,8 @@
 }
 
 /* ============================================================
-   GripFit utilities — referenced from design.md.
-   Keep the surface area small; if you find yourself reaching
-   for something that's not here, prefer extending design.md.
+   GripFit utilities — referenced from design.md §6.
+   Keep the surface area small.
    ============================================================ */
 @layer utilities {
   /* Eyebrow / kicker label above section headlines. */
@@ -380,25 +356,22 @@
     font-weight: 600;
   }
 
-  /* Subtle SVG noise overlay — used sparingly on inverted (dark) bands.
-     Rendered at low opacity. */
+  /* Subtle SVG noise overlay — very low opacity, used on big bands. */
   .bg-noise {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.025 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
     background-size: 200px 200px;
   }
 
-  /* Soft warm wash — used in hero / feature backgrounds at low opacity.
-     Replaces the previous `bg-purple-wash` utility. */
-  .bg-warm-wash {
+  /* Soft blue wash — hero / section backgrounds. One per section max. */
+  .bg-accent-wash {
     background-image: radial-gradient(
-      ellipse at top,
-      rgba(28, 26, 23, 0.05) 0%,
-      transparent 60%
+      60% 50% at 50% 0%,
+      rgba(59, 130, 246, 0.22) 0%,
+      transparent 70%
     );
   }
 
-  /* Faint terracotta wash — only used on the discount banner / promo
-     surfaces, never on a primary content section. */
+  /* Faint promo wash — discount surfaces only. */
   .bg-promo-wash {
     background-image: radial-gradient(
       ellipse at top,
@@ -407,10 +380,24 @@
     );
   }
 
-  /* Inverted dark band — warm charcoal section. Used on the comparison
-     section and the dark CTA strip; cream text reads on top. */
+  /* Inverted band — the app's blue gradient. Used on the comparison
+     section only; white text reads on top. */
   .bg-inverted {
     background-color: var(--bg-ink);
+    background-image: linear-gradient(
+      160deg,
+      #0f2d8a 0%,
+      var(--bg-ink) 45%,
+      #2158d8 100%
+    );
     color: var(--text-on-ink);
+  }
+
+  /* Hairline grid — faint 1px lines, for the specs / stats surfaces. */
+  .bg-hairline-grid {
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 48px 48px;
   }
 }

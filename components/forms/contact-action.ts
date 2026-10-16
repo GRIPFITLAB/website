@@ -1,34 +1,31 @@
 "use server";
 
+import { after } from "next/server";
+
 import { sendTransactionalEmail } from "@/lib/brevo";
 import { siteConfig } from "@/lib/config";
 import { env, isContactEmailConfigured } from "@/lib/env";
+import { getVisitorContext } from "@/lib/experiment/server";
+import { recordContact } from "@/lib/experiment/store";
 import { checkRateLimit, clientKey } from "@/lib/rate-limit";
+import { emailTheme } from "@/lib/theme";
 
-import {
-  contactSchema,
-  type ContactFormState,
-} from "./contact-schema";
+import { contactSchema, type ContactFormState } from "./contact-schema";
 
 /**
- * Contact form → Brevo transactional email (PRD R-013).
+ * Contact form → (1) Brevo transactional email to `CONTACT_EMAIL_TO`, and
+ * (2) a Firestore `{prefix}contacts` document so nothing is lost if the
+ * inbox is misconfigured. Firestore is written after the response and
+ * degrades to a log line when `FIREBASE_SERVICE_ACCOUNT_JSON` is unset.
  *
- * Schema lives here (server side) so submissions can't bypass validation
- * by calling the Action directly. The client form re-uses the same shape
- * for instant feedback.
- *
- * `replyTo` is set to the submitter so hitting reply in the support
- * inbox answers them directly. The *sender* stays the verified Brevo
- * address — sending as the visitor's domain would fail SPF/DKIM.
- *
- * When Brevo isn't configured the action still validates, logs, and
- * reports success so the form stays usable pre-launch (PRD R-014).
+ * Schema lives in `./contact-schema.ts` so the client form re-uses it.
+ * `replyTo` is the submitter so hitting reply answers them directly; the
+ * *sender* stays the verified Brevo address (SPF/DKIM).
  */
 const SUCCESS_MESSAGE =
   "Thanks — we received your message and will reply within 1–2 business days.";
 
-const GENERIC_ERROR =
-  "We couldn't send your message just now. Please try again in a moment.";
+const GENERIC_ERROR = "We couldn't send your message just now. Please try again in a moment.";
 
 export async function submitContact(
   _prev: ContactFormState,
@@ -42,14 +39,10 @@ export async function submitContact(
   });
 
   if (!parsed.success) {
-    const fieldErrors: Partial<Record<"name" | "email" | "message", string>> =
-      {};
+    const fieldErrors: Partial<Record<"name" | "email" | "message", string>> = {};
     for (const issue of parsed.error.issues) {
       const key = issue.path[0];
-      if (
-        (key === "name" || key === "email" || key === "message") &&
-        !fieldErrors[key]
-      ) {
+      if ((key === "name" || key === "email" || key === "message") && !fieldErrors[key]) {
         fieldErrors[key] = issue.message;
       }
     }
@@ -69,21 +62,22 @@ export async function submitContact(
   if (!limit.ok) {
     return {
       status: "error",
-      message:
-        "You've sent a few messages already. Give it a few minutes before sending another.",
+      message: "You've sent a few messages already. Give it a few minutes before sending another.",
     };
   }
 
+  // Persist regardless of email delivery.
+  const { assignment } = await getVisitorContext();
+  after(() =>
+    recordContact({ name, email, message, visitorId: assignment?.visitorId ?? null }),
+  );
+
   if (!isContactEmailConfigured || !env.CONTACT_EMAIL_TO) {
     console.warn(
-      "[contact] Brevo/CONTACT_EMAIL_TO not configured — submission accepted but no email sent.",
+      "[contact] Brevo/CONTACT_EMAIL_TO not configured — submission stored, no email sent.",
       { name, email },
     );
-    return {
-      status: "success",
-      message:
-        "Thanks — we received your message. (Email delivery isn't wired up yet, so we'll follow up once it's live.)",
-    };
+    return { status: "success", message: SUCCESS_MESSAGE };
   }
 
   try {
@@ -91,11 +85,7 @@ export async function submitContact(
       to: [{ email: env.CONTACT_EMAIL_TO }],
       replyTo: { email, name },
       subject: `${siteConfig.name} contact form — ${name}`,
-      textContent: [
-        `From: ${name} <${email}>`,
-        "",
-        message,
-      ].join("\n"),
+      textContent: [`From: ${name} <${email}>`, "", message].join("\n"),
       htmlContent: contactEmailHtml({ name, email, message }),
     });
 
@@ -124,14 +114,15 @@ function contactEmailHtml({
   email: string;
   message: string;
 }): string {
+  const t = emailTheme;
   return `<!doctype html>
 <html lang="en">
-<body style="margin:0;padding:24px;background:#f3ece2;font-family:Inter,Helvetica,Arial,sans-serif;color:#1c1a17;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#faf6f0;border-radius:12px;padding:28px;">
+<body style="margin:0;padding:24px;background:${t.pageBg};font-family:Inter,Helvetica,Arial,sans-serif;color:${t.text};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:${t.cardBg};border-radius:12px;padding:28px;">
     <tr><td>
-      <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8a8378;">Contact form</p>
+      <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:${t.textFaint};">Contact form</p>
       <p style="margin:0 0 20px;font-size:16px;font-weight:500;">${escapeHtml(name)} &lt;${escapeHtml(email)}&gt;</p>
-      <p style="margin:0;font-size:15px;line-height:1.65;white-space:pre-wrap;color:#4a453d;">${escapeHtml(message)}</p>
+      <p style="margin:0;font-size:15px;line-height:1.65;white-space:pre-wrap;color:${t.textMuted};">${escapeHtml(message)}</p>
     </td></tr>
   </table>
 </body>

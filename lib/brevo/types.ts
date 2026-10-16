@@ -15,6 +15,14 @@ export interface GripFitContactAttributes {
   SIGNUP_SOURCE?: string;
   /** ISO-8601 timestamp of first capture. */
   SIGNUP_TS?: string;
+  /** Price-experiment fields (DECISIONS.md §17). Firestore is the system of
+   *  record for these; they're mirrored here so Brevo segments can be
+   *  built by price. */
+  VISITOR_ID?: string;
+  EXPERIMENT_ID?: string;
+  /** The Kickstarter price this visitor was shown, whole USD. */
+  PRICE_ASSIGNED?: number;
+  UTM_CAMPAIGN?: string;
 }
 
 export interface BrevoContact {

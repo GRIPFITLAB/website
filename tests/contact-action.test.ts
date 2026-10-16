@@ -8,6 +8,10 @@ const brevo = vi.hoisted(() => ({
   sendTransactionalEmail: vi.fn(),
 }));
 
+const store = vi.hoisted(() => ({
+  recordContact: vi.fn(),
+}));
+
 const envState = vi.hoisted(() => ({
   isContactEmailConfigured: true,
   contactEmailTo: "support@example.com" as string | undefined,
@@ -18,18 +22,29 @@ const envState = vi.hoisted(() => ({
 // limiter is reset per test; `tests/rate-limit.test.ts` covers the limiter.
 const { __resetRateLimits } = await import("@/lib/rate-limit");
 
+vi.mock("server-only", () => ({}));
+
 vi.mock("next/headers", () => ({
   headers: async () => new Map([["x-forwarded-for", "203.0.113.10"]]),
+  cookies: async () => ({ get: () => undefined }),
+}));
+
+vi.mock("next/server", () => ({
+  after: (cb: () => unknown) => {
+    void cb();
+  },
 }));
 
 vi.mock("@/lib/brevo", () => brevo);
+vi.mock("@/lib/experiment/store", () => store);
 
 vi.mock("@/lib/env", () => ({
   get isContactEmailConfigured() {
     return envState.isContactEmailConfigured;
   },
+  isFirebaseConfigured: false,
   get env() {
-    return { CONTACT_EMAIL_TO: envState.contactEmailTo };
+    return { CONTACT_EMAIL_TO: envState.contactEmailTo, FIRESTORE_COLLECTION_PREFIX: "web_" };
   },
 }));
 
@@ -47,14 +62,15 @@ function form(fields: Record<string, string>): FormData {
 const valid = {
   name: "Dana Reyes",
   email: "dana@example.com",
-  message: "Do you ship to Canada during the pre-order?",
+  message: "Do you ship to Canada during the Kickstarter?",
 };
 
 beforeEach(() => {
   __resetRateLimits();
   envState.isContactEmailConfigured = true;
   envState.contactEmailTo = "support@example.com";
-  brevo.sendTransactionalEmail.mockResolvedValue(undefined);
+  brevo.sendTransactionalEmail.mockReset().mockResolvedValue(undefined);
+  store.recordContact.mockReset().mockResolvedValue(undefined);
   vi.spyOn(console, "warn").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
@@ -108,6 +124,14 @@ describe("delivery", () => {
     expect(send.textContent).toContain(valid.message);
   });
 
+  it("persists the message to the contacts store", async () => {
+    await submitContact(initialContactState, form(valid));
+
+    expect(store.recordContact).toHaveBeenCalledWith(
+      expect.objectContaining({ name: valid.name, email: valid.email, message: valid.message }),
+    );
+  });
+
   it("escapes submitted HTML so a message can't inject markup", async () => {
     await submitContact(
       initialContactState,
@@ -133,6 +157,8 @@ describe("degraded modes", () => {
 
     expect(result.status).toBe("success");
     expect(brevo.sendTransactionalEmail).not.toHaveBeenCalled();
+    // Still stored, so nothing is lost before the inbox is wired up.
+    expect(store.recordContact).toHaveBeenCalledTimes(1);
   });
 
   it("reports a friendly error and leaks nothing when Brevo fails", async () => {

@@ -1,12 +1,36 @@
 # GripFit Web — Status
 
-**Phase:** v1 functional — email capture verified live; pending consent/privacy copy,
-redemption decision, final content, campaign URL
-**Updated:** 2026-09-30
+**Phase:** launch build complete — navy theme, final copy, price experiment,
+Meta tracking, Firestore lead DB. Pending: env vars, hi-res app screens,
+real science citations, campaign URL.
+**Updated:** 2026-10-15
 
 ---
 
-## Now
+## Now — 2026-10-15 launch revamp
+
+Shipped in one pass (see `CHANGELOG.md` → "Oct 15, 2026"): dark navy + blue
+theme matching the iOS app; final copy on every page; `/product` removed and
+specs folded into the home page; three named price tiers (Super Early Bird /
+Kickstarter / Retail); the **pre-launch price experiment** (random
+per-visitor Kickstarter price in a signed first-party cookie, ad attribution
+capture, Firestore lead DB, Meta Pixel + Conversions API with dedup and
+hashed-only identity); cookie notice and privacy/terms disclosure.
+Gates: `lint`, `typecheck`, 156 tests, `build` all green.
+
+**Before running ads, set in Vercel:** `EXPERIMENT_SECRET`,
+`FIREBASE_SERVICE_ACCOUNT_JSON`, `NEXT_PUBLIC_META_PIXEL_ID`,
+`META_CAPI_ACCESS_TOKEN` (ADMIN §4), and put the URL-parameter string from
+DECISIONS §17 on every ad. Then `npm run brevo:setup` once to create the four
+new contact attributes.
+
+**Still external:**
+
+1. **`/science` citations are not real papers.** Replace with verifiable
+   studies + DOIs (suggestions in the Oct 15 hand-off) — blocks launch.
+2. Confirm the experiment range `$75–$140` (DECISIONS §16 Q17).
+
+## Previously — 2026-09-30
 
 Email capture is verified live and the launch-blocking compliance work is
 done in code. Gates: `lint`, `typecheck`, 95 tests, `build`, and a new

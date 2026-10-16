@@ -1,72 +1,68 @@
 import type { Metadata } from "next";
 
+import { Container } from "@/components/ui/section";
+import { Display, Eyebrow, Lead } from "@/components/ui/typography";
 import { externalLinks } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: "Setup",
-  description: "How to pair your GripFit device with the iOS app.",
+  description: "How to charge, pair, and take your first measurement with GripFit.",
 };
 
-const steps = [
+const steps: ReadonlyArray<{ title: string; body: string }> = [
   {
-    n: 1,
-    title: "Charge the device",
-    body: "Plug the included USB-C cable into the side of your GripFit. The status LED pulses amber while charging and turns solid when full. A full charge takes about 45 minutes and lasts ~6 hours of active use.",
+    title: "Charge it",
+    body: "Plug a USB-C cable into your GripFit. A full charge takes about 90 minutes and lasts ~30 days under normal use (passive sleep mode).",
   },
   {
-    n: 2,
-    title: "Install the GripFit app",
-    body: "Download GripFit from the App Store on iOS 16 or later. Open the app and tap Get started. The app will request Bluetooth permissions — tap Allow.",
+    title: "Get the app",
+    body: "Download GripFit from the App Store on iOS 17 or later. Open the app and tap 'sign up'. The app will request Bluetooth permissions — tap Allow.",
   },
   {
-    n: 3,
-    title: "Power on and pair",
-    body: "Press and hold the button on the device until the LED begins pulsing slowly. In the app, tap Add device and select GripFit from the list. Pairing typically completes in under three seconds.",
+    title: "Pair it",
+    body: "In the app, tap 'Scan for Devices' and select 'GripFit' from the list. You can rename it later.",
   },
   {
-    n: 4,
-    title: "Take your first measurement",
-    body: "Hold the device in either hand with a comfortable, full-palm grip. Squeeze with maximum force for 5 to 10 seconds. The force curve appears in real time. Repeat with the other hand to log a baseline.",
+    title: "Squeeze",
+    body: "Hold the device in either hand with a comfortable, full-palm grip. Select left or right hand toggle, and tap 'Start Test'. Squeeze with maximum force for 5 to 10 seconds. The force reading appears in real time. Repeat with the other hand to log a baseline.",
   },
   {
-    n: 5,
     title: "Build your baseline",
-    body: "Take a single bilateral measurement at the same time each day for at least seven days. The app needs that window to compute your individualized readiness score and flag meaningful changes.",
+    body: "Take a measurement with each hand at the same time each day for at least 5 days. Your readiness score learns your baseline from there.",
   },
 ];
 
 export default function SetupPage() {
   return (
-    <article className="mx-auto w-full max-w-4xl px-5 py-20 md:px-10 md:py-28">
-      <p className="text-eyebrow mb-6 text-text-tertiary">Setup guide</p>
-      <h1 className="font-display text-display-xl text-text-primary">
+    <Container className="max-w-4xl py-20 md:py-28">
+      <Eyebrow className="mb-6">Setup guide</Eyebrow>
+      <Display as="h1" size="xl">
         Up and running in five minutes.
-      </h1>
-      <p className="mt-6 max-w-xl text-[17px] leading-[1.7] text-text-secondary">
-        These steps walk through unboxing, pairing, and your first
-        measurement. Stuck anywhere?{" "}
+      </Display>
+      <Lead className="mt-6">
+        These steps walk through unboxing, pairing, and your first measurement. Need help?{" "}
         <a
           href={`mailto:${externalLinks.supportEmail}`}
-          className="text-accent underline-offset-4 hover:underline"
+          className="text-accent-bright underline-offset-4 hover:underline"
         >
           {externalLinks.supportEmail}
         </a>
         .
-      </p>
+      </Lead>
 
       <ol className="mt-16 flex flex-col">
-        {steps.map((step) => (
+        {steps.map((step, i) => (
           <li
-            key={step.n}
+            key={step.title}
             className="grid gap-6 border-t border-border-hairline py-10 md:grid-cols-12"
           >
-            <span className="font-display text-[56px] font-medium leading-none tracking-[-0.025em] text-accent tabular-nums md:col-span-2 md:text-[72px]">
-              {String(step.n).padStart(2, "0")}
+            <span className="font-display text-[56px] font-medium leading-none tracking-[-0.025em] text-accent-bright tabular-nums md:col-span-2 md:text-[72px]">
+              {String(i + 1).padStart(2, "0")}
             </span>
             <div className="md:col-span-10">
-              <h2 className="font-display text-display-md text-text-primary">
+              <Display as="h2" size="md">
                 {step.title}
-              </h2>
+              </Display>
               <p className="mt-3 max-w-2xl text-[16px] leading-[1.75] text-text-secondary">
                 {step.body}
               </p>
@@ -74,11 +70,6 @@ export default function SetupPage() {
           </li>
         ))}
       </ol>
-
-      <p className="mt-12 border-t border-border-hairline pt-6 text-xs leading-[1.6] text-text-tertiary">
-        Setup copy is placeholder — final wording will be aligned with the
-        in-app onboarding once the iOS app is locked.
-      </p>
-    </article>
+    </Container>
   );
 }

@@ -68,46 +68,53 @@ Authoritative files:
 
 Implementation rules:
 
-- **Light-only warm-cream + warm-ink direction.** The default surface is
-  `--bg-canvas` (`#F3ECE2`, warm cream). The brand "accent" is the warm
-  ink `--accent` (`#1C1A17`) used as the primary CTA fill, link colour,
-  focus ring, and logo bar. A separate **terracotta** `--promo`
-  (`#B54A30`) is reserved exclusively for the pre-order discount UI
-  (site-wide banner, strike-through pricing badge, email-modal CTA).
-  (Locked Apr 29, 2026; supersedes the royal-purple direction below.)
-- **Light-only.** `<html>` carries no `dark` class; tokens live under
-  `:root`. There is no dark-mode toggle. Inverted dark sections use the
-  `bg-inverted` (`--bg-ink`) utility — used at most twice per page (the
-  comparison band and the final CTA, non-adjacent).
-- **No pure white.** Cards live on `--bg-elevated` / `--bg-raised` cream
-  surfaces; the canvas itself is `--bg-canvas`.
+- **Dark-only navy + electric-blue direction, matching the iOS app.**
+  The canvas is `--bg-canvas` (`#0a1328`), elevated surfaces step up
+  through `#101c36` / `#16264a`, and `--bg-deep` (`#060c1a`) sits below.
+  The brand accent is the app's blue `--accent` (`#3b82f6`, with
+  `--accent-bright` `#60a5fa` for links/text on dark) used for the
+  primary CTA, links, focus rings, and the "G" mark. A separate
+  **mint-green** `--promo` (`#34d399`) is reserved exclusively for the
+  Super Early Bird / discount UI (banner, SEB tier, email-modal CTA).
+  (Locked Oct 15, 2026; supersedes the warm-cream direction below.)
+- **Dark-only.** `color-scheme: dark`; tokens live under `:root`; no
+  toggle and no light sections. The saturated-blue "inverted" band
+  (`bg-inverted`, `--bg-ink` `#1437a3`) is used at most once per page —
+  the comparison section.
+- **Raw colour values live in exactly two files** — `app/globals.css`
+  (for Tailwind) and `lib/theme.ts` (for emails, `theme-color`, SVG).
+  `tests/theme.test.ts` asserts they match. Components never hardcode
+  a hex.
+- **Layout + type primitives live in `components/ui/`** — `section.tsx`
+  (`Container`, `Section`, `SectionHeader`), `typography.tsx`
+  (`Eyebrow`, `Display`, `Lead`, `Meta`), `surface.tsx`. Marketing
+  components compose these rather than restating class strings, so a
+  spacing or type change is one edit.
 - **Pill buttons by default.** `components/ui/button.tsx` uses
-  `rounded-full` in its base CVA. Cards still use `rounded-lg` /
-  `rounded-xl`.
-- **Display font: Inter Tight** at light weights (400 for the largest
-  display sizes, 500 for headings). **Body font: Inter.** No third
-  font; Geist was deleted in the Apr 26, 2026 revamp.
-- **Zero photography in v1.** Section imagery is abstract warm gradient
-  panels + SVG glyphs (`design.md` §9). The home page hero ships a
-  labelled product-image placeholder tile; the `AppShowcase` swipe
-  gallery ships pure-CSS phone mockups; the PDP ships a "Product
-  photography TBD" tile. Each gets swapped for real assets when the
-  design team supplies them.
+  `rounded-full` in its base CVA; `lg` is the uppercase CTA size.
+  Cards use `rounded-2xl` / `rounded-3xl`.
+- **Display font: Inter Tight** at weight 500. **Body font: Inter.** No
+  third font.
+- **Real app screens, no fabricated UI.** `public/app/screen-*.png` are
+  full-resolution iPhone renders; `Hero` and `AppShowcase` render them via
+  `next/image`. Originals live in `assets/source/` (gitignored) — regenerate
+  the web-sized PNGs from there. No stock photography; no CSS phone mockups.
 - **No social-proof / athlete grid on the home page** (§6). The
   analogous visual slot is the comparison band (GripFit vs a standard
   dynamometer).
-- Final logo and tagline are **TBD** — see §16. The current wordmark is
-  inline SVG inside `components/layout/Logo.tsx`; replace when the
-  final mark lands.
+- **Logo** = the iOS app icon's "G" (`public/brand/gripfit-g.png`,
+  background keyed out) beside an Inter Tight "GripFit" wordmark
+  (`components/layout/Logo.tsx`). `app/icon.png` / `app/apple-icon.png`
+  are derived from the same icon. Tagline is locked:
+  "A readiness signal based on effort, not HRV."
 
-> **Revision history.** The Apr 29, 2026 revamp replaced the prior
-> royal-purple direction (locked Apr 26, 2026 PM) with the warm-cream +
-> warm-ink palette and added the `--promo` terracotta token for the
-> discount UI. Earlier still: the placeholder violet "Ethereal Tech"
-> identity that came with the original `DESIGN_SYSTEM/` folder, then a
-> dark-only / amber-accent (`#FF6A00`) direction (locked Apr 26, 2026
-> AM, reversed Apr 26, 2026 PM), then the royal-purple direction
-> (`#5B21B6`, locked Apr 26, 2026 PM, reversed Apr 29, 2026).
+> **Revision history.** The Oct 15, 2026 launch revamp replaced the
+> warm-cream + warm-ink palette (locked Apr 29, 2026) with the navy +
+> blue direction above, to match the shipped iOS app. Earlier: the
+> royal-purple direction (`#5B21B6`, Apr 26 PM → Apr 29), a dark-only /
+> amber-accent (`#FF6A00`) direction (Apr 26 AM → Apr 26 PM), and the
+> placeholder violet "Ethereal Tech" identity from the original
+> `DESIGN_SYSTEM/` folder.
 
 ---
 
@@ -133,15 +140,20 @@ Phase 1 product list:
     (resolved Apr 29, 2026 — supersedes the prior Q3 "Shopify pre-order"
     decision). All "Pre-order" / "Back the campaign" CTAs hand off to
     `externalLinks.crowdfundingUrl` (defined in `lib/config.ts`).
-  - MSRP: **$149**. Kickstarter pre-order discount: **25% off** (sale
-    price $111.75) plus **free US shipping**. Values live in
-    `lib/admin.ts`; `lib/config.ts → discountConfig.preorder` types them,
-    so updating a percent or the free-shipping toggle touches one file.
-  - First-visit email-capture modal offers an **extra 15% off**
-    (`discountConfig.email`) that **stacks on top of the 25% Kickstarter
-    discount** — combined effective discount on MSRP is
-    1 − 0.75 × 0.85 = 36.25% (stacked sale price $94.99, computed by
-    `getStackedPreorderPricing()`).
+  - **Three price tiers, by name** (resolved Oct 15, 2026):
+    **Retail** $149 (`productSettings.retailPriceUSD`), **Kickstarter**
+    — default $112 (`kickstarterPriceUSD`), or a per-visitor price from
+    the §17 experiment — plus **free US shipping**, and **Super Early
+    Bird** = Kickstarter × (1 − 15%), rounded to whole dollars, unlocked
+    by email signup. Super Early Bird is tied to the signup, never to a
+    headcount ("first N backers" copy is disallowed). All tiers come out
+    of `lib/pricing.ts → computePricing()`; percent badges are computed,
+    never written as literals. The old `getPreorderPricing` /
+    `getStackedPreorderPricing` helpers are gone.
+  - The email flow (`discountConfig.email`) has three surfaces — modal,
+    footer, `/kickstarter` — and one Server Action. Modal and
+    `/kickstarter` are header + input only; the footer adds the single
+    consent line.
   - Each captured email receives a **unique code** (`GF-XXXXXXXX`,
     40 bits of Crockford base32 from `crypto.getRandomValues`), stored as
     a `DISCOUNT_CODE` attribute on the Brevo contact. One code per
@@ -174,8 +186,8 @@ parked). App subscriptions stay in StoreKit 2.
 
 | Route                | Purpose                                                                  | Built in |
 | -------------------- | ------------------------------------------------------------------------ | -------- |
-| `/`                  | Home — hero, features, how-it-works, CTA. **No social-proof section.**   | Step 5   |
-| `/product`           | PDP — photos, specs, add-to-cart                                         | Step 6   |
+| `/`                  | Home — Hero → Specs → Comparison → AppShowcase → WhyGrip → ClosingCta. **No social-proof section.** | Step 5 / Oct 2026 |
+| ~~`/product`~~       | **Removed Oct 15, 2026.** Specs folded into the home page; `next.config.ts` 308-redirects `/product` → `/`. | — |
 | `/science`           | Why grip strength predicts athletic readiness                            | Step 8   |
 | `/kickstarter`       | Campaign holding page — "in preparation" + launch-notice email capture   | Sep 2026 |
 | `/contact`           | Brevo-backed contact form (Server Action submit)                        | Step 9   |
@@ -548,13 +560,12 @@ the launch-day announcement do.
 
 Depends on Q10 (campaign URL).
 
-**Q15 — Final copy and imagery. ⏳ OPEN (owner: design/AS).** The site
-is structurally complete but still ships interim copy in places:
-`/setup` steps, `/science` citations (listed without DOI links until
-they're confirmed), and the home-page section copy. Imagery is still
-abstract per §3 — hero product tile, PDP photography slot, and the
-`AppShowcase` phone mockups all await real renders and screenshots
-(Q9, Q11). None of this blocks deployment; all of it blocks *launch*.
+**Q15 — Final copy and imagery. ⚠️ MOSTLY RESOLVED (Oct 15, 2026).**
+Home, `/setup`, `/kickstarter`, `/contact`, footer, modal, and legal
+copy are final. Still open: (a) `/science` — the citations currently on
+the page are **not verifiable** and must be replaced with real papers
++ DOIs before launch (owner: AS). Imagery is done — full-resolution
+iPhone renders landed Oct 15 PM.
 
 **Q16 — Support mailbox. ⚠️ INTERIM.** `links.supportEmail` is
 `avdevdesk@gmail.com`, a real monitored inbox, so the `mailto:` links in
@@ -564,4 +575,50 @@ once the domain's mail is stood up — a one-line change in `lib/admin.ts`.
 Separately, `CONTACT_EMAIL_TO` (where the contact form delivers) and
 `BREVO_SENDER_EMAIL` (a Brevo-verified sender) must be set before
 launch or no mail is sent at all.
+
+**Q17 — Price-experiment range. ⚠️ DECIDED, CONFIRM.** The brief gave
+"e.g. 75–150" as an example range. Retail is $149, so a $150
+Kickstarter price would be *above* retail; the range is set to
+**$75–$140** in `lib/admin.ts → priceExperiment`. Widen or narrow it
+there; `tests/copy.test.ts` enforces `maxUSD < retailPriceUSD`.
+
+---
+
+## 17. Pre-launch Price Experiment (Meta ads)
+
+**Goal.** Estimate a demand curve for the Kickstarter price before the
+campaign opens, using Meta ad traffic. Each visitor sees one randomly
+assigned Kickstarter price; the lead database records who signed up at
+which price. Conversion rate at price *P* = leads at *P* ÷ visitors
+at *P*. (Locked Oct 15, 2026.)
+
+**Source of truth is the site, not Meta.** Our visitor id, our price
+assignment, and our lead DB decide everything. Meta receives events for
+optimisation and reporting only; we never rely on Meta to assign prices
+or to identify people.
+
+| Piece | Decision |
+| --- | --- |
+| Assignment | `proxy.ts` (Next 16's middleware) runs on every page request. A new visitor gets `visitorId = randomUUID()` and an integer price drawn uniformly from `priceExperiment.minUSD..maxUSD` (`lib/experiment/assignment.ts`, rejection-sampled `crypto.getRandomValues`). |
+| Persistence | First-party cookie **`gf_exp`** = `visitorId.experimentId.price.hmac` — HMAC-SHA256 signed with `EXPERIMENT_SECRET`, httpOnly, SameSite=Lax, 180 days. A tampered, stale-experiment, or out-of-range value is discarded and reassigned, so a visitor cannot pick their price. |
+| First render | The proxy forwards `x-gf-exp` / `x-gf-attr` / `x-gf-new` request headers so the very first server render already knows the price (no flash of default pricing). `lib/experiment/server.ts → getVisitorContext()` reads headers, falls back to cookies for Server Action POSTs. |
+| Exposure | `components/experiment/VisitorProvider.tsx` (in `app/layout.tsx`) records a `visitors/{visitorId}` doc via `after()` on the request that minted the assignment. Pages are therefore dynamic (ƒ) — accepted. |
+| Attribution | First-touch only. `utm_*`, `campaign_id`, `adset_id`, `ad_id`, `placement`, `fbclid`, landing path, external referrer host → cookie **`gf_attr`** (base64url JSON, 1 year). Ads must use URL parameters — Ads Manager "URL parameters" field: `utm_source=facebook&utm_medium=paid&utm_campaign={{campaign.name}}&campaign_id={{campaign.id}}&adset_id={{adset.id}}&ad_id={{ad.id}}&placement={{placement}}`. |
+| Price in UI | `PricingProvider` (client context) seeded from the server context; every `PricingDisplay`, banner, teaser, and modal reads `usePricing()`. `lib/pricing.ts` derives Super Early Bird and badges. |
+| Lead DB | **Cloud Firestore** (same Firebase project as the iOS app), via `firebase-admin` in `lib/experiment/store.ts`. Collections `{FIRESTORE_COLLECTION_PREFIX}visitors`, `…leads` (doc id = sha256(email), one per email, `submitCount`), `…contacts`. Lead doc = email, code, visitorId, experimentId, assignedPrice, SEB/retail prices, attribution, source surface, eventId, timestamps. Brevo mirrors `VISITOR_ID`, `EXPERIMENT_ID`, `PRICE_ASSIGNED`, `UTM_CAMPAIGN` as contact attributes for segmentation. `scripts/export-leads.mjs` dumps both collections to CSV. |
+| Meta Pixel | `components/tracking/MetaPixel.tsx` loads `fbevents.js` when `NEXT_PUBLIC_META_PIXEL_ID` is set; fires `PageView` (with `assigned_price`, `experiment_id`) on every route and `Lead` on signup success. Pixel id is public by design. |
+| Conversions API | `lib/tracking/meta-capi.ts` sends `Lead` server-side with the **same `event_id`** the browser generated (hidden form field), so Meta dedups Pixel + CAPI. `user_data` carries only a SHA-256 of the normalised email plus `fbp`/`fbc`/IP/UA. |
+| Privacy rule | **Never** put an email address or other directly identifying value in ordinary event parameters (Pixel `custom_data` or CAPI `custom_data`). Hashed email goes only in CAPI `user_data`. Disclosed in `/privacy` ("Cookies and price testing") and `/terms` ("Kickstarter and Pricing"); a dismissible cookie notice links to it. |
+| Degradation | Every integration no-ops with a log line when its env var is unset — the site runs with zero config and still assigns prices (signed with a public dev secret, which `assignmentSecret()` warns about in production). |
+
+**Env vars** (see `docs/ADMIN.md`): `EXPERIMENT_SECRET` (≥16 chars,
+required in prod), `FIREBASE_SERVICE_ACCOUNT_JSON` (raw or base64),
+`FIRESTORE_COLLECTION_PREFIX` (default `web_`),
+`NEXT_PUBLIC_META_PIXEL_ID`, `META_CAPI_ACCESS_TOKEN`,
+`META_TEST_EVENT_CODE` (optional, Events Manager test tool).
+
+**Turning it off.** Set `priceExperiment.enabled = false` in
+`lib/admin.ts`: everyone sees `kickstarterPriceUSD`, existing cookies
+are ignored, nothing else changes. Changing `priceExperiment.id`
+invalidates every outstanding assignment (new experiment, fresh draw).
 

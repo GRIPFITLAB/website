@@ -9,7 +9,6 @@
 
 export type RouteKey =
   | "home"
-  | "product"
   | "science"
   | "kickstarter"
   | "contact"
@@ -35,12 +34,8 @@ export const routes: Record<RouteKey, Route> = {
     label: "Home",
     surface: { primaryNav: false, footer: false },
   },
-  product: {
-    key: "product",
-    href: "/product",
-    label: "Product",
-    surface: { primaryNav: true, footer: true },
-  },
+  // `/product` was removed Oct 15, 2026 — specs live on the landing page.
+  // `next.config.ts` redirects the old URL to `/`.
   science: {
     key: "science",
     href: "/science",

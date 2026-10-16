@@ -1,72 +1,98 @@
 import { describe, expect, it } from "vitest";
 
-import { productSettings, campaignDiscount, emailDiscount } from "@/lib/admin";
+import { emailDiscount, priceExperiment, productSettings } from "@/lib/admin";
 import {
+  computePricing,
+  defaultPricing,
   formatUSD,
-  getPreorderPricing,
-  getStackedPreorderPricing,
-} from "@/lib/config";
+  isValidExperimentPrice,
+  superEarlyBirdPrice,
+} from "@/lib/pricing";
 
 /**
- * Pricing math (PRD R-002, R-003, R-004).
- *
- * The literal expectations below are the numbers the stakeholder signed
- * off on. They are asserted as literals on purpose: if someone changes a
- * percentage in `lib/admin.ts`, this test must fail loudly rather than
- * quietly recomputing and agreeing with itself.
+ * Pricing maths (PRD R-004) — the three tiers and the per-visitor
+ * experiment path. Pure functions; no mocks needed.
  */
 
-describe("configured values", () => {
-  it("uses the agreed MSRP and discounts", () => {
-    expect(productSettings.listPriceUSD).toBe(149);
-    expect(campaignDiscount.percentOff).toBe(0.25);
-    expect(emailDiscount.percentOff).toBe(0.15);
-  });
-});
-
-describe("getPreorderPricing", () => {
-  it("applies the campaign discount to the list price", () => {
-    const { list, sale, savings } = getPreorderPricing();
-    expect(list).toBe(149);
-    expect(sale).toBeCloseTo(111.75, 10);
-    expect(savings).toBeCloseTo(37.25, 10);
-  });
-
-  it("formats to the strings shown on the site", () => {
-    const { formattedList, formattedSale } = getPreorderPricing();
-    expect(formattedList).toBe("$149");
-    expect(formattedSale).toBe("$111.75");
-  });
-});
-
-describe("getStackedPreorderPricing", () => {
-  it("stacks the email discount on the campaign price, not the list", () => {
-    const { campaignSale, stacked } = getStackedPreorderPricing();
-    expect(campaignSale).toBeCloseTo(111.75, 10);
-    // 111.75 × 0.85 — NOT 149 × (1 − 0.25 − 0.15)
-    expect(stacked).toBeCloseTo(94.9875, 10);
-    expect(stacked).not.toBeCloseTo(149 * 0.6, 4);
-  });
-
-  it("reports the combined percentage off list", () => {
-    const { totalPercentOff } = getStackedPreorderPricing();
-    expect(totalPercentOff).toBeCloseTo(0.3625, 10);
-  });
-
-  it("formats to the strings shown on the site", () => {
-    const { formattedStacked, formattedSavings, formattedList } =
-      getStackedPreorderPricing();
-    expect(formattedList).toBe("$149");
-    expect(formattedStacked).toBe("$94.99");
-    expect(formattedSavings).toBe("$54.01");
-  });
-});
-
 describe("formatUSD", () => {
-  it("drops cents on whole dollars and keeps them otherwise", () => {
+  it("drops cents for whole dollars", () => {
     expect(formatUSD(149)).toBe("$149");
+  });
+
+  it("keeps cents when present", () => {
     expect(formatUSD(111.75)).toBe("$111.75");
-    expect(formatUSD(94.9875)).toBe("$94.99");
-    expect(formatUSD(0)).toBe("$0");
+  });
+
+  it("adds thousands separators", () => {
+    expect(formatUSD(1249)).toBe("$1,249");
+  });
+});
+
+describe("default pricing", () => {
+  it("uses the admin numbers", () => {
+    expect(defaultPricing.retail.amount).toBe(productSettings.retailPriceUSD);
+    expect(defaultPricing.kickstarter.amount).toBe(productSettings.kickstarterPriceUSD);
+    expect(defaultPricing.isExperimentPrice).toBe(false);
+  });
+
+  it("orders tiers Super Early Bird → Kickstarter → Retail", () => {
+    expect(defaultPricing.tiers.map((t) => t.key)).toEqual([
+      "superEarlyBird",
+      "kickstarter",
+      "retail",
+    ]);
+  });
+
+  it("prices strictly increase across tiers", () => {
+    const [seb, ks, retail] = defaultPricing.tiers;
+    expect(seb.amount).toBeLessThan(ks.amount);
+    expect(ks.amount).toBeLessThan(retail.amount);
+  });
+
+  it("derives Super Early Bird from Kickstarter × (1 − email%)", () => {
+    expect(defaultPricing.superEarlyBird.amount).toBe(
+      Math.round(productSettings.kickstarterPriceUSD * (1 - emailDiscount.percentOff)),
+    );
+    expect(superEarlyBirdPrice(100)).toBe(Math.round(100 * (1 - emailDiscount.percentOff)));
+  });
+
+  it("badges are whole-number percents off retail; retail has none", () => {
+    expect(defaultPricing.retail.badge).toBe("");
+    expect(defaultPricing.kickstarter.badge).toMatch(/^\d+% OFF$/);
+    expect(defaultPricing.superEarlyBird.percentOffRetail).toBeGreaterThan(
+      defaultPricing.kickstarter.percentOffRetail,
+    );
+  });
+});
+
+describe("experiment pricing", () => {
+  it("accepts an in-range integer and flags it", () => {
+    const p = computePricing(priceExperiment.minUSD);
+    expect(p.kickstarter.amount).toBe(priceExperiment.minUSD);
+    expect(p.isExperimentPrice).toBe(true);
+    expect(p.superEarlyBird.amount).toBe(superEarlyBirdPrice(priceExperiment.minUSD));
+  });
+
+  it("falls back to the default for out-of-range or junk input", () => {
+    for (const bad of [priceExperiment.maxUSD + 1, priceExperiment.minUSD - 1, 99.5, NaN, null]) {
+      const p = computePricing(bad as number | null);
+      expect(p.kickstarter.amount).toBe(productSettings.kickstarterPriceUSD);
+      expect(p.isExperimentPrice).toBe(false);
+    }
+  });
+
+  it("validates experiment prices", () => {
+    expect(isValidExperimentPrice(priceExperiment.minUSD)).toBe(true);
+    expect(isValidExperimentPrice(priceExperiment.maxUSD)).toBe(true);
+    expect(isValidExperimentPrice(priceExperiment.maxUSD + 1)).toBe(false);
+    expect(isValidExperimentPrice("100")).toBe(false);
+  });
+
+  it("every assignable price stays below retail at every tier", () => {
+    for (let n = priceExperiment.minUSD; n <= priceExperiment.maxUSD; n++) {
+      const p = computePricing(n);
+      expect(p.kickstarter.amount).toBeLessThan(p.retail.amount);
+      expect(p.superEarlyBird.amount).toBeLessThan(p.kickstarter.amount);
+    }
   });
 });

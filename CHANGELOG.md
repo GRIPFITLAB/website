@@ -7,7 +7,66 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-### Added
+### Oct 15, 2026 — launch revamp
+
+#### Added
+
+- **Pre-launch price experiment** (DECISIONS.md §17). `proxy.ts` assigns
+  every new visitor a random integer Kickstarter price ($75–$140) and a
+  visitor id, signed into an httpOnly `gf_exp` cookie (HMAC-SHA256,
+  `EXPERIMENT_SECRET`); first-touch ad attribution (`utm_*`, Meta
+  campaign/adset/ad ids, `fbclid`) in `gf_attr`. Headers are forwarded so the
+  first server render already shows the assigned price. `lib/experiment/*`,
+  `components/experiment/*`.
+- **Firestore lead database** (`lib/experiment/store.ts`, `firebase-admin`):
+  `web_visitors` (exposures), `web_leads` (one per email, with visitor id,
+  assigned price, attribution, source surface), `web_contacts` (contact-form
+  messages — previously email-only). Degrades to logging when
+  `FIREBASE_SERVICE_ACCOUNT_JSON` is unset. `npm run export:leads` dumps CSVs
+  and prints conversion by price.
+- **Meta Pixel + Conversions API.** `MetaPixel` fires `PageView`/`Lead` with
+  `assigned_price` and `experiment_id`; the Server Action sends a CAPI `Lead`
+  with the same browser-generated `event_id` for dedup and only a hashed
+  email in `user_data`. Cookie notice (`CookieNotice`) and `/privacy` section
+  "Cookies and price testing" disclose all of it.
+- **Three named price tiers** — Super Early Bird (unlocked by email),
+  Kickstarter, Retail — computed in the new `lib/pricing.ts`; `PricingDisplay`
+  renders them; all banner / teaser / email copy is generated from the numbers.
+- `lib/theme.ts` (TS palette for emails, `theme-color`, SVG) and
+  `components/ui/{section,typography,surface}.tsx` primitives; `tests/theme.test.ts`
+  keeps CSS and TS tokens in sync; `tests/experiment.test.ts` covers signing,
+  tamper rejection, and attribution parsing.
+- Home sections `Specs`, `WhyGrip`, `ClosingCta`. Real App Store screens in
+  `Hero` and `AppShowcase` (`public/app/`). App-icon "G" logo and favicons.
+- `/product` → `/` permanent redirect; Brevo attributes `VISITOR_ID`,
+  `EXPERIMENT_ID`, `PRICE_ASSIGNED`, `UTM_CAMPAIGN`.
+
+#### Changed
+
+- **Theme:** dark-only navy + electric-blue, matching the iOS app (was
+  warm-cream + warm-ink). Promo accent is now mint green, still discount-only.
+- Hero H1 "A readiness signal based on effort, not HRV." and new lead copy;
+  comparison trimmed to four rows with new title/sub and no disclaimer;
+  AppShowcase re-written to three slides under "Built for iPhone."; `/setup`,
+  `/kickstarter`, `/contact`, footer, modal, and email copy simplified;
+  "pre-order" → "Kickstarter" everywhere. All admin-facing placeholder /
+  "TBD" / "illustrative" notes removed from the UI.
+- `lib/admin.ts` restructured: `productSettings.{retailPriceUSD,kickstarterPriceUSD}`,
+  `priceExperiment`, `campaignSettings`, `trackingSettings`. The
+  `getPreorderPricing` / `getStackedPreorderPricing` helpers are replaced by
+  `computePricing`.
+- Every page is now dynamically rendered (the layout reads the visitor's
+  assignment). `Button` sets `nativeButton={false}` automatically when
+  rendered as a link. `cn()` now knows the custom `text-display-*` scale so
+  tailwind-merge no longer drops it when a text colour follows.
+
+#### Removed
+
+- `/product` page, `Features.tsx`, the CSS phone mockups, `app/favicon.ico`.
+
+### Earlier unreleased
+
+#### Added
 
 - **Working unsubscribe.** Every discount email now carries an unsubscribe
   link; `/unsubscribe` confirms, then sets Brevo's global `emailBlacklisted`

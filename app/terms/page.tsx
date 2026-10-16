@@ -7,9 +7,9 @@ export const metadata: Metadata = {
   description: `Terms of service for ${siteConfig.name}.`,
 };
 
-const updated = "September 2026 (v1.0.0)";
+const updated = "October 2026 (v1.1.0)";
 
-const linkClass = "text-accent underline-offset-4 hover:underline";
+const linkClass = "text-accent-bright underline-offset-4 hover:underline";
 
 export default function TermsPage() {
   return (
@@ -39,20 +39,27 @@ export default function TermsPage() {
           </p>
           <p>
             This website provides information about GripFit and lets you sign
-            up for pre-order updates and contact us. Product details shown
+            up for Kickstarter updates and contact us. Product details shown
             here, including specifications, pricing, and availability, may
             change before the product ships.
           </p>
         </Section>
 
-        <Section title="Pre-orders and the Campaign">
+        <Section title="Kickstarter and Pricing">
           <p>
-            This website does not take payment. Pre-orders are handled entirely
+            This website does not take payment. Pledges are handled entirely
             through our crowdfunding campaign on Kickstarter, and
             Kickstarter&apos;s own terms govern your pledge, when you are
-            charged, cancellation, and refunds. Prices and discounts shown on
-            this website describe the planned campaign pricing; the reward
-            tiers published on the campaign page are what apply to your pledge.
+            charged, cancellation, and refunds.
+          </p>
+          <p>
+            Before the campaign opens we test different Kickstarter prices, so
+            the price shown to you on this website may differ from the price
+            shown to another visitor. Prices shown here are indicative and are
+            not an offer to sell. The reward tiers published on the Kickstarter
+            campaign page are the only prices that apply to your pledge, and a
+            Super Early Bird code reduces that published price by the
+            percentage stated when the code was issued.
           </p>
         </Section>
 
@@ -60,7 +67,7 @@ export default function TermsPage() {
           <p>
             A discount code issued from this website is personal to the email
             address it was sent to, has no cash value, and applies only to a
-            pre-order placed through our crowdfunding campaign. One code is
+            pledge placed through our Kickstarter campaign. One code is
             issued per email address; asking again returns the same code.
           </p>
           <p>
