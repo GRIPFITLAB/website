@@ -43,7 +43,7 @@ describe("templates", () => {
       emailDiscount.confirmationCopy,
       emailDiscount.consentCopy,
       ...Object.values(campaignSettings.tierLabels),
-      ...Object.values(campaignSettings.tierNotes),
+      ...Object.values(campaignSettings.tierNotes).filter((note) => note !== null),
     ].join(" | ");
     expect(all).not.toMatch(/%/);
     expect(all).not.toMatch(/\$\d/);
@@ -92,20 +92,18 @@ describe("banner", () => {
 describe("tier labels", () => {
   it("use the launch terminology", () => {
     expect(campaignSettings.tierLabels).toEqual({
-      superEarlyBird: "Super Early Bird",
+      superEarlyBird: "Early bird",
       kickstarter: "Kickstarter",
       retail: "Expected retail",
     });
   });
 
-  it("say the Kickstarter price is a ceiling", () => {
-    expect(campaignSettings.tierNotes.kickstarter.toLowerCase()).toContain("never pay more");
-  });
-
-  it("never mention a limited quantity", () => {
-    for (const note of Object.values(campaignSettings.tierNotes)) {
-      expect(note).not.toMatch(/\d+\s*(people|backers|units)/i);
-    }
+  it("tie the early bird price to email signup and nothing else", () => {
+    expect(campaignSettings.tierNotes).toEqual({
+      superEarlyBird: "With email signup",
+      kickstarter: null,
+      retail: null,
+    });
   });
 });
 

@@ -248,7 +248,7 @@ links an order # to an App Store account.
 | Form | Backend | Notification |
 | --- | --- | --- |
 | Contact | Server Action → Brevo transactional (`/smtp/email`) | Delivered to `EMAIL_SUPPORT`; `replyTo` is the submitter so replying answers them directly. Sender is always the verified Brevo address — sending as the visitor's domain would fail SPF/DKIM. |
-| Email lock (Super Early Bird — locks the visitor's arm price, §17) | Server Action → Brevo Contacts (`/contacts`, `updateEnabled: true`) then Brevo transactional | Upserts the contact into `BREVO_WEBSITE_LIST_ID` with a unique `DISCOUNT_CODE` reference plus `PRICE_ARM` / `PRICE_LOCKED` (first signup only), then emails the locked price. Three surfaces share the same `submitEmailDiscount` action and the same `EMAIL_DISCOUNT_DISMISSED_KEY` localStorage flag: (a) first-visit `<EmailDiscountModal />` mounted in `app/layout.tsx`, (b) always-visible `<EmailDiscountForm variant="footer" />` in the footer, (c) `<EmailDiscountTeaser />` next to the "Back the campaign" CTA in the Hero and mobile menu (dropped from `ClosingCta` Oct 16, 2026 — the footer form sits directly below it). The teaser opens the modal via the `gripfit:open-email-discount` custom event (`lib/email-discount-events.ts`) — no Context provider, no prop drilling. |
+| Email lock (Super Early Bird — locks the visitor's arm price, §17) | Server Action → Brevo Contacts (`/contacts`, `updateEnabled: true`) then Brevo transactional | Upserts the contact into `BREVO_WEBSITE_LIST_ID` with a unique `DISCOUNT_CODE` reference plus `PRICE_ARM` / `PRICE_LOCKED` (first signup only), then emails the locked price. Three surfaces share the same `submitEmailDiscount` action and the same `EMAIL_DISCOUNT_DISMISSED_KEY` localStorage flag: (a) first-visit `<EmailDiscountModal />` mounted in `app/layout.tsx`, (b) always-visible `<EmailDiscountForm variant="footer" />` in the footer, (c) the Hero's primary `<EmailLockButton />` ("Lock in $[lock]", with a "Follow on Kickstarter →" link beside it — Oct 18, 2026) and `<EmailDiscountTeaser />` next to the "Back on Kickstarter" CTA in the mobile menu (dropped from `ClosingCta` Oct 16, 2026 — the footer form sits directly below it). Both open the modal via the `gripfit:open-email-discount` custom event (`lib/email-discount-events.ts`) — no Context provider, no prop drilling. |
 
 ---
 
@@ -597,10 +597,9 @@ replace the $75–$140 range:
 
 Arm 3 is `defaultArmId` — what a request with no assignment (or the
 whole site, with the experiment off) shows; it is never recorded as an
-impression. ⚠️ Open: the Terms "Kickstarter and Pricing" paragraph still
-says a code "reduces that published price by the percentage stated",
-and Privacy lists "the discount percentage" among stored fields — both
-describe the old model and need a legal-copy pass.
+impression. Terms and Privacy (v1.2.0) describe the arm model: random
+price sets, the "no higher than" Kickstarter intent, one locked Super
+Early Bird price per email, and the stored arm / locked price.
 
 ---
 

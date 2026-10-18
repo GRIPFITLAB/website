@@ -120,18 +120,20 @@ export const campaignSettings = {
   freeShipping: true,
   /** Button label used everywhere the campaign CTA appears. */
   ctaLabel: "Back on Kickstarter",
+  /** Hero secondary link to the campaign / pre-launch page. */
+  followLabel: "Follow on Kickstarter",
   /** Tier names shown in the pricing display. */
   tierLabels: {
-    superEarlyBird: "Super Early Bird",
+    superEarlyBird: "Early bird",
     kickstarter: "Kickstarter",
     retail: "Expected retail",
   },
-  /** One-line explanation under each tier. */
+  /** One-line explanation under each tier; `null` shows none. */
   tierNotes: {
-    superEarlyBird: "Locked in when you join the email list",
-    kickstarter: "Never pay more than this",
-    retail: "After the campaign",
-  },
+    superEarlyBird: "With email signup",
+    kickstarter: null,
+    retail: null,
+  } satisfies Record<"superEarlyBird" | "kickstarter" | "retail", string | null>,
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────

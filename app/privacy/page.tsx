@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: `How ${siteConfig.name} collects, uses, and protects your data.`,
 };
 
-const updated = "October 2026 (v1.1.0)";
+const updated = "October 2026 (v1.2.0)";
 
 const linkClass = "text-accent-bright underline-offset-4 hover:underline";
 
@@ -31,12 +31,13 @@ export default function PrivacyPage() {
         <Section title="Information We Collect">
           <Subheading>On this website</Subheading>
           <p>
-            If you enter your email address to receive a Super Early Bird
-            discount code or campaign updates, we store that address together
-            with the code we issued you, the discount percentage, the date you
-            signed up, the random visitor identifier described below, the
-            Kickstarter price you were shown, and the campaign link (if any)
-            that brought you to the site.
+            If you enter your email address to lock in a Super Early Bird
+            price or receive campaign updates, we store that address together
+            with the code we issued you, the price set you were shown, the
+            Super Early Bird price locked to your address, the date you signed
+            up, the random visitor identifier described below, which sign-up
+            form you used, and the campaign link (if any) that brought you to
+            the site.
           </p>
           <p>
             If you use the contact form, we collect your name, email address,
@@ -51,16 +52,16 @@ export default function PrivacyPage() {
 
           <Subheading>Cookies and price testing</Subheading>
           <p>
-            Ahead of the Kickstarter campaign we test which pledge price to
-            launch at. When you first visit, our server generates a random
-            visitor identifier and assigns you a Kickstarter price from a
-            fixed range. Both are stored in a first-party cookie named{" "}
+            Ahead of the Kickstarter campaign we test which prices to launch
+            at. When you first visit, our server generates a random visitor
+            identifier and assigns you at random to one of several fixed price
+            sets. Both are stored in a signed first-party cookie named{" "}
             <code>gf_exp</code> (expires after 180 days) so that you see the
-            same price on every visit. The identifier is random and is not
-            derived from your name, email, device, or IP address. The
-            Kickstarter price shown here is for research; the price that
-            applies is the one published on Kickstarter when the campaign
-            opens.
+            same prices on every visit. The identifier is random and is not
+            derived from your name, email, device, or IP address. We record
+            that a visitor saw a given price set so we can compare sign-up
+            rates between sets. The reward tiers published on Kickstarter when
+            the campaign opens are the prices that apply to your pledge.
           </p>
           <p>
             If you arrive from an advert or a campaign link, we store the
@@ -72,7 +73,8 @@ export default function PrivacyPage() {
             We use the Meta Pixel and Meta&apos;s Conversions API to measure
             how our adverts perform. The Pixel sets Meta&apos;s own cookies
             (<code>_fbp</code>, <code>_fbc</code>) and reports page views and
-            signups to Meta together with the assigned price. When you sign
+            signups to Meta together with the assigned price set and the
+            Super Early Bird price. When you sign
             up we also send Meta a one-way hash of your email address so it
             can match the signup to its advert without receiving your email
             address in readable form. We never send your email address, name,
@@ -96,8 +98,8 @@ export default function PrivacyPage() {
             short-lived, anonymised value that is discarded within a day.
           </p>
           <p>
-            A few preferences, such as whether you have dismissed the discount
-            pop-up or the cookie notice, are kept in your browser&apos;s local
+            A few preferences, such as whether you have dismissed the email
+            sign-up pop-up, the Kickstarter banner, or the cookie notice, are kept in your browser&apos;s local
             storage on your own device and are never sent to us.
           </p>
 
@@ -130,12 +132,13 @@ export default function PrivacyPage() {
 
         <Section title="How We Use Your Data">
           <p>
-            Email addresses submitted on this website are used to send you your
-            discount code and occasional updates about the Kickstarter campaign.
-            Every message includes an unsubscribe link. Contact form
-            submissions are used to reply to you. Visitor identifiers, assigned
-            prices, and campaign parameters are used only in aggregate to
-            understand demand at different prices and which adverts work.
+            Email addresses submitted on this website are used to keep a record
+            of your locked Super Early Bird price, send you your code, and send
+            occasional updates about the Kickstarter campaign. Every message
+            includes an unsubscribe link. Contact form submissions are used to
+            reply to you. Visitor identifiers, assigned price sets, and
+            campaign parameters are used only in aggregate to understand
+            demand at different prices and which adverts work.
           </p>
           <p>
             App data is used to display your grip strength history, track
@@ -153,7 +156,9 @@ export default function PrivacyPage() {
             Email addresses and contact form messages submitted on this website
             are delivered through Brevo, our email provider, and stored in our
             own database on Google Firebase (Cloud Firestore) alongside the
-            visitor identifier, assigned price, and campaign parameters. The
+            visitor identifier, assigned price set, locked price, and campaign
+            parameters. Brevo also holds your locked price and code so it can
+            send them to you. The
             website itself is hosted by Vercel.
           </p>
           <p>
@@ -172,7 +177,9 @@ export default function PrivacyPage() {
           <p>
             Email addresses and messages submitted on this website are kept for
             as long as they are needed for the Kickstarter campaign or to answer
-            your enquiry. Price-test records are deleted or anonymised within
+            your enquiry, and your locked price is kept until the campaign
+            closes so we can honor it. Price-test records are deleted or
+            anonymised within
             12 months of the campaign closing. You can ask us to delete your
             data at any time by emailing <LegalEmail />.
           </p>

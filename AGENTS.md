@@ -40,8 +40,10 @@ Project-specific rules for AI assistants. Read these before the Next.js notes be
    in `app/layout.tsx` (auto-opens once; re-open anywhere via the
    `gripfit:open-email-discount` event), (b) `<EmailDiscountForm
    variant="footer" source="footer" showConsent />` at the top of the footer,
-   (c) `<EmailDiscountTeaser />` beside the "Back on Kickstarter" CTA in the
- Hero and mobile menu (not in `ClosingCta` — the footer form sits right below).
+   (c) in the Hero, the primary `<EmailLockButton />` ("Lock in $[lock]")
+ with a "Follow on Kickstarter →" link to `campaign.href` beside it; in the
+ mobile menu, `<EmailDiscountTeaser />` beside the "Back on Kickstarter" CTA
+ (not in `ClosingCta` — the footer form sits right below).
    Modal and `/kickstarter` cards are header + input only; the footer adds the
    single consent line. Pass the correct `source` so the lead DB knows which
    surface converted.

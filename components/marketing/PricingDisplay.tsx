@@ -7,12 +7,11 @@ import { cn } from "@/lib/utils";
 /**
  * PricingDisplay — the visitor's arm, always in this order:
  *
- *   Super Early Bird (promo tint — the price an email locks in)
- *   Kickstarter      (the ceiling — "never pay more than")
- *   Expected retail  (after the campaign)
+ *   Early bird       (promo tint — the price an email locks in)
+ *   Kickstarter      (the ceiling)
+ *   Expected retail  (struck through — the anchor)
  *
- * Each number stands on its own: no strike-through, no percent-off badges.
- * Prices come from `usePricing()` so the visitor's assigned arm flows
+ * No percent-off badges. Prices come from `usePricing()` so the visitor's assigned arm flows
  * through automatically. No literals here.
  *
  * Variants:
@@ -62,8 +61,9 @@ function Tier({ tier }: { tier: PriceTier }) {
   return (
     <div
       className={cn(
-        // Phone: label + price on one row. ≥sm: stacked column tile.
-        "relative flex items-center justify-between gap-3 px-4 py-4 sm:flex-col sm:items-start sm:gap-2 sm:py-5 md:px-6 md:py-6",
+        // Phone: label + price on one row. ≥sm: stacked tile on a shared
+        // subgrid, so prices line up even when a label wraps.
+        "relative flex items-center justify-between gap-3 px-4 py-4 sm:row-span-2 sm:grid sm:grid-rows-subgrid sm:items-start sm:gap-2 sm:py-5 md:px-6 md:py-6",
         isPromo && "bg-promo-soft",
       )}
     >
@@ -78,11 +78,17 @@ function Tier({ tier }: { tier: PriceTier }) {
             isPromo ? "text-text-primary" : "text-text-secondary",
           )}
         >
-          {tier.formatted}
+          {tier.key === "retail" ? (
+            <s className="decoration-text-tertiary decoration-2">{tier.formatted}</s>
+          ) : (
+            tier.formatted
+          )}
         </span>
-        <span className="text-right text-[12px] leading-[1.4] text-text-secondary sm:text-left">
-          {tier.note}
-        </span>
+        {tier.note ? (
+          <span className="text-right text-[12px] leading-[1.4] text-text-secondary sm:text-left">
+            {tier.note}
+          </span>
+        ) : null}
       </dd>
     </div>
   );

@@ -1,9 +1,9 @@
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { EmailDiscountTeaser } from "@/components/marketing/EmailDiscountTeaser";
+import { EmailLockButton } from "@/components/marketing/EmailLockButton";
 import { PricingDisplay } from "@/components/marketing/PricingDisplay";
-import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/section";
 import { Display, Eyebrow, Lead } from "@/components/ui/typography";
 import { campaign, discountConfig, siteConfig } from "@/lib/config";
@@ -45,10 +45,19 @@ export function Hero() {
           <PricingDisplay className="mt-10 max-w-2xl" />
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
-            <Button render={<Link href={campaign.href} {...campaign.linkProps} />} size="lg">
-              {discountConfig.campaign.ctaLabel}
-            </Button>
-            <EmailDiscountTeaser />
+            <EmailLockButton />
+            <Link
+              href={campaign.href}
+              {...campaign.linkProps}
+              className="group inline-flex items-center gap-2 rounded-md text-[13px] font-medium text-accent-bright transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              {discountConfig.campaign.followLabel}
+              <ArrowRight
+                aria-hidden
+                className="size-3.5 transition-transform group-hover:translate-x-0.5"
+                strokeWidth={2.25}
+              />
+            </Link>
           </div>
         </div>
 

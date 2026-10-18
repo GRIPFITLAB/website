@@ -36,7 +36,8 @@ price, percent, or URL literal.
 | Experiment on/off, default arm | `priceExperiment.enabled`, `.defaultArmId` | off = everyone sees the default arm |
 | Free-shipping promise | `campaignSettings.freeShipping` | banner sentence is generated |
 | Email-lock headline / button / confirmation | `emailDiscount.headline`, `.buttonLabel`, `.confirmationCopy` | each uses `{price}` — filled with the visitor's lock price |
-| Tier names + notes | `campaignSettings.tierLabels`, `.tierNotes` | Super Early Bird / Kickstarter / Expected retail |
+| Tier names + notes | `campaignSettings.tierLabels`, `.tierNotes` (`null` = no note) | Early bird ("With email signup") / Kickstarter / Expected retail (struck through) |
+| Hero secondary link | `campaignSettings.followLabel` | "Follow on Kickstarter" |
 | CTA label | `campaignSettings.ctaLabel` | "Back on Kickstarter" |
 | Cookie-notice copy | `trackingSettings.cookieNoticeCopy` | — |
 | Crowdfunding URL | `links.crowdfundingUrl` | — |

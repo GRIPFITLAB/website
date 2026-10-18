@@ -56,6 +56,7 @@ export const discountConfig = {
   campaign: {
     freeShipping: campaignSettings.freeShipping,
     ctaLabel: campaignSettings.ctaLabel,
+    followLabel: campaignSettings.followLabel,
     tierLabels: campaignSettings.tierLabels,
     tierNotes: campaignSettings.tierNotes,
   },

@@ -91,7 +91,7 @@ describe("computePricing", () => {
   it("carries no percent-off framing", () => {
     for (const arm of ARMS) {
       for (const tier of computePricing(arm.id).tiers) {
-        expect(tier.note).not.toMatch(/%|off\b/i);
+        expect(tier.note ?? "").not.toMatch(/%|off\b/i);
         expect(Object.keys(tier)).not.toContain("badge");
       }
     }

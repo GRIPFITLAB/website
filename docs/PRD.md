@@ -52,7 +52,7 @@ Priority: **P0** = launch-blocking, **P1** = launch-desirable, **P2** = post-lau
 | R-002 | P0 | Set MSRP (list price) to **$149**. | `getPreorderPricing().list === 149`; renders `$149`. |
 | R-003 | P0 | Campaign (Kickstarter pre-order) discount = **25% off + free US shipping**. | Campaign sale price `$111.75`; banner copy reads "25% off + free US shipping"; `discountConfig.preorder.label` → "25% OFF". |
 | R-004 | P0 | Email-signup discount = **extra 15% off, stacking on the campaign price** (multiplicative). | `getStackedPreorderPricing().stacked` → `$94.99` (94.9875); `totalPercentOff` ≈ 0.3625; stacked savings `$54.01`. |
-| R-005 | P1 | All human-readable discount copy (banner sentence, modal headline/body) matches the live percentages — no stale "30%"/"40.5%" strings. | Rendered banner + modal reference 25% and 15%; automated copy/number lint or test guards it. |
+| R-005 | P1 | All human-readable price copy (banner sentence, modal headline/body, tiles, email) quotes the visitor's assigned arm — no percentages, strikethroughs, or hardcoded prices. | Rendered banner + modal quote the arm's lock / ceiling / retail; `tests/copy.test.ts` guards it. |
 
 ### 4.2 Email & contact — Brevo
 

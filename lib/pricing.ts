@@ -22,8 +22,8 @@ export type TierKey = "superEarlyBird" | "kickstarter" | "retail";
 export interface PriceTier {
   key: TierKey;
   label: string;
-  /** One-line explanation shown under the price. */
-  note: string;
+  /** One-line explanation shown under the price, if any. */
+  note: string | null;
   /** Whole-dollar amount. */
   amount: number;
   /** `$84` */
