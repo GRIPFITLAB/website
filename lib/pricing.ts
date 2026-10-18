@@ -141,11 +141,11 @@ export function emailLockConfirmation(lockedAmount: number): string {
   return withPrice(emailDiscount.confirmationCopy, lockedAmount);
 }
 
-/** `"16% off"`, or `null` for a tier with nothing above it. */
+/** `"Extra 15% off"` / `"20% off"`, or `null` for a tier with no badge. */
 export function discountBadge(t: PriceTier): string | null {
   return t.discountPct === null
     ? null
-    : campaignSettings.discountBadge.replace("{pct}", String(t.discountPct));
+    : campaignSettings.discountBadge[t.key].replace("{pct}", String(t.discountPct));
 }
 
 /** One-line campaign summary (mobile menu). */

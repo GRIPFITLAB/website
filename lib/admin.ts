@@ -132,7 +132,11 @@ export const campaignSettings = {
   },
   /** Badge beside a tier label showing its saving against the next tier
    *  up. `{pct}` comes from `discountBadgePct`. */
-  discountBadge: "{pct}% off",
+  discountBadge: {
+    superEarlyBird: "Extra {pct}% off",
+    kickstarter: "{pct}% off",
+    retail: "{pct}% off",
+  },
   /** Advertised saving per tier, flat across arms. Must never exceed the
    *  real saving in any arm (test-enforced), so the claim is always true.
    *  `null` = no badge. */

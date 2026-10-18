@@ -599,7 +599,7 @@ replace the $75–$140 range:
 
 Retail was re-set on Oct 18, 2026 so the Kickstarter price is at least
 20% under it in every arm; Kickstarter and lock prices are unchanged.
-The cards show flat "% off" badges beside the label — early bird 15% off
+The cards show flat "% off" badges beside the label — early bird "Extra 15% off"
 Kickstarter, Kickstarter 20% off retail (`campaignSettings.discountBadgePct`).
 The badge is a floor, never rounded up: the real saving is 15.2–15.9%
 and 20.1–20.4%, and a test fails if any arm's real saving drops below

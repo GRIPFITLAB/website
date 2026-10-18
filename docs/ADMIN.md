@@ -37,7 +37,7 @@ price, percent, or URL literal.
 | Free-shipping promise | `campaignSettings.freeShipping` | pricing footnote + mobile-menu line are generated |
 | Email-lock headline / button / confirmation | `emailDiscount.headline`, `.buttonLabel`, `.confirmationCopy` | each uses `{price}` — filled with the visitor's lock price |
 | Tier names + notes | `campaignSettings.tierLabels`, `.tierNotes` (`null` = no note) | Early bird ("With email signup") / Kickstarter / Expected retail (struck through) |
-| Card "% off" badge | `campaignSettings.discountBadge`, `.discountBadgePct` | flat 15% (early bird) / 20% (Kickstarter); a test fails if any arm's real saving is below it |
+| Card "% off" badge | `campaignSettings.discountBadge`, `.discountBadgePct` | per-tier template — "Extra 15% off" (early bird) / "20% off" (Kickstarter); a test fails if any arm's real saving is below it |
 | Hero primary button | `campaignSettings.earlyBirdCtaLabel` | "Get early bird pricing" — opens the email signup |
 | Hero secondary link | `campaignSettings.followLabel` | "Follow on Kickstarter" |
 | CTA label | `campaignSettings.ctaLabel` | "Back on Kickstarter" |

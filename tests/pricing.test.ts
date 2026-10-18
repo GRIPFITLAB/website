@@ -102,10 +102,10 @@ describe("computePricing", () => {
     }
   });
 
-  it("badges early bird 15% off and Kickstarter 20% off in every arm", () => {
+  it("badges early bird extra 15% off and Kickstarter 20% off in every arm", () => {
     for (const arm of ARMS) {
       const [seb, ks, retail] = computePricing(arm.id).tiers;
-      expect(discountBadge(seb)).toBe("15% off");
+      expect(discountBadge(seb)).toBe("Extra 15% off");
       expect(discountBadge(ks)).toBe("20% off");
       expect(discountBadge(retail)).toBeNull();
     }
