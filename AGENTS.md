@@ -46,7 +46,8 @@ Project-specific rules for AI assistants. Read these before the Next.js notes be
  with a "Follow on Kickstarter →" link to `campaign.href` beside it; in the
  mobile menu, `<EmailDiscountTeaser />` beside the "Back on Kickstarter" CTA
  (not in `ClosingCta` — the footer form sits right below).
-   Modal and `/kickstarter` cards are header + input only; the footer adds the
+   Every form shows the no-commitment line (`emailDiscount.noCommitmentCopy`)
+   under the input. Modal and `/kickstarter` cards are otherwise header + input only; the footer adds the
    single consent line. Pass the correct `source` so the lead DB knows which
    surface converted.
 5. **No social-proof / athlete grid on the home page** (DECISIONS.md §6).

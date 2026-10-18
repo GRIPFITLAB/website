@@ -152,8 +152,10 @@ Phase 1 product list:
     `getStackedPreorderPricing` helpers are gone.
   - The email flow (`discountConfig.email`) has three surfaces — modal,
     footer, `/kickstarter` — and one Server Action. Modal and
-    `/kickstarter` are header + input only; the footer adds the single
-    consent line.
+    `/kickstarter` are header + input + the no-commitment line
+    ("Signing up locks your price — it doesn’t commit you to buy.",
+    `emailDiscount.noCommitmentCopy`, on every surface); the footer adds
+    the single consent line.
   - Each captured email receives a **unique code** (`GF-XXXXXXXX`,
     40 bits of Crockford base32 from `crypto.getRandomValues`), stored as
     a `DISCOUNT_CODE` attribute on the Brevo contact. One code per

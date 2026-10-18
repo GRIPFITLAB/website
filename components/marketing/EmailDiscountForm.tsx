@@ -58,6 +58,7 @@ export function EmailDiscountForm({
   const prefix = idPrefix ?? variant;
   const emailId = `${prefix}-email`;
   const errorId = `${prefix}-email-error`;
+  const disclaimerId = `${prefix}-email-disclaimer`;
   const honeypotId = `${prefix}-website`;
 
   useEffect(() => {
@@ -83,6 +84,7 @@ export function EmailDiscountForm({
   }, [state, pricing, experimentId, source, eventId]);
 
   const fieldErrors = state.status === "error" ? state.fieldErrors : undefined;
+  const describedBy = fieldErrors?.email ? `${errorId} ${disclaimerId}` : disclaimerId;
 
   if (state.status === "success") {
     return (
@@ -97,6 +99,12 @@ export function EmailDiscountForm({
       </p>
     );
   }
+
+  const disclaimer = (
+    <p id={disclaimerId} className="text-[12px] leading-[1.5] text-text-secondary">
+      {discountConfig.email.noCommitmentCopy}
+    </p>
+  );
 
   const consent = showConsent ? (
     <p className="text-[11px] leading-[1.5] text-text-tertiary">
@@ -149,7 +157,7 @@ export function EmailDiscountForm({
             inputMode="email"
             placeholder="you@domain.com"
             aria-invalid={Boolean(fieldErrors?.email)}
-            aria-describedby={fieldErrors?.email ? errorId : undefined}
+            aria-describedby={describedBy}
             required
             className="h-12 flex-1 rounded-full bg-bg-raised px-5"
           />
@@ -158,6 +166,7 @@ export function EmailDiscountForm({
           </Button>
         </div>
         {errors}
+        {disclaimer}
         {consent}
         {hidden}
       </form>
@@ -178,7 +187,7 @@ export function EmailDiscountForm({
           inputMode="email"
           placeholder="you@domain.com"
           aria-invalid={Boolean(fieldErrors?.email)}
-          aria-describedby={fieldErrors?.email ? errorId : undefined}
+          aria-describedby={describedBy}
           required
           className="h-12 rounded-full bg-bg-raised px-5"
         />
@@ -188,7 +197,10 @@ export function EmailDiscountForm({
       <Button type="submit" variant="promo" size="lg" disabled={pending} className="w-full">
         {pending ? "Locking in…" : emailLockButtonLabel(pricing)}
       </Button>
-      {consent ? <div className="text-center">{consent}</div> : null}
+      <div className="-mt-1 flex flex-col gap-1 text-center">
+        {disclaimer}
+        {consent}
+      </div>
     </form>
   );
 }

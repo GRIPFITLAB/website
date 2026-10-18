@@ -62,6 +62,7 @@ export const discountConfig = {
     tierNotes: campaignSettings.tierNotes,
   },
   email: {
+    noCommitmentCopy: emailDiscount.noCommitmentCopy,
     consentCopy: emailDiscount.consentCopy,
     codePrefix: emailDiscount.codePrefix,
   },

@@ -166,6 +166,9 @@ export const emailDiscount = {
   /** Prefix on every generated reference code, e.g. `GF-7Q4KX2M9`. The
    *  code identifies the lock and proves ownership on `/unsubscribe`. */
   codePrefix: "GF",
+  /** Shown under every email form so signing up isn't mistaken for a
+   *  purchase or pledge. */
+  noCommitmentCopy: "Signing up locks your price — it doesn’t commit you to buy.",
   /** The single consent / anti-spam line under the footer form. */
   consentCopy:
     "No spam. Unsubscribe anytime. We'll only email you about Kickstarter updates.",
