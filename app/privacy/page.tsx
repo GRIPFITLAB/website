@@ -90,6 +90,12 @@ export default function PrivacyPage() {
             fully without it.
           </p>
           <p>
+            We use Vercel Web Analytics to count page views and see which
+            pages people visit. It sets no cookies and does not identify you
+            or follow you across other websites; visits are counted using a
+            short-lived, anonymised value that is discarded within a day.
+          </p>
+          <p>
             A few preferences, such as whether you have dismissed the discount
             pop-up or the cookie notice, are kept in your browser&apos;s local
             storage on your own device and are never sent to us.
@@ -200,7 +206,7 @@ export default function PrivacyPage() {
             >
               Vercel
             </a>{" "}
-            for hosting,{" "}
+            for hosting and cookieless page-view analytics,{" "}
             <a
               href="https://firebase.google.com/support/privacy"
               className={linkClass}

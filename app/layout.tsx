@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 
 import { VisitorProvider } from "@/components/experiment/VisitorProvider";
@@ -69,6 +70,7 @@ export default function RootLayout({
           <CookieNotice />
           <MetaPixel pixelId={trackingConfig.metaPixelId} />
         </VisitorProvider>
+        <Analytics />
       </body>
     </html>
   );
