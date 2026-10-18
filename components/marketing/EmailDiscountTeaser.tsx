@@ -47,7 +47,7 @@ export function EmailDiscountTeaser({
     >
       <span aria-hidden className="inline-block size-1.5 rounded-full bg-promo" />
       <span>
-        Get the {pricing.superEarlyBird.label} price — {pricing.superEarlyBird.formatted}
+        Lock in {pricing.superEarlyBird.formatted} with your email
       </span>
       <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" strokeWidth={2.25} />
     </button>

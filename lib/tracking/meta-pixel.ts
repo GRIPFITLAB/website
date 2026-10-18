@@ -30,6 +30,8 @@ declare global {
 
 /** Standard event parameters we attach to every event. */
 export interface PixelEventParams {
+  price_arm?: number;
+  /** The arm's Kickstarter ceiling. */
   assigned_price?: number;
   experiment_id?: string;
   currency?: "USD";

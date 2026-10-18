@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePricing } from "@/components/experiment/PricingContext";
 import { EmailDiscountForm } from "@/components/marketing/EmailDiscountForm";
 import { Eyebrow } from "@/components/ui/typography";
-import { discountConfig } from "@/lib/config";
+import { emailLockHeadline } from "@/lib/config";
 import {
   EMAIL_DISCOUNT_OPEN_EVENT,
   isEmailDiscountDismissed,
@@ -21,8 +21,8 @@ const APPEAR_DELAY_MS = 4500;
 /**
  * EmailDiscountModal — Super Early Bird email capture.
  *
- * Deliberately sparse: eyebrow with the price, headline, email field,
- * button. No body copy, no consent paragraph (that lives on the footer
+ * Deliberately sparse: eyebrow, headline with the lock price, email
+ * field, button. No body copy, no consent paragraph (that lives on the footer
  * form; the modal links to Privacy through the input's helper).
  *
  * Mounted once in `app/layout.tsx`; any `<EmailDiscountTeaser />` opens it
@@ -91,14 +91,14 @@ export function EmailDiscountModal() {
               className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-promo/70 to-transparent"
             />
             <Eyebrow promo className="mb-4">
-              {pricing.superEarlyBird.label} · {pricing.superEarlyBird.formatted}
+              {pricing.superEarlyBird.label}
             </Eyebrow>
             <Dialog.Title className="font-display text-display-lg text-text-primary">
-              {discountConfig.email.headline}
+              {emailLockHeadline(pricing)}
             </Dialog.Title>
             <Dialog.Description className="sr-only">
-              Enter your email to receive a {pricing.superEarlyBird.label} discount code for the
-              Kickstarter campaign.
+              Join the email list to lock in {pricing.superEarlyBird.formatted} for the Kickstarter
+              campaign. You&apos;ll never pay more than {pricing.kickstarter.formatted}.
             </Dialog.Description>
 
             <EmailDiscountForm

@@ -21,16 +21,17 @@ import {
   trackingSettings,
 } from "@/lib/admin";
 import { env } from "@/lib/env";
-import { emailDiscountHeadline } from "@/lib/pricing";
 
 export {
   computePricing,
   defaultPricing,
   formatUSD,
   campaignBannerCopy,
-  emailDiscountHeadline,
+  emailLockButtonLabel,
+  emailLockConfirmation,
+  emailLockHeadline,
 } from "@/lib/pricing";
-export type { Pricing, PriceTier, TierKey } from "@/lib/pricing";
+export type { PriceArm, Pricing, PriceTier, TierKey } from "@/lib/pricing";
 
 export const siteConfig = {
   ...siteIdentity,
@@ -42,32 +43,25 @@ export const productConfig = {
   base: {
     name: productSettings.name,
     handle: productSettings.handle,
-    retailPriceUSD: productSettings.retailPriceUSD,
-    kickstarterPriceUSD: productSettings.kickstarterPriceUSD,
     preorder: productSettings.preorder,
   },
 } as const;
 
 /**
- * Discount / campaign configuration consumed by the UI.
- * Values come from `lib/admin.ts`; derived labels are computed here.
+ * Campaign + email-lock configuration consumed by the UI. Sentences that
+ * quote the visitor's price are built per visitor by the `emailLock*`
+ * helpers above, not stored here.
  */
 export const discountConfig = {
   campaign: {
     freeShipping: campaignSettings.freeShipping,
     ctaLabel: campaignSettings.ctaLabel,
     tierLabels: campaignSettings.tierLabels,
-    superEarlyBirdNote: campaignSettings.superEarlyBirdNote,
+    tierNotes: campaignSettings.tierNotes,
   },
   email: {
-    percentOff: emailDiscount.percentOff,
-    /** `"Get an extra 15% off on Kickstarter"` — percent interpolated. */
-    headline: emailDiscountHeadline(),
-    confirmationCopy: emailDiscount.confirmationCopy,
     consentCopy: emailDiscount.consentCopy,
     codePrefix: emailDiscount.codePrefix,
-    /** `"EXTRA 15% OFF"` */
-    label: `EXTRA ${Math.round(emailDiscount.percentOff * 100)}% OFF`,
   },
   experiment: priceExperiment,
 } as const;

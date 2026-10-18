@@ -13,27 +13,24 @@
  * ── How this file is organised ─────────────────────────────────────────────
  *
  *   1. Site identity      (name, tagline, description)
- *   2. Product + pricing  (retail price, default Kickstarter price)
- *   3. Price experiment   (Meta-ads A/B price range — the demand curve test)
- *   4. Campaign           (Kickstarter — free shipping, CTA label)
- *   5. Email discount     (Super Early Bird — extra % off for an email)
+ *   2. Product            (name, handle)
+ *   3. Price experiment   (the five price arms — which one a visitor sees)
+ *   4. Campaign           (Kickstarter — free shipping, CTA label, tier labels)
+ *   5. Email lock         (Super Early Bird — the price an email locks in)
  *   6. Tracking           (cookie notice toggle; the Pixel id lives in env)
  *   7. External links     (Kickstarter URL, App Store, support email)
  *
  * ── Pricing model ──────────────────────────────────────────────────────────
  *
- *   Three tiers are shown everywhere, always in this order:
+ *   Every visitor is assigned one arm of `priceExperiment.arms` (uniformly
+ *   at random, remembered in a signed cookie) and sees only that arm's
+ *   three numbers, always in this order:
  *
- *     Super Early Bird  = Kickstarter price × (1 − emailDiscount.percentOff)
- *                         — unlocked by signing up with an email.
- *     Kickstarter       = the campaign price. Either the fixed default
- *                         below, or — when the price experiment is on — a
- *                         random integer in the experiment's range, assigned
- *                         once per visitor and remembered in a cookie.
- *     Retail            = productSettings.retailPriceUSD (struck through).
+ *     Super Early Bird  = arm.emailLockUSD — locked in by joining the list.
+ *     Kickstarter       = arm.kickstarterCeilingUSD — "never pay more than".
+ *     Expected retail   = arm.retailUSD — after the campaign.
  *
- *   Percent-off badges are computed from these numbers (lib/pricing.ts), so
- *   nothing here says "25%" in prose that could drift from the maths.
+ *   No percentages or strike-throughs: each number stands on its own.
  *
  * ── What does NOT live here ────────────────────────────────────────────────
  *
@@ -63,40 +60,54 @@ export const siteIdentity = {
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────
-// 2. Product + pricing
+// 2. Product
 // ─────────────────────────────────────────────────────────────────────────
 
 export const productSettings = {
   name: "GripFit",
   /** Shopify handle — only used if commerce relights in v2. */
   handle: "gripfit",
-  /** **Retail price in USD** — the struck-through "Retail" tier. */
-  retailPriceUSD: 149,
-  /** **Default Kickstarter price in USD.** Used when the price experiment
-   *  is off, and for anyone without an assignment (bots, build-time
-   *  prerender). Whole dollars. */
-  kickstarterPriceUSD: 112,
   /** v1 is always a Kickstarter pre-launch; flip when Shopify relights. */
   preorder: true,
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────
-// 3. Price experiment  (Meta ads A/B → demand curve)
+// 3. Price experiment  (five arms → which Kickstarter price to launch at)
 // ─────────────────────────────────────────────────────────────────────────
 
+export interface PriceArm {
+  /** 1-based arm number — stored in the cookie and on every lead. */
+  id: number;
+  /** Expected retail price after the campaign, whole USD. */
+  retailUSD: number;
+  /** Kickstarter ceiling — the visitor will never pay more than this. */
+  kickstarterCeilingUSD: number;
+  /** Price locked in by joining the email list (Super Early Bird). */
+  emailLockUSD: number;
+}
+
 export const priceExperiment = {
-  /** Master switch. `false` = everyone sees `kickstarterPriceUSD`. */
+  /** Master switch. `false` = everyone sees `defaultArmId`. */
   enabled: true,
   /** Experiment id, stored on every visitor and lead so results can be
    *  grouped. Change it to start a fresh experiment — every visitor gets a
    *  new assignment. Letters, digits, dashes only (it lives in a cookie). */
-  id: "ks-price-2026-10",
-  /** Inclusive integer range the Kickstarter price is drawn from. Must stay
-   *  below `retailPriceUSD` or the "Retail" tier stops making sense
-   *  (`tests/pricing.test.ts` enforces this). */
-  minUSD: 75,
-  maxUSD: 140,
-  /** How long a visitor keeps their price, in days. */
+  id: "ks-arms-2026-10",
+  /** Each visitor is assigned one arm, uniformly at random. Ids must be
+   *  1..n in order, and within an arm lock < ceiling < retail
+   *  (`tests/pricing.test.ts` enforces both). Editing a live arm's numbers
+   *  changes what its existing visitors see — change `id` instead. */
+  arms: [
+    { id: 1, retailUSD: 98, kickstarterCeilingUSD: 82, emailLockUSD: 69 },
+    { id: 2, retailUSD: 118, kickstarterCeilingUSD: 99, emailLockUSD: 84 },
+    { id: 3, retailUSD: 154, kickstarterCeilingUSD: 129, emailLockUSD: 109 },
+    { id: 4, retailUSD: 190, kickstarterCeilingUSD: 159, emailLockUSD: 135 },
+    { id: 5, retailUSD: 238, kickstarterCeilingUSD: 199, emailLockUSD: 169 },
+  ] satisfies readonly PriceArm[],
+  /** Arm shown when the experiment is off, or to a request with no
+   *  assignment (prefetches, link-preview bots). Never recorded. */
+  defaultArmId: 3,
+  /** How long a visitor keeps their arm, in days. */
   cookieDays: 180,
 } as const;
 
@@ -113,26 +124,32 @@ export const campaignSettings = {
   tierLabels: {
     superEarlyBird: "Super Early Bird",
     kickstarter: "Kickstarter",
-    retail: "Retail",
+    retail: "Expected retail",
   },
-  /** One-line explanation under the Super Early Bird tier. */
-  superEarlyBirdNote: "Unlocked with your email",
+  /** One-line explanation under each tier. */
+  tierNotes: {
+    superEarlyBird: "Locked in when you join the email list",
+    kickstarter: "Never pay more than this",
+    retail: "After the campaign",
+  },
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────
-// 5. Email discount  (Super Early Bird)
+// 5. Email lock  (Super Early Bird)
 // ─────────────────────────────────────────────────────────────────────────
 
 export const emailDiscount = {
-  /** Extra percent off the Kickstarter price, expressed as 0–1. */
-  percentOff: 0.15,
-  /** Modal / footer headline. The percent is interpolated from the number
-   *  above, so this string must contain `{percent}`. */
-  headline: "Get an extra {percent}% off on Kickstarter",
-  /** Shown after a successful submission. */
+  /** Modal / footer / `/kickstarter` headline. `{price}` is replaced with
+   *  the visitor's lock price. */
+  headline: "Lock in {price} on Kickstarter",
+  /** Submit button. `{price}` as above. */
+  buttonLabel: "Lock in {price}",
+  /** Shown after a successful submission. `{price}` is the price the email
+   *  is locked at — for a returning email, its original lock. */
   confirmationCopy:
-    "Done — your Super Early Bird code is on the way. Check your inbox in a couple of minutes.",
-  /** Prefix on every generated discount code, e.g. `GF-7Q4KX2M9`. */
+    "You're on the list — your Super Early Bird price is locked at {price}. Check your inbox in a couple of minutes.",
+  /** Prefix on every generated reference code, e.g. `GF-7Q4KX2M9`. The
+   *  code identifies the lock and proves ownership on `/unsubscribe`. */
   codePrefix: "GF",
   /** The single consent / anti-spam line under the footer form. */
   consentCopy:

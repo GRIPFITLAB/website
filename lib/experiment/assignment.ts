@@ -1,11 +1,12 @@
 /**
- * Per-visitor price assignment.
+ * Per-visitor price-arm assignment.
  *
- * On a visitor's first request the proxy draws a random integer price from
- * the experiment's range, mints a visitor id, and writes both into a
+ * On a visitor's first request the proxy draws one of the experiment's
+ * arms uniformly at random, mints a visitor id, and writes both into a
  * **signed** first-party cookie. The signature (HMAC-SHA256, Web Crypto)
  * means the browser can carry the assignment but cannot change it — a
- * visitor who edits the cookie to `price=1` simply gets re-assigned.
+ * visitor who edits the cookie to a cheaper arm simply gets re-assigned.
+ * The cookie holds only the arm id; prices are looked up server-side.
  *
  * Only Web Crypto is used so this module runs in the proxy, in Server
  * Components / Actions, and under Vitest without polyfills.
@@ -16,13 +17,13 @@
  */
 
 import { priceExperiment } from "@/lib/admin";
-import { isValidExperimentPrice } from "@/lib/pricing";
+import { isValidArmId } from "@/lib/pricing";
 
 export interface Assignment {
   visitorId: string;
   experimentId: string;
-  /** The Kickstarter price this visitor sees, whole USD. */
-  price: number;
+  /** The price arm this visitor sees (`priceExperiment.arms[].id`). */
+  armId: number;
 }
 
 const VISITOR_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -47,10 +48,7 @@ export function assignmentSecret(): string {
 }
 
 /** Uniform random integer in [min, max]. */
-export function randomPrice(
-  min: number = priceExperiment.minUSD,
-  max: number = priceExperiment.maxUSD,
-): number {
+export function randomInt(min: number, max: number): number {
   const lo = Math.ceil(Math.min(min, max));
   const hi = Math.floor(Math.max(min, max));
   const span = hi - lo + 1;
@@ -65,11 +63,17 @@ export function randomPrice(
   return lo + (x % span);
 }
 
+/** One of the configured arms, each with probability 1/n. */
+export function randomArmId(): number {
+  const arms = priceExperiment.arms;
+  return arms[randomInt(0, arms.length - 1)]!.id;
+}
+
 export function createAssignment(): Assignment {
   return {
     visitorId: crypto.randomUUID(),
     experimentId: priceExperiment.id,
-    price: randomPrice(),
+    armId: randomArmId(),
   };
 }
 
@@ -96,7 +100,7 @@ async function hmac(secret: string, payload: string): Promise<string> {
 }
 
 function payloadOf(a: Assignment): string {
-  return `${a.visitorId}.${a.experimentId}.${a.price}`;
+  return `${a.visitorId}.${a.experimentId}.${a.armId}`;
 }
 
 /** Serialise to the cookie / header value. */
@@ -110,8 +114,8 @@ export async function encodeAssignment(
 
 /**
  * Parse and verify. Returns `null` for anything malformed, forged, from a
- * different experiment, or with a price outside the current range — all
- * of which mean "assign afresh".
+ * different experiment, or naming an arm that doesn't exist — all of
+ * which mean "assign afresh".
  */
 export async function decodeAssignment(
   value: string | undefined | null,
@@ -120,17 +124,17 @@ export async function decodeAssignment(
   if (!value) return null;
   const parts = value.split(".");
   if (parts.length !== 4) return null;
-  const [visitorId, experimentId, priceRaw, sig] = parts as [string, string, string, string];
+  const [visitorId, experimentId, armRaw, sig] = parts as [string, string, string, string];
   if (!VISITOR_ID_RE.test(visitorId) || !EXPERIMENT_ID_RE.test(experimentId)) return null;
-  if (!/^\d{1,5}$/.test(priceRaw)) return null;
-  const price = Number(priceRaw);
+  if (!/^\d{1,3}$/.test(armRaw)) return null;
+  const armId = Number(armRaw);
   if (experimentId !== priceExperiment.id) return null;
-  if (!isValidExperimentPrice(price)) return null;
+  if (!isValidArmId(armId)) return null;
 
-  const expected = await hmac(secret, `${visitorId}.${experimentId}.${priceRaw}`);
+  const expected = await hmac(secret, `${visitorId}.${experimentId}.${armRaw}`);
   if (!timingSafeEqual(expected, sig)) return null;
 
-  return { visitorId, experimentId, price };
+  return { visitorId, experimentId, armId };
 }
 
 function timingSafeEqual(a: string, b: string): boolean {

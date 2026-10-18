@@ -20,7 +20,7 @@ import {
  */
 
 const DONE =
-  "You're unsubscribed. You won't receive any more email from us. Your Super Early Bird code stays valid.";
+  "You're unsubscribed. You won't receive any more email from us. Your Super Early Bird price stays locked.";
 
 const MISMATCH =
   "That unsubscribe link isn't valid. Use the link from the bottom of your discount email, or contact us and we'll remove you.";

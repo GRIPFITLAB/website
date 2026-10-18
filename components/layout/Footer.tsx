@@ -4,7 +4,8 @@ import { Logo } from "@/components/layout/Logo";
 import { EmailDiscountForm } from "@/components/marketing/EmailDiscountForm";
 import { Container } from "@/components/ui/section";
 import { Display, Eyebrow } from "@/components/ui/typography";
-import { discountConfig, externalLinks, siteConfig } from "@/lib/config";
+import { discountConfig, emailLockHeadline, externalLinks, siteConfig } from "@/lib/config";
+import { getVisitorPricing } from "@/lib/experiment/server";
 import { footerRoutes, routes } from "@/lib/routes";
 
 /**
@@ -20,7 +21,8 @@ const linkGroups: Array<{
   { heading: "Legal", routeKeys: ["privacy", "terms"] },
 ];
 
-export function Footer() {
+export async function Footer() {
+  const pricing = await getVisitorPricing();
   const year = new Date().getFullYear();
   const allowedKeys = new Set(footerRoutes.map((r) => r.key));
 
@@ -38,7 +40,7 @@ export function Footer() {
               {discountConfig.campaign.tierLabels.superEarlyBird}
             </Eyebrow>
             <Display id="footer-email-discount-heading" size="md">
-              {discountConfig.email.headline}
+              {emailLockHeadline(pricing)}
             </Display>
           </div>
           <div className="md:col-span-6 lg:col-span-7">

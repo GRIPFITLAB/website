@@ -3,12 +3,19 @@
 import { after } from "next/server";
 
 import { getContact, sendTransactionalEmail, upsertContact } from "@/lib/brevo";
-import { discountConfig, siteConfig } from "@/lib/config";
+import type { BrevoContact, GripFitContactAttributes } from "@/lib/brevo/types";
+import { siteConfig } from "@/lib/config";
 import { generateDiscountCode } from "@/lib/discount-code";
 import { env, isBrevoConfigured } from "@/lib/env";
 import { getVisitorContext } from "@/lib/experiment/server";
-import { recordLead } from "@/lib/experiment/store";
-import type { Pricing } from "@/lib/pricing";
+import { recordLead, type PriceLock } from "@/lib/experiment/store";
+import {
+  computePricing,
+  emailLockConfirmation,
+  formatUSD,
+  isValidArmId,
+  type Pricing,
+} from "@/lib/pricing";
 import { checkRateLimit, clientKey } from "@/lib/rate-limit";
 import { emailTheme } from "@/lib/theme";
 import { sendMetaEvent } from "@/lib/tracking/meta-capi";
@@ -17,22 +24,32 @@ import { emailDiscountSchema, type EmailDiscountState } from "./email-discount-s
 
 /**
  * Super Early Bird email capture — shared by the modal, the footer form,
- * and /kickstarter.
+ * and /kickstarter. Joining the list locks in the visitor's arm's price.
  *
  * Flow:
  *   1. Validate server-side (Zod + honeypot) and rate-limit per IP.
- *   2. Read the visitor's price assignment + attribution (cookies set by
- *      the proxy) — this is what makes the lead analysable by price.
- *   3. Brevo: reuse an existing code or mint one; upsert the contact with
- *      the code AND the experiment fields; email the code.
+ *   2. Read the visitor's signed arm assignment + attribution (cookies set
+ *      by the proxy). The price comes only from that server-side lookup —
+ *      nothing in the form can change it.
+ *   3. Brevo: an email that already has a lock keeps it (arm, price, code,
+ *      first-touch fields untouched); otherwise lock the current arm's
+ *      price. Upsert the contact and email the confirmation.
  *   4. After the response: persist the lead to Firestore (source of truth
- *      for the demand curve) and send the Conversions API `Lead` with the
+ *      for conversion by arm) and send the Conversions API `Lead` with the
  *      browser's event id so Meta dedups it against the Pixel.
  *
  * Every integration degrades to a log line when unconfigured, so the form
  * works on a zero-config deploy.
  */
-const GENERIC_ERROR = "We couldn't send your code just now. Please try again in a moment.";
+const GENERIC_ERROR = "We couldn't lock in your price just now. Please try again in a moment.";
+
+/** The lock already stored on a Brevo contact, if any. */
+function existingLock(contact: BrevoContact | null): PriceLock | null {
+  const amount = contact?.attributes?.PRICE_LOCKED;
+  if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) return null;
+  const arm = contact?.attributes?.PRICE_ARM;
+  return { armId: isValidArmId(arm) ? arm : null, amount };
+}
 
 export async function submitEmailDiscount(
   _prev: EmailDiscountState,
@@ -73,9 +90,10 @@ export async function submitEmailDiscount(
   const { pricing, assignment, attribution } = visitor;
 
   let code: string;
+  let lock: PriceLock = { armId: pricing.armId, amount: pricing.superEarlyBird.amount };
 
   if (!isBrevoConfigured) {
-    console.warn("[email-discount] Brevo not configured — submission accepted, no code sent.", {
+    console.warn("[email-discount] Brevo not configured — submission accepted, no email sent.", {
       email,
     });
     code = generateDiscountCode();
@@ -88,21 +106,33 @@ export async function submitEmailDiscount(
           ? existingCode
           : generateDiscountCode();
 
-      await upsertContact({
-        email,
-        attributes: {
-          DISCOUNT_CODE: code,
-          DISCOUNT_PCT: Math.round(discountConfig.email.percentOff * 100),
+      const prior = existingLock(existing);
+      const attributes: GripFitContactAttributes = { DISCOUNT_CODE: code };
+      if (prior) {
+        lock = prior;
+      } else {
+        // First lock for this email. A contact may already exist without one
+        // (e.g. an iOS-app signup); keep its original signup timestamp.
+        Object.assign(attributes, {
           SIGNUP_SOURCE: "website",
-          SIGNUP_TS: new Date().toISOString(),
           VISITOR_ID: assignment?.visitorId ?? "",
           EXPERIMENT_ID: assignment?.experimentId ?? "",
-          PRICE_ASSIGNED: pricing.kickstarter.amount,
+          PRICE_ARM: lock.armId ?? undefined,
+          PRICE_LOCKED: lock.amount,
           UTM_CAMPAIGN: attribution?.utm_campaign ?? "",
-        },
+        } satisfies GripFitContactAttributes);
+        if (typeof existing?.attributes?.SIGNUP_TS !== "string") {
+          attributes.SIGNUP_TS = new Date().toISOString();
+        }
+      }
+
+      await upsertContact({
+        email,
+        attributes,
         ...(env.BREVO_WEBSITE_LIST_ID ? { listIds: [env.BREVO_WEBSITE_LIST_ID] } : {}),
       });
 
+      const armPricing = lock.armId !== null ? computePricing(lock.armId) : null;
       await sendTransactionalEmail({
         to: [{ email }],
         ...(env.BREVO_DISCOUNT_TEMPLATE_ID
@@ -110,14 +140,15 @@ export async function submitEmailDiscount(
               templateId: env.BREVO_DISCOUNT_TEMPLATE_ID,
               params: {
                 DISCOUNT_CODE: code,
-                SUPER_EARLY_BIRD_PRICE: pricing.superEarlyBird.formatted,
-                KICKSTARTER_PRICE: pricing.kickstarter.formatted,
+                SUPER_EARLY_BIRD_PRICE: formatUSD(lock.amount),
+                KICKSTARTER_PRICE: armPricing?.kickstarter.formatted ?? "",
+                EXPECTED_RETAIL_PRICE: armPricing?.retail.formatted ?? "",
               },
             }
           : {
-              subject: `Your ${siteConfig.name} Super Early Bird code: ${code}`,
-              htmlContent: discountEmailHtml(code, email, pricing),
-              textContent: discountEmailText(code, email, pricing),
+              subject: `Your ${siteConfig.name} price is locked at ${formatUSD(lock.amount)}`,
+              htmlContent: lockEmailHtml(code, email, lock.amount, armPricing),
+              textContent: lockEmailText(code, email, lock.amount, armPricing),
             }),
       });
     } catch (error) {
@@ -130,7 +161,16 @@ export async function submitEmailDiscount(
   const { fbp, fbc, clientIp, userAgent } = visitor;
   after(async () => {
     await Promise.all([
-      recordLead({ email, discountCode: code, source, assignment, pricing, attribution, eventId }),
+      recordLead({
+        email,
+        discountCode: code,
+        source,
+        assignment,
+        pricing,
+        lock,
+        attribution,
+        eventId,
+      }),
       sendMetaEvent({
         eventName: "Lead",
         eventId: eventId ?? crypto.randomUUID(),
@@ -142,7 +182,8 @@ export async function submitEmailDiscount(
         fbc,
         customData: {
           currency: "USD",
-          value: pricing.superEarlyBird.amount,
+          value: lock.amount,
+          price_arm: lock.armId,
           assigned_price: pricing.kickstarter.amount,
           experiment_id: assignment?.experimentId ?? null,
           content_name: source,
@@ -151,7 +192,7 @@ export async function submitEmailDiscount(
     ]);
   });
 
-  return { status: "success", message: discountConfig.email.confirmationCopy, eventId };
+  return { status: "success", message: emailLockConfirmation(lock.amount), eventId };
 }
 
 /**
@@ -168,14 +209,19 @@ function unsubscribeUrl(email: string, code: string): string | null {
 
 /* ── Fallback email body (when no Brevo template is configured) ──────── */
 
-function discountEmailText(code: string, email: string, p: Pricing): string {
+function armSentence(p: Pricing): string {
+  return `The Kickstarter price will be no more than ${p.kickstarter.formatted}, and expected retail after the campaign is ${p.retail.formatted}.`;
+}
+
+function lockEmailText(code: string, email: string, amount: number, p: Pricing | null): string {
   const unsub = unsubscribeUrl(email, code);
   return [
-    `Your ${siteConfig.name} ${p.superEarlyBird.label} code: ${code}`,
+    `Your ${siteConfig.name} Super Early Bird price is locked at ${formatUSD(amount)}.`,
+    ...(p ? ["", armSentence(p)] : []),
     "",
-    `It takes an extra ${p.emailPercentOff}% off the Kickstarter price — ${p.superEarlyBird.formatted} instead of ${p.kickstarter.formatted} (retail ${p.retail.formatted}).`,
+    `Your reference code: ${code}`,
     "",
-    "The campaign isn't live yet. Keep this email: we'll write to you the day it opens, with instructions for applying your code.",
+    "The campaign isn't live yet. Keep this email: we'll write to you the day it opens, with instructions for claiming your price.",
     "",
     `— The ${siteConfig.name} team`,
     "",
@@ -185,9 +231,10 @@ function discountEmailText(code: string, email: string, p: Pricing): string {
   ].join("\n");
 }
 
-function discountEmailHtml(code: string, email: string, p: Pricing): string {
+function lockEmailHtml(code: string, email: string, amount: number, p: Pricing | null): string {
   const t = emailTheme;
   const unsub = unsubscribeUrl(email, code);
+  const locked = formatUSD(amount);
   return `<!doctype html>
 <html lang="en">
 <body style="margin:0;padding:0;background:${t.pageBg};font-family:Inter,Helvetica,Arial,sans-serif;color:${t.text};">
@@ -195,20 +242,21 @@ function discountEmailHtml(code: string, email: string, p: Pricing): string {
     <tr><td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${t.cardBg};border-radius:16px;padding:40px 32px;">
         <tr><td>
-          <p style="margin:0 0 24px;font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:${t.accent};">${siteConfig.name} · ${p.superEarlyBird.label}</p>
-          <h1 style="margin:0 0 16px;font-size:28px;line-height:1.15;font-weight:500;color:${t.text};">Here's your code.</h1>
-          <p style="margin:0 0 28px;font-size:15px;line-height:1.6;color:${t.textMuted};">
-            It takes an extra ${p.emailPercentOff}% off the Kickstarter price —
-            <strong style="color:${t.text};">${p.superEarlyBird.formatted}</strong> instead of ${p.kickstarter.formatted}
-            (retail ${p.retail.formatted}).
-          </p>
+          <p style="margin:0 0 24px;font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:${t.accent};">${siteConfig.name} · Super Early Bird</p>
+          <h1 style="margin:0 0 16px;font-size:28px;line-height:1.15;font-weight:500;color:${t.text};">Your price is locked at ${locked}.</h1>
+          ${
+            p
+              ? `<p style="margin:0 0 28px;font-size:15px;line-height:1.6;color:${t.textMuted};">${armSentence(p)}</p>`
+              : ""
+          }
+          <p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:${t.textMuted};">Your reference code</p>
           <p style="margin:0 0 28px;padding:20px;background:${t.codeBg};border-radius:12px;text-align:center;font-size:24px;font-weight:600;letter-spacing:0.08em;color:${t.text};">${code}</p>
           <p style="margin:0 0 28px;font-size:15px;line-height:1.6;color:${t.textMuted};">
-            The campaign isn't live yet. Keep this email — we'll write to you the day it opens, with instructions for applying your code.
+            The campaign isn't live yet. Keep this email — we'll write to you the day it opens, with instructions for claiming your price.
           </p>
           <p style="margin:0 0 28px;font-size:13px;line-height:1.6;color:${t.textFaint};">— The ${siteConfig.name} team</p>
           <p style="margin:0;padding-top:20px;border-top:1px solid ${t.rule};font-size:12px;line-height:1.6;color:${t.textFaint};">
-            You're receiving this because you asked for a ${p.superEarlyBird.label} code at ${siteConfig.name}.
+            You're receiving this because you joined the ${siteConfig.name} Kickstarter list.
             ${
               unsub
                 ? `<a href="${unsub}" style="color:${t.textFaint};text-decoration:underline;">Unsubscribe</a>.`

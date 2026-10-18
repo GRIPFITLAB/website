@@ -29,6 +29,8 @@ export interface VisitorContext {
   attribution: Attribution | null;
   /** True only on the request where the proxy minted the assignment. */
   isNewVisitor: boolean;
+  /** Crawler / link-preview fetcher — excluded from impression counts. */
+  isBot: boolean;
   pricing: Pricing;
   /** Meta's browser cookies, if present — for Conversions API matching. */
   fbp: string | null;
@@ -37,6 +39,17 @@ export interface VisitorContext {
   clientIp: string | null;
   /** Vercel geo header, when deployed there. */
   country: string | null;
+}
+
+/**
+ * Coarse user-agent check. Meta fetches every ad's landing page for its
+ * link preview, so without this each ad would add phantom impressions.
+ */
+const BOT_UA_RE =
+  /bot\b|bot\/|crawl|spider|slurp|facebookexternalhit|facebookcatalog|meta-externalagent|whatsapp\/|preview|headless|lighthouse|pingdom|uptime|curl\/|wget\/|python-requests|axios\//i;
+
+export function isLikelyBot(userAgent: string | null): boolean {
+  return !userAgent || BOT_UA_RE.test(userAgent);
 }
 
 export const getVisitorContext = cache(async (): Promise<VisitorContext> => {
@@ -51,15 +64,17 @@ export const getVisitorContext = cache(async (): Promise<VisitorContext> => {
 
   const forwarded = h.get("x-forwarded-for");
   const clientIp = forwarded?.split(",")[0]?.trim() || null;
+  const userAgent = h.get("user-agent");
 
   return {
     assignment,
     attribution,
     isNewVisitor: h.get(NEW_VISITOR_HEADER) === "1",
-    pricing: computePricing(assignment?.price ?? null),
+    isBot: isLikelyBot(userAgent),
+    pricing: computePricing(assignment?.armId ?? null),
     fbp: c.get(META_FBP_COOKIE)?.value ?? null,
     fbc: c.get(META_FBC_COOKIE)?.value ?? null,
-    userAgent: h.get("user-agent"),
+    userAgent,
     clientIp,
     country: h.get("x-vercel-ip-country"),
   };

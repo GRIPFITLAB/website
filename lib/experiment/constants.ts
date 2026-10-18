@@ -3,7 +3,7 @@
  * server readers (which consume them). Pure constants — safe anywhere.
  */
 
-/** Signed price assignment: `visitorId.experimentId.price.signature`. */
+/** Signed price-arm assignment: `visitorId.experimentId.armId.signature`. */
 export const ASSIGNMENT_COOKIE = "gf_exp";
 /** First-touch ad attribution, base64url JSON. */
 export const ATTRIBUTION_COOKIE = "gf_attr";

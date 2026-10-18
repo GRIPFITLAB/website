@@ -31,9 +31,10 @@ Project-specific rules for AI assistants. Read these before the Next.js notes be
    URL in `lib/admin.ts` (`links.crowdfundingUrl`; `/kickstarter` holding page
    while it is `null`). The `lib/shopify/` client is parked for v2 — files
    stay, nothing imports from it (DECISIONS.md §7, §16 Q3). No customer
-   accounts (§8). The discount UI: a site-wide Kickstarter banner quoting the
-   visitor's Kickstarter and Super Early Bird prices, plus an email-capture
-   flow that unlocks the Super Early Bird price (extra 15% off Kickstarter).
+ accounts (§8). The pricing UI: a site-wide Kickstarter banner quoting the
+ visitor's arm (Kickstarter ceiling + Super Early Bird lock), plus an
+ email-capture flow that locks in the Super Early Bird price. No
+ percentages, strike-throughs, or "% off" framing (DECISIONS.md §16 Q12).
    Three surfaces share one Server Action (`submitEmailDiscount`) and one
    `EMAIL_DISCOUNT_DISMISSED_KEY` localStorage flag: (a) `<EmailDiscountModal />`
    in `app/layout.tsx` (auto-opens once; re-open anywhere via the
@@ -63,18 +64,18 @@ Project-specific rules for AI assistants. Read these before the Next.js notes be
    price assignment; that is intentional.
 9. **No hardcoded prices, product handles, API endpoints, env values, or
    colours in components.** Editable values live in **[`lib/admin.ts`](./lib/admin.ts)**
-   — retail price, default Kickstarter price, experiment range, email
-   discount, tier labels, CTA label, links, support email, cookie-notice
-   copy. `lib/config.ts` composes the typed `siteConfig`, `productConfig`,
-   `discountConfig`, `trackingConfig`, `externalLinks`, `campaign` exports;
-   **`lib/pricing.ts`** owns all pricing math (`computePricing`, tier badges,
-   `campaignBannerCopy`). Components read prices through `usePricing()`
-   (client) or `getVisitorPricing()` (server) — never from `admin.ts`
-   directly — so the per-visitor experiment price flows everywhere. Sentences
+ — the five price arms, default arm, email-lock copy templates, tier
+ labels/notes, CTA label, links, support email, cookie-notice copy.
+ `lib/config.ts` composes the typed `siteConfig`, `productConfig`,
+ `discountConfig`, `trackingConfig`, `externalLinks`, `campaign` exports;
+ **`lib/pricing.ts`** owns all pricing math (`computePricing(armId)`,
+ `emailLock*` copy helpers, `campaignBannerCopy`). Components read prices
+ through `usePricing()` (client) or `getVisitorPricing()` (server) — never
+ from `admin.ts` directly — so the per-visitor arm flows everywhere. Sentences
    that quote a number are generated, not typed; `tests/copy.test.ts` checks
    them. Env-derived values stay in `lib/env.ts`.
 10. **Price experiment + tracking (DECISIONS.md §17).** `proxy.ts` assigns a
-    signed, httpOnly `gf_exp` cookie (visitor id + price) and a first-touch
+ signed, httpOnly `gf_exp` cookie (visitor id + price arm) and a first-touch
     `gf_attr` attribution cookie, and forwards them as request headers.
     `lib/experiment/server.ts → getVisitorContext()` is the only way to read
     them. Leads, visitors, and contact messages persist to Firestore via

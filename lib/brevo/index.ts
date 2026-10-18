@@ -18,9 +18,8 @@ import type {
  * codes — there is no local database (EDD D-004).
  *
  * **Setup prerequisite — silent failure if skipped.** The custom contact
- * attributes `DISCOUNT_CODE` (text), `DISCOUNT_PCT` (number),
- * `SIGNUP_SOURCE` (text), and `SIGNUP_TS` (text) must exist in the Brevo
- * account first.
+ * attributes in `scripts/setup-brevo-attributes.mjs` (`DISCOUNT_CODE`,
+ * `PRICE_ARM`, `PRICE_LOCKED`, …) must exist in the Brevo account first.
  *
  * Brevo does **not** reject a write to an attribute it does not know. It
  * returns 2xx and silently drops the unknown fields, so the signup looks

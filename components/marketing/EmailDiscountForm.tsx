@@ -7,7 +7,7 @@ import { useExperiment } from "@/components/experiment/PricingContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { discountConfig } from "@/lib/config";
+import { discountConfig, emailLockButtonLabel } from "@/lib/config";
 import { markEmailDiscountDismissed } from "@/lib/email-discount-events";
 import { routes } from "@/lib/routes";
 import { newEventId, trackLead } from "@/lib/tracking/meta-pixel";
@@ -70,6 +70,7 @@ export function EmailDiscountForm({
       trackedRef.current = id;
       trackLead(
         {
+          price_arm: pricing.armId,
           assigned_price: pricing.kickstarter.amount,
           experiment_id: experimentId ?? undefined,
           currency: "USD",
@@ -153,7 +154,7 @@ export function EmailDiscountForm({
             className="h-12 flex-1 rounded-full bg-bg-raised px-5"
           />
           <Button type="submit" variant="promo" size="lg" disabled={pending} className="sm:w-auto">
-            {pending ? "Sending…" : "Send my code"}
+            {pending ? "Locking in…" : emailLockButtonLabel(pricing)}
           </Button>
         </div>
         {errors}
@@ -185,7 +186,7 @@ export function EmailDiscountForm({
       </div>
       {hidden}
       <Button type="submit" variant="promo" size="lg" disabled={pending} className="w-full">
-        {pending ? "Sending…" : `Send my ${discountConfig.email.percentOff * 100}% code`}
+        {pending ? "Locking in…" : emailLockButtonLabel(pricing)}
       </Button>
       {consent ? <div className="text-center">{consent}</div> : null}
     </form>

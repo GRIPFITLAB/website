@@ -7,7 +7,7 @@ import { useSyncExternalStore } from "react";
 import { usePricing } from "@/components/experiment/PricingContext";
 import { campaign, campaignBannerCopy, discountConfig } from "@/lib/config";
 
-const STORAGE_KEY = "gripfit:discount-banner:dismissed-v2";
+const STORAGE_KEY = "gripfit:discount-banner:dismissed-v3";
 
 /**
  * Site-wide Kickstarter pricing banner — the only flood-fill of the promo

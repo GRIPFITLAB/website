@@ -17,8 +17,9 @@ import type { Attribution } from "./attribution";
  *   {prefix}leads/{sha256(email)}  one doc per captured email (conversion)
  *   {prefix}contacts/{auto}        contact-form messages
  *
- * Conversion rate at price P = leads where assignedPrice == P ÷ visitors
- * where assignedPrice == P. `scripts/export-leads.mjs` dumps both as CSV.
+ * Conversion rate for arm A = leads where priceArm == A ÷ visitors where
+ * priceArm == A (visitors = impressions: one per visitor shown the arm).
+ * `scripts/export-leads.mjs` dumps both as CSV and prints the per-arm table.
  *
  * Degrades like every other integration here: with no service account the
  * functions log and return, so the site is fully usable before Firebase is
@@ -79,7 +80,7 @@ export async function recordVisitor(input: VisitorRecordInput): Promise<void> {
   if (!store) {
     console.info("[store] visitor (no Firebase)", {
       visitorId: input.assignment.visitorId,
-      price: input.assignment.price,
+      armId: input.assignment.armId,
     });
     return;
   }
@@ -92,9 +93,10 @@ export async function recordVisitor(input: VisitorRecordInput): Promise<void> {
         {
           visitorId: assignment.visitorId,
           experimentId: assignment.experimentId,
-          assignedPrice: assignment.price,
-          superEarlyBirdPrice: pricing.superEarlyBird.amount,
-          retailPrice: pricing.retail.amount,
+          priceArm: assignment.armId,
+          emailLockPrice: pricing.superEarlyBird.amount,
+          kickstarterCeiling: pricing.kickstarter.amount,
+          expectedRetail: pricing.retail.amount,
           attribution: attribution ?? {},
           userAgent: input.userAgent ?? null,
           country: input.country ?? null,
@@ -109,13 +111,23 @@ export async function recordVisitor(input: VisitorRecordInput): Promise<void> {
 
 /* ── Leads (conversions) ─────────────────────────────────────────────── */
 
+/** The price an email is locked at, and the arm it came from. */
+export interface PriceLock {
+  /** `null` when the lock predates arms or names an arm since removed. */
+  armId: number | null;
+  amount: number;
+}
+
 export interface LeadRecordInput {
   email: string;
   discountCode: string;
   /** Which surface submitted: modal | footer | kickstarter. */
   source: string;
   assignment: Assignment | null;
+  /** What this visitor is being shown right now. */
   pricing: Pricing;
+  /** What the email is locked at — the original lock for a returning email. */
+  lock: PriceLock;
   attribution: Attribution | null;
   /** Browser-generated id shared with the Pixel for CAPI dedup. */
   eventId: string | null;
@@ -126,14 +138,17 @@ async function sha256Hex(s: string): Promise<string> {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-/** One doc per email. Repeat submits bump `submitCount`, keep first-touch. */
+/**
+ * One doc per email. Repeat submits bump `submitCount`; the arm, lock, and
+ * first-touch fields are written once and never overwritten.
+ */
 export async function recordLead(input: LeadRecordInput): Promise<void> {
   const store = firestore();
   if (!store) {
     console.info("[store] lead (no Firebase)", {
       email: input.email,
       visitorId: input.assignment?.visitorId ?? null,
-      price: input.assignment?.price ?? null,
+      lock: input.lock,
     });
     return;
   }
@@ -158,10 +173,11 @@ export async function recordLead(input: LeadRecordInput): Promise<void> {
       firstSource: input.source,
       visitorId: input.assignment?.visitorId ?? null,
       experimentId: input.assignment?.experimentId ?? null,
-      assignedPrice: input.assignment?.price ?? null,
-      kickstarterPrice: input.pricing.kickstarter.amount,
-      superEarlyBirdPrice: input.pricing.superEarlyBird.amount,
-      retailPrice: input.pricing.retail.amount,
+      priceArm: input.lock.armId,
+      lockedPrice: input.lock.amount,
+      /** Arm on screen at signup; differs from `priceArm` only when the
+       *  email was already locked in Brevo before this doc existed. */
+      displayedArm: input.pricing.armId,
       isExperimentPrice: input.pricing.isExperimentPrice,
       attribution: input.attribution ?? {},
       createdAt: FieldValue.serverTimestamp(),

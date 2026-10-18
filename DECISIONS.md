@@ -248,7 +248,7 @@ links an order # to an App Store account.
 | Form | Backend | Notification |
 | --- | --- | --- |
 | Contact | Server Action → Brevo transactional (`/smtp/email`) | Delivered to `EMAIL_SUPPORT`; `replyTo` is the submitter so replying answers them directly. Sender is always the verified Brevo address — sending as the visitor's domain would fail SPF/DKIM. |
-| Email-discount capture (extra 15% off, stacks on Kickstarter) | Server Action → Brevo Contacts (`/contacts`, `updateEnabled: true`) then Brevo transactional | Upserts the contact into `BREVO_WEBSITE_LIST_ID` with a unique `DISCOUNT_CODE` attribute, then emails the code. Three surfaces share the same `submitEmailDiscount` action and the same `EMAIL_DISCOUNT_DISMISSED_KEY` localStorage flag: (a) first-visit `<EmailDiscountModal />` mounted in `app/layout.tsx`, (b) always-visible `<EmailDiscountForm variant="footer" />` in the footer, (c) `<EmailDiscountTeaser />` next to the "Back the campaign" CTA in the Hero and mobile menu (dropped from `ClosingCta` Oct 16, 2026 — the footer form sits directly below it). The teaser opens the modal via the `gripfit:open-email-discount` custom event (`lib/email-discount-events.ts`) — no Context provider, no prop drilling. |
+| Email lock (Super Early Bird — locks the visitor's arm price, §17) | Server Action → Brevo Contacts (`/contacts`, `updateEnabled: true`) then Brevo transactional | Upserts the contact into `BREVO_WEBSITE_LIST_ID` with a unique `DISCOUNT_CODE` reference plus `PRICE_ARM` / `PRICE_LOCKED` (first signup only), then emails the locked price. Three surfaces share the same `submitEmailDiscount` action and the same `EMAIL_DISCOUNT_DISMISSED_KEY` localStorage flag: (a) first-visit `<EmailDiscountModal />` mounted in `app/layout.tsx`, (b) always-visible `<EmailDiscountForm variant="footer" />` in the footer, (c) `<EmailDiscountTeaser />` next to the "Back the campaign" CTA in the Hero and mobile menu (dropped from `ClosingCta` Oct 16, 2026 — the footer form sits directly below it). The teaser opens the modal via the `gripfit:open-email-discount` custom event (`lib/email-discount-events.ts`) — no Context provider, no prop drilling. |
 
 ---
 
@@ -529,15 +529,16 @@ slot for a product render or photograph. Currently a labelled placeholder
 tile (`design.md` §9). Drop the final art into `public/product/hero.*`
 and reference it via `next/image` once the design team supplies it.
 
-**Q12 — Pricing.** ✅ RE-RESOLVED Sep 7, 2026. MSRP set to **$149**,
-Kickstarter pre-order discount **25% off** (sale price $111.75),
-email-modal discount **extra 15% off** that **stacks on the Kickstarter
-discount** (combined 36.25% off MSRP = $94.99, computed by
-`getStackedPreorderPricing()`). All values flow from `lib/admin.ts`; no
-UI component encodes a percent or price literal, and
-`tests/copy.test.ts` fails the build if a banner sentence drifts from
-the number it describes. Replaces the Jun 28, 2026 $135 / 30% / $94.50
-line-up (itself replacing Apr 29's $175 / 40% / $105).
+**Q12 — Pricing.** ✅ RE-RESOLVED Oct 18, 2026. There is no single
+public price yet: every visitor sees one of five **price arms** (§17)
+— expected retail, a Kickstarter ceiling ("never pay more than"), and
+the Super Early Bird price an email locks in. Signup rate by arm picks
+the public Kickstarter price. No percentages, strike-throughs, or
+"% off" anywhere. All values flow from `lib/admin.ts →
+priceExperiment.arms`; `tests/copy.test.ts` fails the build if a
+sentence quotes a number that isn't the visitor's arm. Replaces the
+Sep 7, 2026 $149 / 25% / +15% line-up and the Oct 15 continuous
+$75–$140 test.
 
 **Q13 — Specs change wording.** The Apr 29, 2026 revamp removed the
 "Specifications are subject to minor change before the production run
@@ -583,21 +584,34 @@ backs `/privacy` and `/terms`.
 Both are live Zoho mailboxes as of Oct 16, 2026. Sending still needs
 `BREVO_API_KEY`.
 
-**Q17 — Price-experiment range. ⚠️ DECIDED, CONFIRM.** The brief gave
-"e.g. 75–150" as an example range. Retail is $149, so a $150
-Kickstarter price would be *above* retail; the range is set to
-**$75–$140** in `lib/admin.ts → priceExperiment`. Widen or narrow it
-there; `tests/copy.test.ts` enforces `maxUSD < retailPriceUSD`.
+**Q17 — Price arms. ✅ RESOLVED (Oct 18, 2026).** Five fixed arms
+replace the $75–$140 range:
+
+| Arm | Expected retail | Kickstarter ceiling | Email lock |
+| --- | --- | --- | --- |
+| 1 | $98 | $82 | $69 |
+| 2 | $118 | $99 | $84 |
+| 3 | $154 | $129 | $109 |
+| 4 | $190 | $159 | $135 |
+| 5 | $238 | $199 | $169 |
+
+Arm 3 is `defaultArmId` — what a request with no assignment (or the
+whole site, with the experiment off) shows; it is never recorded as an
+impression. ⚠️ Open: the Terms "Kickstarter and Pricing" paragraph still
+says a code "reduces that published price by the percentage stated",
+and Privacy lists "the discount percentage" among stored fields — both
+describe the old model and need a legal-copy pass.
 
 ---
 
 ## 17. Pre-launch Price Experiment (Meta ads)
 
-**Goal.** Estimate a demand curve for the Kickstarter price before the
-campaign opens, using Meta ad traffic. Each visitor sees one randomly
-assigned Kickstarter price; the lead database records who signed up at
-which price. Conversion rate at price *P* = leads at *P* ÷ visitors
-at *P*. (Locked Oct 15, 2026.)
+**Goal.** Choose the public Kickstarter price before the campaign
+opens, using Meta ad traffic. Each visitor is assigned one of five price
+arms (§16 Q17) and sees only that arm; the lead database records which
+arm each signup saw. Conversion for arm *A* = signups at *A* ÷
+impressions at *A*. (Infrastructure locked Oct 15, 2026; arms replaced
+the continuous price range Oct 18, 2026.)
 
 **Source of truth is the site, not Meta.** Our visitor id, our price
 assignment, and our lead DB decide everything. Meta receives events for
@@ -606,14 +620,15 @@ or to identify people.
 
 | Piece | Decision |
 | --- | --- |
-| Assignment | `proxy.ts` (Next 16's middleware) runs on every page request. A new visitor gets `visitorId = randomUUID()` and an integer price drawn uniformly from `priceExperiment.minUSD..maxUSD` (`lib/experiment/assignment.ts`, rejection-sampled `crypto.getRandomValues`). |
-| Persistence | First-party cookie **`gf_exp`** = `visitorId.experimentId.price.hmac` — HMAC-SHA256 signed with `EXPERIMENT_SECRET`, httpOnly, SameSite=Lax, 180 days. A tampered, stale-experiment, or out-of-range value is discarded and reassigned, so a visitor cannot pick their price. |
-| First render | The proxy forwards `x-gf-exp` / `x-gf-attr` / `x-gf-new` request headers so the very first server render already knows the price (no flash of default pricing). `lib/experiment/server.ts → getVisitorContext()` reads headers, falls back to cookies for Server Action POSTs. |
-| Exposure | `components/experiment/VisitorProvider.tsx` (in `app/layout.tsx`) records a `visitors/{visitorId}` doc via `after()` on the request that minted the assignment. Pages are therefore dynamic (ƒ) — accepted. |
+| Assignment | `proxy.ts` (Next 16's middleware) runs on every page request. A new visitor gets `visitorId = randomUUID()` and one of `priceExperiment.arms`, each with probability 1/5 (`lib/experiment/assignment.ts → randomArmId`, rejection-sampled `crypto.getRandomValues`). Stateless, so splits are even in expectation, not exactly balanced. |
+| Persistence | First-party cookie **`gf_exp`** = `visitorId.experimentId.armId.hmac` — HMAC-SHA256 signed with `EXPERIMENT_SECRET`, httpOnly, SameSite=Lax, 180 days. The cookie carries only the arm id; prices are looked up server-side. A tampered, stale-experiment, or unknown-arm value is discarded and **randomly** reassigned, so a visitor cannot pick their arm. (Clearing cookies re-rolls the arm — unavoidable without fingerprinting; the email lock below stops it mattering for an existing signup.) |
+| First render | The proxy forwards `x-gf-exp` / `x-gf-attr` / `x-gf-new` request headers so the very first server render already knows the arm (no flash of default pricing). `lib/experiment/server.ts → getVisitorContext()` reads headers, falls back to cookies for Server Action POSTs. |
+| Impressions | `components/experiment/VisitorProvider.tsx` (in `app/layout.tsx`) records a `visitors/{visitorId}` doc (arm + its three prices) via `after()` on the request that minted the assignment — one impression per visitor, since the site-wide banner shows the arm on every page. Requests whose user agent looks like a crawler or link-preview fetcher (`isLikelyBot`, incl. `facebookexternalhit`) are not recorded. Pages are therefore dynamic (ƒ) — accepted. |
+| Email lock | `submitEmailDiscount` locks the visitor's arm: Brevo `PRICE_ARM` + `PRICE_LOCKED` (+ `EXPERIMENT_ID`, `VISITOR_ID`, `UTM_CAMPAIGN`, `SIGNUP_TS`), written **once**. A returning email that already has `PRICE_LOCKED` keeps it — only `DISCOUNT_CODE` and list membership are re-asserted, and the confirmation + email quote the original lock. The price never comes from the form. Requires `node scripts/setup-brevo-attributes.mjs` once — Brevo silently drops unknown attributes. |
 | Attribution | First-touch only. `utm_*`, `campaign_id`, `adset_id`, `ad_id`, `placement`, `fbclid`, landing path, external referrer host → cookie **`gf_attr`** (base64url JSON, 1 year). Ads must use URL parameters — Ads Manager "URL parameters" field: `utm_source=facebook&utm_medium=paid&utm_campaign={{campaign.name}}&campaign_id={{campaign.id}}&adset_id={{adset.id}}&ad_id={{ad.id}}&placement={{placement}}`. |
-| Price in UI | `PricingProvider` (client context) seeded from the server context; every `PricingDisplay`, banner, teaser, and modal reads `usePricing()`. `lib/pricing.ts` derives Super Early Bird and badges. |
-| Lead DB | **Cloud Firestore** (same Firebase project as the iOS app), via `firebase-admin` in `lib/experiment/store.ts`. Collections `{FIRESTORE_COLLECTION_PREFIX}visitors`, `…leads` (doc id = sha256(email), one per email, `submitCount`), `…contacts`. Lead doc = email, code, visitorId, experimentId, assignedPrice, SEB/retail prices, attribution, source surface, eventId, timestamps. Brevo mirrors `VISITOR_ID`, `EXPERIMENT_ID`, `PRICE_ASSIGNED`, `UTM_CAMPAIGN` as contact attributes for segmentation. `scripts/export-leads.mjs` dumps both collections to CSV. |
-| Meta Pixel | `components/tracking/MetaPixel.tsx` loads `fbevents.js` when `NEXT_PUBLIC_META_PIXEL_ID` is set; fires `PageView` (with `assigned_price`, `experiment_id`) on every route and `Lead` on signup success. Pixel id is public by design. |
+| Price in UI | `PricingProvider` (client context) seeded from the server context; every `PricingDisplay`, banner, teaser, and modal reads `usePricing()`; the Footer and `/kickstarter` (Server Components) read `getVisitorPricing()`. `lib/pricing.ts → computePricing(armId)` maps an arm to its three tiers. |
+| Lead DB | **Cloud Firestore** (same Firebase project as the iOS app), via `firebase-admin` in `lib/experiment/store.ts`. Collections `{FIRESTORE_COLLECTION_PREFIX}visitors`, `…leads` (doc id = sha256(email), one per email, `submitCount`), `…contacts`. Lead doc = email, code, visitorId, experimentId, `priceArm`, `lockedPrice`, `displayedArm`, attribution, source surface, eventId, timestamps; arm/lock fields are written on create only. `npm run export:leads` prints impressions, signups, and conversion per arm for the current experiment and writes both collections to CSV. **Without `FIREBASE_SERVICE_ACCOUNT_JSON` there are no impression counts** — only log lines. |
+| Meta Pixel | `components/tracking/MetaPixel.tsx` loads `fbevents.js` when `NEXT_PUBLIC_META_PIXEL_ID` is set; fires `PageView` (with `price_arm`, `assigned_price` = ceiling, `experiment_id`) on every route and `Lead` on signup success. Pixel id is public by design. |
 | Conversions API | `lib/tracking/meta-capi.ts` sends `Lead` server-side with the **same `event_id`** the browser generated (hidden form field), so Meta dedups Pixel + CAPI. `user_data` carries only a SHA-256 of the normalised email plus `fbp`/`fbc`/IP/UA. |
 | Privacy rule | **Never** put an email address or other directly identifying value in ordinary event parameters (Pixel `custom_data` or CAPI `custom_data`). Hashed email goes only in CAPI `user_data`. Disclosed in `/privacy` ("Cookies and price testing") and `/terms` ("Kickstarter and Pricing"); a dismissible cookie notice links to it. |
 | Degradation | Every integration no-ops with a log line when its env var is unset — the site runs with zero config and still assigns prices (signed with a public dev secret, which `assignmentSecret()` warns about in production). |
@@ -625,7 +640,9 @@ required in prod), `FIREBASE_SERVICE_ACCOUNT_JSON` (raw or base64),
 `META_TEST_EVENT_CODE` (optional, Events Manager test tool).
 
 **Turning it off.** Set `priceExperiment.enabled = false` in
-`lib/admin.ts`: everyone sees `kickstarterPriceUSD`, existing cookies
+`lib/admin.ts`: everyone sees `defaultArmId`, existing cookies
 are ignored, nothing else changes. Changing `priceExperiment.id`
-invalidates every outstanding assignment (new experiment, fresh draw).
+invalidates every outstanding assignment (new experiment, fresh draw)
+— keep `CURRENT_EXPERIMENT` in `scripts/export-leads.mjs` in step
+(`tests/config.test.ts` checks).
 

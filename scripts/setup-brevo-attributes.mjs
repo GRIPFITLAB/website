@@ -54,13 +54,15 @@ const checkOnly = process.argv.includes("--check");
 /** Must match `GripFitContactAttributes` in lib/brevo/types.ts. */
 const REQUIRED = [
   { name: "DISCOUNT_CODE", type: "text" },
-  { name: "DISCOUNT_PCT", type: "float" },
   { name: "SIGNUP_SOURCE", type: "text" },
   { name: "SIGNUP_TS", type: "text" },
-  // Price experiment (DECISIONS.md §17)
+  // Price experiment (DECISIONS.md §17). PRICE_LOCKED is what keeps a
+  // returning email at its original lock — if it is missing, every
+  // re-submit re-locks at whatever arm the visitor sees now.
   { name: "VISITOR_ID", type: "text" },
   { name: "EXPERIMENT_ID", type: "text" },
-  { name: "PRICE_ASSIGNED", type: "float" },
+  { name: "PRICE_ARM", type: "float" },
+  { name: "PRICE_LOCKED", type: "float" },
   { name: "UTM_CAMPAIGN", type: "text" },
 ];
 
@@ -101,7 +103,7 @@ if (checkOnly) {
   console.error(
     `\nMissing ${missing.length} attribute(s): ` +
       `${missing.map((a) => a.name).join(", ")}\n` +
-      "Signups will succeed but their discount codes will NOT be stored.\n" +
+      "Signups will succeed but their codes, arms, and locked prices will NOT be stored.\n" +
       "Run this script without --check to create them.",
   );
   process.exit(1);

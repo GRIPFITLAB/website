@@ -5,7 +5,8 @@ import {
   createAssignment,
   decodeAssignment,
   encodeAssignment,
-  randomPrice,
+  randomArmId,
+  randomInt,
 } from "@/lib/experiment/assignment";
 import {
   decodeAttribution,
@@ -23,20 +24,33 @@ import {
 
 const SECRET = "test-secret-at-least-16-chars";
 
-describe("randomPrice", () => {
-  it("stays inside the configured range and is an integer", () => {
-    for (let i = 0; i < 500; i++) {
-      const p = randomPrice();
-      expect(Number.isInteger(p)).toBe(true);
-      expect(p).toBeGreaterThanOrEqual(priceExperiment.minUSD);
-      expect(p).toBeLessThanOrEqual(priceExperiment.maxUSD);
-    }
-  });
-
+describe("randomInt", () => {
   it("hits both ends of a small range", () => {
     const seen = new Set<number>();
-    for (let i = 0; i < 200; i++) seen.add(randomPrice(1, 3));
+    for (let i = 0; i < 200; i++) seen.add(randomInt(1, 3));
     expect([...seen].sort()).toEqual([1, 2, 3]);
+  });
+});
+
+describe("randomArmId", () => {
+  const ids = priceExperiment.arms.map((a) => a.id);
+
+  it("only returns configured arms", () => {
+    for (let i = 0; i < 500; i++) expect(ids).toContain(randomArmId());
+  });
+
+  it("splits traffic evenly across arms", () => {
+    const draws = 50_000;
+    const counts = new Map<number, number>();
+    for (let i = 0; i < draws; i++) {
+      const id = randomArmId();
+      counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+    const expected = draws / ids.length;
+    // ±5% of the expected share — over 5 standard deviations at this sample size.
+    for (const id of ids) {
+      expect(Math.abs((counts.get(id) ?? 0) - expected)).toBeLessThan(expected * 0.05);
+    }
   });
 });
 
@@ -48,10 +62,10 @@ describe("assignment signing", () => {
     expect(await decodeAssignment(cookie, SECRET)).toEqual(a);
   });
 
-  it("rejects a tampered price", async () => {
-    const a = { ...createAssignment(), price: priceExperiment.minUSD };
+  it("rejects a tampered arm", async () => {
+    const a = { ...createAssignment(), armId: 3 };
     const cookie = await encodeAssignment(a, SECRET);
-    const forged = cookie.replace(`.${a.price}.`, `.${a.price + 1}.`);
+    const forged = cookie.replace(`.${a.armId}.`, `.1.`);
     expect(forged).not.toBe(cookie);
     expect(await decodeAssignment(forged, SECRET)).toBeNull();
   });
@@ -67,8 +81,8 @@ describe("assignment signing", () => {
     expect(await decodeAssignment(cookie, SECRET)).toBeNull();
   });
 
-  it("rejects an out-of-range price even with a valid signature", async () => {
-    const a = { ...createAssignment(), price: priceExperiment.maxUSD + 50 };
+  it("rejects an arm that doesn't exist even with a valid signature", async () => {
+    const a = { ...createAssignment(), armId: priceExperiment.arms.length + 1 };
     const cookie = await encodeAssignment(a, SECRET);
     expect(await decodeAssignment(cookie, SECRET)).toBeNull();
   });

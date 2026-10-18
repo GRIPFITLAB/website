@@ -6,11 +6,12 @@ import { EmailDiscountForm } from "@/components/marketing/EmailDiscountForm";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/section";
 import { Display, Eyebrow, Lead } from "@/components/ui/typography";
-import { campaign, discountConfig, siteConfig } from "@/lib/config";
+import { campaign, discountConfig, emailLockHeadline, siteConfig } from "@/lib/config";
+import { getVisitorPricing } from "@/lib/experiment/server";
 
 export const metadata: Metadata = {
   title: "Kickstarter",
-  description: `Leave your email and we'll tell you the day the ${siteConfig.name} Kickstarter opens — with your Super Early Bird code.`,
+  description: `Join the email list to lock in your Super Early Bird price, and we'll tell you the day the ${siteConfig.name} Kickstarter opens.`,
 };
 
 /**
@@ -23,8 +24,9 @@ export const metadata: Metadata = {
  *
  * Deliberately sparse: headline, one sentence, the email card.
  */
-export default function KickstarterPage() {
-  const emailPct = Math.round(discountConfig.email.percentOff * 100);
+export default async function KickstarterPage() {
+  const pricing = await getVisitorPricing();
+  const shipping = discountConfig.campaign.freeShipping ? " with free US shipping" : "";
 
   return (
     <Container className="max-w-3xl py-20 md:py-28">
@@ -39,8 +41,8 @@ export default function KickstarterPage() {
 
       <Lead className="mt-7">
         {campaign.isLive
-          ? `Backing on Kickstarter gets you the Kickstarter price${discountConfig.campaign.freeShipping ? " with free US shipping" : ""}. Sign up below for an extra ${emailPct}% off.`
-          : `Leave your email and we'll write to you the day it opens, with a code for an extra ${emailPct}% off the Kickstarter price.`}
+          ? `Back on Kickstarter for no more than ${pricing.kickstarter.formatted}${shipping}. Join the email list below to lock in ${pricing.superEarlyBird.formatted}.`
+          : `Join the email list to lock in ${pricing.superEarlyBird.formatted} — you'll never pay more than ${pricing.kickstarter.formatted} on Kickstarter. We'll write to you the day it opens.`}
       </Lead>
 
       {campaign.isLive ? (
@@ -60,7 +62,7 @@ export default function KickstarterPage() {
           {discountConfig.campaign.tierLabels.superEarlyBird}
         </Eyebrow>
         <Display as="h2" size="lg">
-          <span id="kickstarter-notify-heading">{discountConfig.email.headline}</span>
+          <span id="kickstarter-notify-heading">{emailLockHeadline(pricing)}</span>
         </Display>
         <EmailDiscountForm
           variant="footer"

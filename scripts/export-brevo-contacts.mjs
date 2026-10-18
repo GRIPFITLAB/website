@@ -85,7 +85,9 @@ function csvField(value) {
 const COLUMNS = [
   "EMAIL",
   "DISCOUNT_CODE",
-  "DISCOUNT_PCT",
+  "EXPERIMENT_ID",
+  "PRICE_ARM",
+  "PRICE_LOCKED",
   "SIGNUP_SOURCE",
   "SIGNUP_TS",
   "EMAIL_BLACKLISTED",
@@ -97,7 +99,9 @@ const rows = [
     [
       csvField(contact.email),
       csvField(contact.attributes?.DISCOUNT_CODE),
-      csvField(contact.attributes?.DISCOUNT_PCT),
+      csvField(contact.attributes?.EXPERIMENT_ID),
+      csvField(contact.attributes?.PRICE_ARM),
+      csvField(contact.attributes?.PRICE_LOCKED),
       csvField(contact.attributes?.SIGNUP_SOURCE),
       csvField(contact.attributes?.SIGNUP_TS),
       csvField(contact.emailBlacklisted ?? false),

@@ -3,15 +3,16 @@
  * Export the price-experiment data from Firestore as CSV.
  *
  * Writes two files (default `./exports/`):
- *   visitors-<date>.csv  one row per assigned visitor (exposures)
- *   leads-<date>.csv     one row per captured email (conversions)
+ *   visitors-<date>.csv  one row per assigned visitor (impressions)
+ *   leads-<date>.csv     one row per captured email (signups)
  *
- * and prints a conversion table by assigned price to stdout — the demand
- * curve, straight from the source of truth (DECISIONS.md §17).
+ * and prints impressions, signups, and conversion by price arm to stdout —
+ * straight from the source of truth (DECISIONS.md §17).
  *
  * Usage:
- *   node scripts/export-leads.mjs                 # all experiments
- *   node scripts/export-leads.mjs --experiment ks-price-2026-10
+ *   node scripts/export-leads.mjs                          # current experiment
+ *   node scripts/export-leads.mjs --experiment ks-arms-2026-10
+ *   node scripts/export-leads.mjs --experiment all         # every experiment
  *   node scripts/export-leads.mjs --out ./tmp
  *
  * Needs FIREBASE_SERVICE_ACCOUNT_JSON (raw or base64) and optionally
@@ -23,6 +24,9 @@ import { fileURLToPath } from "node:url";
 
 import { cert, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+
+/** Keep in step with `priceExperiment.id` in lib/admin.ts. */
+const CURRENT_EXPERIMENT = "ks-arms-2026-10";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 
@@ -54,7 +58,8 @@ const sa = JSON.parse(json);
 if (typeof sa.private_key === "string") sa.private_key = sa.private_key.replace(/\\n/g, "\n");
 
 const prefix = process.env.FIRESTORE_COLLECTION_PREFIX ?? "web_";
-const experiment = arg("experiment", null);
+const experimentArg = arg("experiment", CURRENT_EXPERIMENT);
+const experiment = experimentArg === "all" ? null : experimentArg;
 const outDir = path.resolve(arg("out", path.join(root, "exports")));
 mkdirSync(outDir, { recursive: true });
 
@@ -98,8 +103,10 @@ const flatAttr = (a = {}) => ({
 const visitorRows = visitors.map((v) => ({
   visitorId: v.visitorId ?? v.id,
   experimentId: v.experimentId ?? "",
-  assignedPrice: v.assignedPrice ?? "",
-  superEarlyBirdPrice: v.superEarlyBirdPrice ?? "",
+  priceArm: v.priceArm ?? "",
+  emailLockPrice: v.emailLockPrice ?? "",
+  kickstarterCeiling: v.kickstarterCeiling ?? "",
+  expectedRetail: v.expectedRetail ?? "",
   country: v.country ?? "",
   firstSeenAt: ts(v.firstSeenAt),
   ...flatAttr(v.attribution),
@@ -110,10 +117,10 @@ const leadRows = leads.map((l) => ({
   discountCode: l.discountCode ?? "",
   visitorId: l.visitorId ?? "",
   experimentId: l.experimentId ?? "",
-  assignedPrice: l.assignedPrice ?? "",
+  priceArm: l.priceArm ?? "",
+  lockedPrice: l.lockedPrice ?? "",
+  displayedArm: l.displayedArm ?? "",
   isExperimentPrice: l.isExperimentPrice ?? "",
-  kickstarterPrice: l.kickstarterPrice ?? "",
-  superEarlyBirdPrice: l.superEarlyBirdPrice ?? "",
   firstSource: l.firstSource ?? "",
   submitCount: l.submitCount ?? "",
   createdAt: ts(l.createdAt),
@@ -127,30 +134,46 @@ const lFile = path.join(outDir, `leads-${stamp}.csv`);
 writeFileSync(vFile, csv(visitorRows, Object.keys(visitorRows[0] ?? { visitorId: "" })));
 writeFileSync(lFile, csv(leadRows, Object.keys(leadRows[0] ?? { email: "" })));
 
-/* ── Demand curve ────────────────────────────────────────────────────── */
-const byPrice = new Map();
+/* ── Conversion by arm ───────────────────────────────────────────────── */
+const byArm = new Map();
+function row(v) {
+  const existing = byArm.get(v.priceArm);
+  if (existing) return existing;
+  const fresh = {
+    arm: v.priceArm,
+    lock: v.emailLockPrice ?? v.lockedPrice ?? "",
+    ceiling: v.kickstarterCeiling ?? "",
+    retail: v.expectedRetail ?? "",
+    impressions: 0,
+    signups: 0,
+  };
+  byArm.set(v.priceArm, fresh);
+  return fresh;
+}
 for (const v of visitorRows) {
-  if (v.assignedPrice === "") continue;
-  const row = byPrice.get(v.assignedPrice) ?? { price: v.assignedPrice, visitors: 0, leads: 0 };
-  row.visitors += 1;
-  byPrice.set(v.assignedPrice, row);
+  if (v.priceArm === "") continue;
+  row(v).impressions += 1;
 }
+// Only count signups that came from a visitor actually assigned in this
+// experiment — a lead with no assignment saw the default arm, not a test arm.
 for (const l of leadRows) {
-  if (l.assignedPrice === "") continue;
-  const row = byPrice.get(l.assignedPrice) ?? { price: l.assignedPrice, visitors: 0, leads: 0 };
-  row.leads += 1;
-  byPrice.set(l.assignedPrice, row);
+  if (l.priceArm === "" || l.isExperimentPrice !== true) continue;
+  row(l).signups += 1;
 }
-const table = [...byPrice.values()]
-  .sort((a, b) => a.price - b.price)
+const table = [...byArm.values()]
+  .sort((a, b) => a.arm - b.arm)
   .map((r) => ({
-    price: `$${r.price}`,
-    visitors: r.visitors,
-    leads: r.leads,
-    conversion: r.visitors ? `${((100 * r.leads) / r.visitors).toFixed(2)}%` : "—",
-    revenueIndex: r.visitors ? ((r.leads / r.visitors) * r.price).toFixed(2) : "—",
+    arm: r.arm,
+    lock: r.lock === "" ? "" : `$${r.lock}`,
+    ceiling: r.ceiling === "" ? "" : `$${r.ceiling}`,
+    retail: r.retail === "" ? "" : `$${r.retail}`,
+    impressions: r.impressions,
+    signups: r.signups,
+    conversion: r.impressions ? `${((100 * r.signups) / r.impressions).toFixed(2)}%` : "—",
   }));
 
-console.log(`\n${visitors.length} visitors, ${leads.length} leads${experiment ? ` (experiment ${experiment})` : ""}`);
+console.log(
+  `\n${visitors.length} visitors, ${leads.length} leads (experiment ${experiment ?? "all"})`,
+);
 console.log(`→ ${vFile}\n→ ${lFile}\n`);
 if (table.length) console.table(table);

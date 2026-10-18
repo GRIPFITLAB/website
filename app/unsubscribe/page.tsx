@@ -52,8 +52,8 @@ export default async function UnsubscribePage({
       </section>
 
       <p className="mt-8 text-[13px] leading-[1.7] text-text-tertiary">
-        Unsubscribing stops all email from us. Any Super Early Bird code we
-        already sent you stays valid.
+        Unsubscribing stops all email from us. Any Super Early Bird price
+        you locked in stays locked.
       </p>
     </article>
   );

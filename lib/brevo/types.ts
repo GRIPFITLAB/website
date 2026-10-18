@@ -7,21 +7,21 @@
 
 /** Custom contact attributes GripFit writes on every signup. */
 export interface GripFitContactAttributes {
-  /** The visitor's personal, single-use-intent discount code. */
+  /** The visitor's personal reference code for their locked price. */
   DISCOUNT_CODE?: string;
-  /** Percent off the code grants, as a whole number (e.g. 15). */
-  DISCOUNT_PCT?: number;
   /** Where the signup came from — always "website" from this app. */
   SIGNUP_SOURCE?: string;
   /** ISO-8601 timestamp of first capture. */
   SIGNUP_TS?: string;
-  /** Price-experiment fields (DECISIONS.md §17). Firestore is the system of
-   *  record for these; they're mirrored here so Brevo segments can be
-   *  built by price. */
+  /** Price-experiment fields (DECISIONS.md §17). Written once, on the
+   *  first website signup for an email, and never overwritten — that is
+   *  what keeps a returning email at its original lock. */
   VISITOR_ID?: string;
   EXPERIMENT_ID?: string;
-  /** The Kickstarter price this visitor was shown, whole USD. */
-  PRICE_ASSIGNED?: number;
+  /** The price arm the visitor saw when they signed up. */
+  PRICE_ARM?: number;
+  /** The Super Early Bird price the email is locked at, whole USD. */
+  PRICE_LOCKED?: number;
   UTM_CAMPAIGN?: string;
 }
 

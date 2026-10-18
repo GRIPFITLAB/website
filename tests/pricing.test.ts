@@ -1,26 +1,28 @@
 import { describe, expect, it } from "vitest";
 
-import { emailDiscount, priceExperiment, productSettings } from "@/lib/admin";
+import { priceExperiment } from "@/lib/admin";
 import {
   computePricing,
   defaultPricing,
   formatUSD,
-  isValidExperimentPrice,
-  superEarlyBirdPrice,
+  isValidArmId,
+  priceArm,
 } from "@/lib/pricing";
 
 /**
- * Pricing maths (PRD R-004) — the three tiers and the per-visitor
- * experiment path. Pure functions; no mocks needed.
+ * Pricing maths — the five price arms and the per-visitor path. Pure
+ * functions; no mocks needed.
  */
+
+const ARMS = priceExperiment.arms;
 
 describe("formatUSD", () => {
   it("drops cents for whole dollars", () => {
-    expect(formatUSD(149)).toBe("$149");
+    expect(formatUSD(129)).toBe("$129");
   });
 
   it("keeps cents when present", () => {
-    expect(formatUSD(111.75)).toBe("$111.75");
+    expect(formatUSD(84.5)).toBe("$84.50");
   });
 
   it("adds thousands separators", () => {
@@ -28,14 +30,49 @@ describe("formatUSD", () => {
   });
 });
 
-describe("default pricing", () => {
-  it("uses the admin numbers", () => {
-    expect(defaultPricing.retail.amount).toBe(productSettings.retailPriceUSD);
-    expect(defaultPricing.kickstarter.amount).toBe(productSettings.kickstarterPriceUSD);
-    expect(defaultPricing.isExperimentPrice).toBe(false);
+describe("arm table", () => {
+  it("matches the agreed arms exactly", () => {
+    expect(ARMS.map((a) => [a.id, a.retailUSD, a.kickstarterCeilingUSD, a.emailLockUSD])).toEqual([
+      [1, 98, 82, 69],
+      [2, 118, 99, 84],
+      [3, 154, 129, 109],
+      [4, 190, 159, 135],
+      [5, 238, 199, 169],
+    ]);
   });
 
-  it("orders tiers Super Early Bird → Kickstarter → Retail", () => {
+  it("numbers arms 1..n in order", () => {
+    expect(ARMS.map((a) => a.id)).toEqual(ARMS.map((_, i) => i + 1));
+  });
+
+  it("orders lock < ceiling < retail within every arm, in whole dollars", () => {
+    for (const arm of ARMS) {
+      expect(arm.emailLockUSD).toBeLessThan(arm.kickstarterCeilingUSD);
+      expect(arm.kickstarterCeilingUSD).toBeLessThan(arm.retailUSD);
+      for (const n of [arm.emailLockUSD, arm.kickstarterCeilingUSD, arm.retailUSD]) {
+        expect(Number.isInteger(n)).toBe(true);
+      }
+    }
+  });
+
+  it("has a default arm that exists", () => {
+    expect(priceArm(priceExperiment.defaultArmId)).not.toBeNull();
+  });
+});
+
+describe("computePricing", () => {
+  it("shows exactly the assigned arm's three numbers", () => {
+    for (const arm of ARMS) {
+      const p = computePricing(arm.id);
+      expect(p.armId).toBe(arm.id);
+      expect(p.isExperimentPrice).toBe(true);
+      expect(p.superEarlyBird.amount).toBe(arm.emailLockUSD);
+      expect(p.kickstarter.amount).toBe(arm.kickstarterCeilingUSD);
+      expect(p.retail.amount).toBe(arm.retailUSD);
+    }
+  });
+
+  it("orders tiers Super Early Bird → Kickstarter → Expected retail", () => {
     expect(defaultPricing.tiers.map((t) => t.key)).toEqual([
       "superEarlyBird",
       "kickstarter",
@@ -43,56 +80,29 @@ describe("default pricing", () => {
     ]);
   });
 
-  it("prices strictly increase across tiers", () => {
-    const [seb, ks, retail] = defaultPricing.tiers;
-    expect(seb.amount).toBeLessThan(ks.amount);
-    expect(ks.amount).toBeLessThan(retail.amount);
-  });
-
-  it("derives Super Early Bird from Kickstarter × (1 − email%)", () => {
-    expect(defaultPricing.superEarlyBird.amount).toBe(
-      Math.round(productSettings.kickstarterPriceUSD * (1 - emailDiscount.percentOff)),
-    );
-    expect(superEarlyBirdPrice(100)).toBe(Math.round(100 * (1 - emailDiscount.percentOff)));
-  });
-
-  it("badges are whole-number percents off retail; retail has none", () => {
-    expect(defaultPricing.retail.badge).toBe("");
-    expect(defaultPricing.kickstarter.badge).toMatch(/^\d+% OFF$/);
-    expect(defaultPricing.superEarlyBird.percentOffRetail).toBeGreaterThan(
-      defaultPricing.kickstarter.percentOffRetail,
-    );
-  });
-});
-
-describe("experiment pricing", () => {
-  it("accepts an in-range integer and flags it", () => {
-    const p = computePricing(priceExperiment.minUSD);
-    expect(p.kickstarter.amount).toBe(priceExperiment.minUSD);
-    expect(p.isExperimentPrice).toBe(true);
-    expect(p.superEarlyBird.amount).toBe(superEarlyBirdPrice(priceExperiment.minUSD));
-  });
-
-  it("falls back to the default for out-of-range or junk input", () => {
-    for (const bad of [priceExperiment.maxUSD + 1, priceExperiment.minUSD - 1, 99.5, NaN, null]) {
+  it("falls back to the default arm, unflagged, for missing or junk input", () => {
+    for (const bad of [null, undefined, 0, ARMS.length + 1, 2.5, NaN, "2"]) {
       const p = computePricing(bad as number | null);
-      expect(p.kickstarter.amount).toBe(productSettings.kickstarterPriceUSD);
+      expect(p.armId).toBe(priceExperiment.defaultArmId);
       expect(p.isExperimentPrice).toBe(false);
     }
   });
 
-  it("validates experiment prices", () => {
-    expect(isValidExperimentPrice(priceExperiment.minUSD)).toBe(true);
-    expect(isValidExperimentPrice(priceExperiment.maxUSD)).toBe(true);
-    expect(isValidExperimentPrice(priceExperiment.maxUSD + 1)).toBe(false);
-    expect(isValidExperimentPrice("100")).toBe(false);
-  });
-
-  it("every assignable price stays below retail at every tier", () => {
-    for (let n = priceExperiment.minUSD; n <= priceExperiment.maxUSD; n++) {
-      const p = computePricing(n);
-      expect(p.kickstarter.amount).toBeLessThan(p.retail.amount);
-      expect(p.superEarlyBird.amount).toBeLessThan(p.kickstarter.amount);
+  it("carries no percent-off framing", () => {
+    for (const arm of ARMS) {
+      for (const tier of computePricing(arm.id).tiers) {
+        expect(tier.note).not.toMatch(/%|off\b/i);
+        expect(Object.keys(tier)).not.toContain("badge");
+      }
     }
+  });
+});
+
+describe("isValidArmId", () => {
+  it("accepts configured arm ids only", () => {
+    expect(ARMS.every((a) => isValidArmId(a.id))).toBe(true);
+    expect(isValidArmId(0)).toBe(false);
+    expect(isValidArmId(ARMS.length + 1)).toBe(false);
+    expect(isValidArmId("1")).toBe(false);
   });
 });

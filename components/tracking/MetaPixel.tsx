@@ -13,8 +13,9 @@ import { newEventId, trackPageView } from "@/lib/tracking/meta-pixel";
  * - Renders nothing when `pixelId` is null (no `NEXT_PUBLIC_META_PIXEL_ID`).
  * - The initial PageView is fired by the inline snippet once the SDK is
  *   ready; subsequent client-side navigations fire from the effect.
- * - PageView carries the assigned price + experiment id as custom params so
- *   Meta-side reports can be broken down by price. No personal data.
+ * - PageView carries the price arm, its Kickstarter ceiling, and the
+ *   experiment id as custom params so Meta-side reports can be broken down
+ *   by arm. No personal data.
  * - Configure the Pixel itself (domain verification, event matching) in
  *   Meta Events Manager; nothing else is needed on the site.
  */
@@ -32,6 +33,7 @@ export function MetaPixel({ pixelId }: { pixelId: string | null }) {
     }
     trackPageView(
       {
+        price_arm: pricing.armId,
         assigned_price: pricing.kickstarter.amount,
         experiment_id: experimentId ?? undefined,
       },
@@ -44,6 +46,7 @@ export function MetaPixel({ pixelId }: { pixelId: string | null }) {
   if (!pixelId) return null;
 
   const params = JSON.stringify({
+    price_arm: pricing.armId,
     assigned_price: pricing.kickstarter.amount,
     ...(experimentId ? { experiment_id: experimentId } : {}),
   });

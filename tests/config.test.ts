@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -28,8 +31,6 @@ describe("admin values reach the typed config", () => {
   it("passes product settings through", () => {
     expect(productConfig.base.name).toBe(productSettings.name);
     expect(productConfig.base.handle).toBe(productSettings.handle);
-    expect(productConfig.base.retailPriceUSD).toBe(productSettings.retailPriceUSD);
-    expect(productConfig.base.kickstarterPriceUSD).toBe(productSettings.kickstarterPriceUSD);
     expect(productConfig.base.preorder).toBe(productSettings.preorder);
   });
 
@@ -43,23 +44,15 @@ describe("admin values reach the typed config", () => {
     expect(discountConfig.campaign.freeShipping).toBe(campaignSettings.freeShipping);
     expect(discountConfig.campaign.ctaLabel).toBe(campaignSettings.ctaLabel);
     expect(discountConfig.campaign.tierLabels).toBe(campaignSettings.tierLabels);
+    expect(discountConfig.campaign.tierNotes).toBe(campaignSettings.tierNotes);
 
-    expect(discountConfig.email.percentOff).toBe(emailDiscount.percentOff);
     expect(discountConfig.email.consentCopy).toBe(emailDiscount.consentCopy);
-    expect(discountConfig.email.confirmationCopy).toBe(emailDiscount.confirmationCopy);
+    expect(discountConfig.email.codePrefix).toBe(emailDiscount.codePrefix);
     expect(discountConfig.experiment).toBe(priceExperiment);
   });
 
   it("re-exports the link surface, mailboxes defaulting to admin values", () => {
     expect(externalLinks).toEqual(links);
-  });
-});
-
-describe("computed labels", () => {
-  it("derives the email badge from the percentage", () => {
-    const pct = Math.round(emailDiscount.percentOff * 100);
-    expect(discountConfig.email.label).toBe(`EXTRA ${pct}% OFF`);
-    expect(discountConfig.email.headline).toContain(`${pct}%`);
   });
 });
 
@@ -85,15 +78,20 @@ describe("campaign link", () => {
 });
 
 describe("price experiment settings", () => {
-  it("has a sane integer range below retail", () => {
-    expect(Number.isInteger(priceExperiment.minUSD)).toBe(true);
-    expect(Number.isInteger(priceExperiment.maxUSD)).toBe(true);
-    expect(priceExperiment.minUSD).toBeLessThan(priceExperiment.maxUSD);
-    expect(priceExperiment.maxUSD).toBeLessThan(productSettings.retailPriceUSD);
+  it("has five arms", () => {
+    expect(priceExperiment.arms).toHaveLength(5);
   });
 
   it("has a cookie-safe experiment id", () => {
     expect(priceExperiment.id).toMatch(/^[a-z0-9-]+$/);
+  });
+
+  it("is the experiment the export script reports on by default", () => {
+    const script = readFileSync(
+      fileURLToPath(new URL("../scripts/export-leads.mjs", import.meta.url)),
+      "utf8",
+    );
+    expect(script).toContain(`const CURRENT_EXPERIMENT = "${priceExperiment.id}";`);
   });
 });
 

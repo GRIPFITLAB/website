@@ -1,23 +1,23 @@
 "use client";
 
 import { usePricing } from "@/components/experiment/PricingContext";
-import { discountConfig } from "@/lib/config";
 import type { PriceTier } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
 /**
- * PricingDisplay — the three tiers, always in this order:
+ * PricingDisplay — the visitor's arm, always in this order:
  *
- *   Super Early Bird (promo tint, "unlocked with your email")
- *   Kickstarter      (the campaign price — may be per-visitor)
- *   Retail           (struck through)
+ *   Super Early Bird (promo tint — the price an email locks in)
+ *   Kickstarter      (the ceiling — "never pay more than")
+ *   Expected retail  (after the campaign)
  *
- * Prices come from `usePricing()` so the visitor's assigned Kickstarter
- * price flows through automatically. No literals here.
+ * Each number stands on its own: no strike-through, no percent-off badges.
+ * Prices come from `usePricing()` so the visitor's assigned arm flows
+ * through automatically. No literals here.
  *
  * Variants:
  *   - `full`    hero / kickstarter page — three columns with hairlines.
- *   - `compact` one line, for the modal and tight slots.
+ *   - `compact` one line, for tight slots.
  */
 export function PricingDisplay({
   variant = "full",
@@ -35,9 +35,8 @@ export function PricingDisplay({
           {pricing.superEarlyBird.formatted}
         </span>
         <span className="text-[13px] text-text-secondary">
-          {pricing.superEarlyBird.label} · {pricing.kickstarter.label}{" "}
-          {pricing.kickstarter.formatted} ·{" "}
-          <s className="text-text-tertiary">{pricing.retail.formatted}</s> {pricing.retail.label}
+          {pricing.superEarlyBird.label} · {pricing.kickstarter.label} never more than{" "}
+          {pricing.kickstarter.formatted} · {pricing.retail.label} {pricing.retail.formatted}
         </span>
       </p>
     );
@@ -60,7 +59,6 @@ export function PricingDisplay({
 
 function Tier({ tier }: { tier: PriceTier }) {
   const isPromo = tier.key === "superEarlyBird";
-  const isRetail = tier.key === "retail";
   return (
     <div
       className={cn(
@@ -69,12 +67,7 @@ function Tier({ tier }: { tier: PriceTier }) {
         isPromo && "bg-promo-soft",
       )}
     >
-      <dt
-        className={cn(
-          "text-eyebrow",
-          isPromo ? "text-promo" : "text-text-tertiary",
-        )}
-      >
+      <dt className={cn("text-eyebrow", isPromo ? "text-promo" : "text-text-tertiary")}>
         {tier.label}
       </dt>
       <dd className="flex flex-col items-end gap-1 sm:items-start sm:gap-1.5">
@@ -82,22 +75,15 @@ function Tier({ tier }: { tier: PriceTier }) {
           className={cn(
             "font-display font-medium leading-none tabular-nums tracking-[-0.03em]",
             "text-[28px] sm:text-[40px] md:text-[48px]",
-            isRetail ? "text-text-tertiary line-through decoration-[2px]" : "text-text-primary",
+            isPromo ? "text-text-primary" : "text-text-secondary",
           )}
         >
           {tier.formatted}
         </span>
         <span className="text-right text-[12px] leading-[1.4] text-text-secondary sm:text-left">
-          {isPromo
-            ? discountConfig.campaign.superEarlyBirdNote
-            : isRetail
-              ? "After the campaign"
-              : tier.badge
-                ? `${tier.badge.toLowerCase()} retail`
-                : ""}
+          {tier.note}
         </span>
       </dd>
-      {isPromo ? <span className="sr-only">Best price.</span> : null}
     </div>
   );
 }

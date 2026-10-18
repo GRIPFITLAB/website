@@ -27,13 +27,13 @@ import {
  *
  * Two jobs, both for the price experiment (DECISIONS.md §17):
  *
- *   1. **Assign a price.** If the visitor has no valid signed assignment
- *      cookie (first visit, forged cookie, or a new experiment id), draw a
- *      random integer price from the configured range, mint a visitor id,
+ *   1. **Assign a price arm.** If the visitor has no valid signed
+ *      assignment cookie (first visit, forged cookie, or a new experiment
+ *      id), draw one of the configured arms at random, mint a visitor id,
  *      and set the signed cookie. The same values are forwarded to the
  *      render as request headers so the *first* page already shows the
- *      assigned price — a Set-Cookie isn't visible to the request it rides
- *      on.
+ *      assigned prices — a Set-Cookie isn't visible to the request it
+ *      rides on.
  *
  *   2. **Capture attribution.** First-touch only: if there's no attribution
  *      cookie yet, or the URL carries UTM / Meta parameters and the cookie

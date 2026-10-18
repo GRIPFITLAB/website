@@ -3,8 +3,8 @@
  * Components, Client Components, Server Actions, and the proxy.
  *
  * Every price shown on the site comes out of `computePricing()`. The only
- * input that varies is the Kickstarter price, which the price experiment
- * assigns per visitor (`lib/experiment/`). Everything else is derived from
+ * input that varies is the visitor's arm, which the price experiment
+ * assigns per visitor (`lib/experiment/`). The arms themselves live in
  * `lib/admin.ts`.
  */
 
@@ -12,34 +12,37 @@ import {
   campaignSettings,
   emailDiscount,
   priceExperiment,
-  productSettings,
+  type PriceArm,
 } from "@/lib/admin";
+
+export type { PriceArm } from "@/lib/admin";
 
 export type TierKey = "superEarlyBird" | "kickstarter" | "retail";
 
 export interface PriceTier {
   key: TierKey;
   label: string;
+  /** One-line explanation shown under the price. */
+  note: string;
   /** Whole-dollar amount. */
   amount: number;
-  /** `$95` */
+  /** `$84` */
   formatted: string;
-  /** Whole-number percent off retail; `0` for the retail tier itself. */
-  percentOffRetail: number;
-  /** `"36% OFF"`; empty string for retail. */
-  badge: string;
 }
 
 export interface Pricing {
+  /** The arm these numbers come from. */
+  armId: number;
+  /** Email lock price. */
   superEarlyBird: PriceTier;
+  /** Kickstarter ceiling — "never pay more than". */
   kickstarter: PriceTier;
+  /** Expected retail. */
   retail: PriceTier;
   /** Tiers in display order. */
   tiers: readonly [PriceTier, PriceTier, PriceTier];
-  /** Whole-number extra percent the email code takes off Kickstarter. */
-  emailPercentOff: number;
   freeShipping: boolean;
-  /** True when the Kickstarter amount came from a per-visitor assignment. */
+  /** True when the arm came from a per-visitor assignment. */
   isExperimentPrice: boolean;
 }
 
@@ -52,74 +55,55 @@ export function formatUSD(value: number): string {
   }).format(value);
 }
 
-function percentOff(amount: number, retail: number): number {
-  if (retail <= 0) return 0;
-  return Math.max(0, Math.round((1 - amount / retail) * 100));
+/** The configured arm with this id, or `null`. */
+export function priceArm(id: unknown): PriceArm | null {
+  if (typeof id !== "number" || !Number.isInteger(id)) return null;
+  return priceExperiment.arms.find((arm) => arm.id === id) ?? null;
 }
 
-function tier(key: TierKey, label: string, amount: number, retail: number): PriceTier {
-  const pct = key === "retail" ? 0 : percentOff(amount, retail);
+/** True if `n` is an arm the current experiment could have assigned. */
+export function isValidArmId(n: unknown): n is number {
+  return priceArm(n) !== null;
+}
+
+function tier(key: TierKey, amount: number): PriceTier {
   return {
     key,
-    label,
+    label: campaignSettings.tierLabels[key],
+    note: campaignSettings.tierNotes[key],
     amount,
     formatted: formatUSD(amount),
-    percentOffRetail: pct,
-    badge: pct > 0 ? `${pct}% OFF` : "",
   };
 }
 
-/** Super Early Bird = Kickstarter × (1 − email%), rounded to whole dollars. */
-export function superEarlyBirdPrice(kickstarterPrice: number): number {
-  return Math.round(kickstarterPrice * (1 - emailDiscount.percentOff));
-}
-
-/** True if `n` is a price the current experiment could have assigned. */
-export function isValidExperimentPrice(n: unknown): n is number {
-  return (
-    typeof n === "number" &&
-    Number.isInteger(n) &&
-    n >= priceExperiment.minUSD &&
-    n <= priceExperiment.maxUSD
-  );
+function defaultArm(): PriceArm {
+  const arm = priceArm(priceExperiment.defaultArmId);
+  if (!arm) throw new Error("priceExperiment.defaultArmId must name a configured arm");
+  return arm;
 }
 
 /**
- * Compute every tier from a Kickstarter price.
+ * Compute every tier for an arm.
  *
- * Pass the visitor's assigned price when there is one; omit it (or pass
- * `null`) to get the default pricing from `lib/admin.ts`.
+ * Pass the visitor's assigned arm when there is one; omit it (or pass
+ * `null`) to get the default arm from `lib/admin.ts`.
  */
-export function computePricing(assignedKickstarterPrice?: number | null): Pricing {
-  const retail = productSettings.retailPriceUSD;
-  const isExperimentPrice =
-    priceExperiment.enabled && isValidExperimentPrice(assignedKickstarterPrice);
-  const kickstarterAmount = isExperimentPrice
-    ? (assignedKickstarterPrice as number)
-    : productSettings.kickstarterPriceUSD;
+export function computePricing(assignedArmId?: number | null): Pricing {
+  const assigned = priceExperiment.enabled ? priceArm(assignedArmId) : null;
+  const arm = assigned ?? defaultArm();
 
-  const retailTier = tier("retail", campaignSettings.tierLabels.retail, retail, retail);
-  const kickstarterTier = tier(
-    "kickstarter",
-    campaignSettings.tierLabels.kickstarter,
-    kickstarterAmount,
-    retail,
-  );
-  const sebTier = tier(
-    "superEarlyBird",
-    campaignSettings.tierLabels.superEarlyBird,
-    superEarlyBirdPrice(kickstarterAmount),
-    retail,
-  );
+  const superEarlyBird = tier("superEarlyBird", arm.emailLockUSD);
+  const kickstarter = tier("kickstarter", arm.kickstarterCeilingUSD);
+  const retail = tier("retail", arm.retailUSD);
 
   return {
-    superEarlyBird: sebTier,
-    kickstarter: kickstarterTier,
-    retail: retailTier,
-    tiers: [sebTier, kickstarterTier, retailTier],
-    emailPercentOff: Math.round(emailDiscount.percentOff * 100),
+    armId: arm.id,
+    superEarlyBird,
+    kickstarter,
+    retail,
+    tiers: [superEarlyBird, kickstarter, retail],
     freeShipping: campaignSettings.freeShipping,
-    isExperimentPrice,
+    isExperimentPrice: assigned !== null,
   };
 }
 
@@ -129,19 +113,30 @@ export const defaultPricing: Pricing = computePricing(null);
 /* ── Copy helpers — sentences that quote numbers are built here so they
  *    can never disagree with the numbers. ─────────────────────────────── */
 
-/** `"Get an extra 15% off on Kickstarter"` */
-export function emailDiscountHeadline(): string {
-  return emailDiscount.headline.replace(
-    "{percent}",
-    String(Math.round(emailDiscount.percentOff * 100)),
-  );
+function withPrice(template: string, amount: number): string {
+  return template.replace("{price}", formatUSD(amount));
+}
+
+/** `"Lock in $84 on Kickstarter"` */
+export function emailLockHeadline(p: Pricing): string {
+  return withPrice(emailDiscount.headline, p.superEarlyBird.amount);
+}
+
+/** `"Lock in $84"` */
+export function emailLockButtonLabel(p: Pricing): string {
+  return withPrice(emailDiscount.buttonLabel, p.superEarlyBird.amount);
+}
+
+/** Success message quoting the price the email is actually locked at. */
+export function emailLockConfirmation(lockedAmount: number): string {
+  return withPrice(emailDiscount.confirmationCopy, lockedAmount);
 }
 
 /** Site-wide banner sentence. */
 export function campaignBannerCopy(p: Pricing): string {
   const parts = [
-    `Kickstarter price ${p.kickstarter.formatted}`,
-    `Super Early Bird ${p.superEarlyBird.formatted} with email signup`,
+    `Kickstarter: never more than ${p.kickstarter.formatted}`,
+    `Lock in ${p.superEarlyBird.formatted} with your email`,
   ];
   if (p.freeShipping) parts.push("Free US shipping");
   return parts.join(" · ");
