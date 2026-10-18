@@ -147,9 +147,6 @@ export default function SciencePage() {
                 </li>
               ))}
             </ul>
-            <p className="mt-6 text-xs leading-[1.6] text-text-tertiary">
-              Each entry links to the original peer-reviewed publication.
-            </p>
           </div>
         </div>
       </section>
