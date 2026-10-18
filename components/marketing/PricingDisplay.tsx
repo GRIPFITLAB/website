@@ -43,8 +43,10 @@ export function PricingDisplay({
   }
 
   return (
-    <div className={cn("flex flex-col", className)}>
-      <dl className="grid divide-y divide-border-hairline overflow-hidden rounded-2xl border border-border-default bg-bg-elevated/60 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+    <div className={cn("@container flex flex-col", className)}>
+      {/* Three columns only when the block itself is wide enough for each
+          label + badge on one line; otherwise the stacked row layout. */}
+      <dl className="grid divide-y divide-border-hairline overflow-hidden rounded-2xl border border-border-default bg-bg-elevated/60 @min-[600px]:grid-cols-[minmax(max-content,1.15fr)_minmax(max-content,1fr)_1fr] @min-[600px]:divide-x @min-[600px]:divide-y-0">
         {pricing.tiers.map((tier) => (
           <Tier key={tier.key} tier={tier} />
         ))}
@@ -63,20 +65,25 @@ function Tier({ tier }: { tier: PriceTier }) {
   return (
     <div
       className={cn(
-        // Phone: label + price on one row. ≥sm: stacked tile on a shared
+        // Narrow: label + price on one row. Wide: stacked tile on a shared
         // subgrid, so prices line up even when a label wraps.
-        "relative flex items-center justify-between gap-3 px-4 py-4 sm:row-span-2 sm:grid sm:grid-rows-subgrid sm:items-start sm:gap-2 sm:py-5 md:px-6 md:py-6",
+        "relative flex items-center justify-between gap-3 px-4 py-4 @min-[600px]:row-span-2 @min-[600px]:grid @min-[600px]:grid-rows-subgrid @min-[600px]:items-start @min-[600px]:gap-2 @min-[600px]:px-6 @min-[600px]:py-6",
         isPromo && "bg-promo-soft",
       )}
     >
-      <dt className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span className={cn("text-eyebrow", isPromo ? "text-promo" : "text-text-tertiary")}>
+      <dt className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+        <span
+          className={cn(
+            "text-eyebrow",
+            isPromo ? "text-promo" : tier.key === "kickstarter" ? "text-accent-bright" : "text-text-tertiary",
+          )}
+        >
           {tier.label}
         </span>
         {badge ? (
           <span
             className={cn(
-              "whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase leading-[1.4] tracking-[0.08em]",
+              "whitespace-nowrap rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-[1.4] tracking-[0.04em]",
               isPromo ? "bg-promo/15 text-promo" : "bg-accent-soft text-accent-bright",
             )}
           >
@@ -84,11 +91,11 @@ function Tier({ tier }: { tier: PriceTier }) {
           </span>
         ) : null}
       </dt>
-      <dd className="flex flex-col items-end gap-1 sm:items-start sm:gap-1.5">
+      <dd className="flex flex-col items-end gap-1 @min-[600px]:items-start @min-[600px]:gap-1.5">
         <span
           className={cn(
             "font-display font-medium leading-none tabular-nums tracking-[-0.03em]",
-            "text-[28px] sm:text-[40px] md:text-[48px]",
+            "text-[28px] @min-[600px]:text-[48px]",
             isPromo ? "text-text-primary" : "text-text-secondary",
           )}
         >
@@ -99,7 +106,7 @@ function Tier({ tier }: { tier: PriceTier }) {
           )}
         </span>
         {tier.note ? (
-          <span className="text-right text-[12px] leading-[1.4] text-text-secondary sm:text-left">
+          <span className="text-right text-[12px] leading-[1.4] text-text-secondary @min-[600px]:text-left">
             {tier.note}
           </span>
         ) : null}
