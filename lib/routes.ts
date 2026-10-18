@@ -39,7 +39,7 @@ export const routes: Record<RouteKey, Route> = {
   science: {
     key: "science",
     href: "/science",
-    label: "Science",
+    label: "Research",
     surface: { primaryNav: true, footer: true },
   },
   setup: {

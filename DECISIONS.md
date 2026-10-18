@@ -563,10 +563,15 @@ Depends on Q10 (campaign URL).
 
 **Q15 — Final copy and imagery. ⚠️ MOSTLY RESOLVED (Oct 15, 2026).**
 Home, `/setup`, `/kickstarter`, `/contact`, footer, modal, and legal
-copy are final. Still open: (a) `/science` — the citations currently on
-the page are **not verifiable** and must be replaced with real papers
-+ DOIs before launch (owner: AS). Imagery is done — full-resolution
-iPhone renders landed Oct 15 PM.
+copy are final. (a) `/science` — ✅ resolved Oct 18, 2026: the
+placeholder citations were replaced with seven verified papers, each
+linked via `https://doi.org/<doi>`; the page and nav label now read
+"The research" / "Research" (route stays `/science`). Still to confirm
+before launch (owner: AS): the NIST certificate chain behind the
+"calibrated against NIST-certified references" claim, and firmware
+support for the rate-of-force-development (0–200 ms) metric the
+`/science` carousel and `WhyGrip` describe. Imagery is done —
+full-resolution iPhone renders landed Oct 15 PM.
 
 **Q16 — Support mailbox. ✅ RESOLVED (Oct 15, 2026).** `links.supportEmail`
 is `support@gripfitlab.com`, set up in Brevo via the Vercel integration;

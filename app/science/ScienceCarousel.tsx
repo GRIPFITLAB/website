@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils";
  *
  * One big card, full-width on desktop, swipeable on mobile via native
  * scroll-snap. Each card shows: stat headline, short body, source line.
- * The four cards are parallel arguments (CNS proxy / RFD / fatigue
- * index / asymmetry) — explicitly NOT sequential, which is why we
+ * The four cards are parallel arguments (longevity / asymmetry /
+ * fatigue & recovery / RFD) — explicitly NOT sequential, which is why we
  * dropped the numbered-list treatment from the previous revamp.
  *
  * Implementation notes are identical to AppShowcase: scroll-snap +
@@ -31,36 +31,36 @@ interface Card {
 
 const cards: ReadonlyArray<Card> = [
   {
-    eyebrow: "CNS proxy",
-    stat: "5–8",
+    eyebrow: "Longevity",
+    stat: "16",
     unit: "%",
-    title: "A drop in peak grip precedes perceived fatigue.",
-    body: "Across multiple cohorts of resistance-trained athletes, a 5–8% reduction in peak grip force reliably preceded subjective reports of fatigue by 24–72 hours. The signal is small but consistent — exactly what you want for an early-warning metric.",
-    source: "Sports Medicine Review · 2022",
-  },
-  {
-    eyebrow: "Rate of force development",
-    stat: ">2",
-    unit: "× SD",
-    title: "RFD shifts before peak force does.",
-    body: "Athletes in an overreaching block dropped their rate-of-force-development by more than two standard deviations from their baseline before their peak force changed at all. RFD is the more sensitive instrument for catching the slide early.",
-    source: "European Journal of Applied Physiology · 2021",
-  },
-  {
-    eyebrow: "Fatigue index",
-    stat: "20",
-    unit: "% drop",
-    title: "Force decay over a sustained hold maps load history.",
-    body: "Force-decay across a 6-second hold correlates with glycolytic load over the prior 48 hours. A larger decay = a more depleted system. The metric requires no perceived-effort scale, which is its main advantage in heads-down field environments.",
-    source: "Journal of Strength & Conditioning Research · 2020",
+    title: "A stronger predictor than blood pressure.",
+    body: "Each 5 kg drop in grip strength was linked to a 16% higher risk of death from any cause across 140,000 adults in 17 countries. Grip outperformed systolic blood pressure as a predictor of all-cause and cardiovascular mortality.",
+    source: "The Lancet · 2015",
   },
   {
     eyebrow: "Asymmetry",
-    stat: "10–15",
-    unit: "%",
-    title: "L/R imbalance is a leading injury indicator.",
-    body: "Bilateral asymmetries crossing the 10–15% threshold are linked with elevated soft-tissue injury risk in upper-extremity sports. Daily two-handed measurements catch developing imbalances early, before compensatory patterns establish.",
-    source: "J. Orthopaedic & Sports Phys. Therapy · 2023",
+    stat: "1.62",
+    unit: "×",
+    title: "L/R imbalance is a signal, not a quirk.",
+    body: "Every 10% increase in left/right grip asymmetry was tied to 1.62× higher odds of poorer balance. Asymmetry and weakness together predicted future functional decline better than either one alone. Two-handed tracking shows both.",
+    source: "Archives of Gerontology and Geriatrics · 2022",
+  },
+  {
+    eyebrow: "Fatigue & recovery",
+    stat: "10",
+    unit: "reps",
+    title: "How you fade matters more than your peak.",
+    body: "A 10-rep maximal grip protocol predicted fall risk better than a single max squeeze. People who fatigued faster and recovered slower had higher fall rates. Repeated-effort tracking captures what one reading misses.",
+    source: "Clinical Rehabilitation · 2025",
+  },
+  {
+    eyebrow: "Rate of force development",
+    stat: "0–200",
+    unit: "ms",
+    title: "How fast you squeeze tells you more.",
+    body: "Explosive grip force in the first 200 milliseconds related to functional mobility better than maximum grip strength. Only a device that records the full force curve can measure it.",
+    source: "Acta of Bioengineering and Biomechanics · 2015",
   },
 ];
 

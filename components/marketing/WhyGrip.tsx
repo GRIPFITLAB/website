@@ -14,16 +14,16 @@ import { routes } from "@/lib/routes";
  */
 const points: ReadonlyArray<{ title: string; body: string }> = [
   {
-    title: "Readiness from output, not inference.",
-    body: "HRV guesses recovery from your heartbeat. Grip measures what your nervous system can actually produce today, in one five-second effort, before you train.",
+    title: "Output, not inference.",
+    body: "Grip measures what your body can actually produce, in one five-second effort. Track it at the same time each day against your own baseline, alongside HRV and how you feel.",
   },
   {
     title: "A clinically backed marker, not a fitness gimmick.",
-    body: "Clinicians use grip strength to track recovery after injury and surgery, and researchers use it to predict long-term health. Each drop of 5 kg in grip strength was linked to a 16% higher risk of death from any cause in a study of nearly 140,000 adults.",
+    body: "Clinicians use grip strength to track recovery after injury and surgery, and researchers use it to predict long-term health. Each 5 kg drop in grip strength was linked to a 16% higher risk of death from any cause, a stronger predictor than blood pressure, in a study of nearly 140,000 adults.",
   },
   {
     title: "Precise enough to trust the trend.",
-    body: "A custom load cell, calibrated against NIST-certified references, makes the small day-to-day changes real. That's what turns a number into a trend, and a trend into a decision: push or recover.",
+    body: "A custom load cell, calibrated against NIST-certified references, captures the full force curve: peak, speed, fade, and left/right balance. That's what turns a number into a trend you can act on.",
   },
 ];
 
@@ -36,7 +36,7 @@ export function WhyGrip() {
             <SectionHeader
               eyebrow="Why grip"
               title={<span id="why-heading">The strongest signal you aren&apos;t tracking.</span>}
-              lead="Grip strength is a clinically backed marker for longevity and overall fitness. GripFit turns it into a daily readiness read."
+              lead="Grip strength is a clinically backed marker for longevity and overall strength. GripFit turns it into a daily trend you can train against."
             />
             <Link
               href={routes.science.href}

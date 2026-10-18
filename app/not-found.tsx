@@ -47,7 +47,7 @@ export default function NotFound() {
             variant="outline"
             className="h-12 px-8 text-sm font-semibold uppercase tracking-[0.08em] text-text-primary"
           >
-            The science
+            The research
           </Button>
         </div>
       </div>
