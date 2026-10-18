@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils";
  *   Kickstarter      (the ceiling)
  *   Expected retail  (struck through — the anchor)
  *
- * Early bird and Kickstarter each carry a rounded "% off" badge against
- * the tier to their right. Prices come from `usePricing()` so the
+ * Early bird and Kickstarter each carry a flat "% off" badge beside the
+ * label, against the tier to their right. Prices come from `usePricing()` so the
  * visitor's assigned arm flows through automatically. No literals here.
  *
  * Variants:
@@ -69,8 +69,20 @@ function Tier({ tier }: { tier: PriceTier }) {
         isPromo && "bg-promo-soft",
       )}
     >
-      <dt className={cn("text-eyebrow", isPromo ? "text-promo" : "text-text-tertiary")}>
-        {tier.label}
+      <dt className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className={cn("text-eyebrow", isPromo ? "text-promo" : "text-text-tertiary")}>
+          {tier.label}
+        </span>
+        {badge ? (
+          <span
+            className={cn(
+              "whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase leading-[1.4] tracking-[0.08em]",
+              isPromo ? "bg-promo/15 text-promo" : "bg-accent-soft text-accent-bright",
+            )}
+          >
+            {badge}
+          </span>
+        ) : null}
       </dt>
       <dd className="flex flex-col items-end gap-1 sm:items-start sm:gap-1.5">
         <span
@@ -86,16 +98,6 @@ function Tier({ tier }: { tier: PriceTier }) {
             tier.formatted
           )}
         </span>
-        {badge ? (
-          <span
-            className={cn(
-              "rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em]",
-              isPromo ? "bg-promo/15 text-promo" : "bg-accent-soft text-accent-bright",
-            )}
-          >
-            {badge}
-          </span>
-        ) : null}
         {tier.note ? (
           <span className="text-right text-[12px] leading-[1.4] text-text-secondary sm:text-left">
             {tier.note}

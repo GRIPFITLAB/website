@@ -33,7 +33,8 @@ Project-specific rules for AI assistants. Read these before the Next.js notes be
    stay, nothing imports from it (DECISIONS.md §7, §16 Q3). No customer
  accounts (§8). The pricing UI: the three-card `PricingDisplay` (Early bird
  with "With email signup", Kickstarter, struck-through Expected retail; the
- first two carry a rounded "% off" badge against the card to their right),
+ first two carry a flat "15% off" / "20% off" pill beside the label — never
+ more than the real saving in any arm, test-enforced),
  plus an email-capture flow that locks in the early bird price. There is no
  site-wide banner (removed Oct 18, 2026 as repetitive).
    Three surfaces share one Server Action (`submitEmailDiscount`) and one

@@ -130,9 +130,17 @@ export const campaignSettings = {
     kickstarter: "Kickstarter",
     retail: "Expected retail",
   },
-  /** Badge on a tier showing its saving against the next tier up.
-   *  `{pct}` is the rounded whole percent. */
+  /** Badge beside a tier label showing its saving against the next tier
+   *  up. `{pct}` comes from `discountBadgePct`. */
   discountBadge: "{pct}% off",
+  /** Advertised saving per tier, flat across arms. Must never exceed the
+   *  real saving in any arm (test-enforced), so the claim is always true.
+   *  `null` = no badge. */
+  discountBadgePct: {
+    superEarlyBird: 15,
+    kickstarter: 20,
+    retail: null,
+  } satisfies Record<"superEarlyBird" | "kickstarter" | "retail", number | null>,
   /** One-line explanation under each tier; `null` shows none. */
   tierNotes: {
     superEarlyBird: "With email signup",

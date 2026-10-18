@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { priceExperiment } from "@/lib/admin";
+import { campaignSettings, priceExperiment } from "@/lib/admin";
 import {
   computePricing,
   defaultPricing,
@@ -43,9 +43,15 @@ describe("arm table", () => {
     ]);
   });
 
-  it("prices Kickstarter at a rounded 20% under retail in every arm", () => {
+  it("never advertises more saving than an arm actually gives", () => {
+    const pct = campaignSettings.discountBadgePct;
     for (const arm of ARMS) {
-      expect(savingPct(arm.kickstarterCeilingUSD, arm.retailUSD)).toBe(20);
+      expect(savingPct(arm.emailLockUSD, arm.kickstarterCeilingUSD)).toBeGreaterThanOrEqual(
+        pct.superEarlyBird,
+      );
+      expect(savingPct(arm.kickstarterCeilingUSD, arm.retailUSD)).toBeGreaterThanOrEqual(
+        pct.kickstarter,
+      );
     }
   });
 
@@ -96,20 +102,11 @@ describe("computePricing", () => {
     }
   });
 
-  it("badges each tier with its rounded saving against the next tier up", () => {
-    const expected: Record<number, [number, number]> = {
-      1: [16, 20],
-      2: [15, 20],
-      3: [16, 20],
-      4: [15, 20],
-      5: [15, 20],
-    };
+  it("badges early bird 15% off and Kickstarter 20% off in every arm", () => {
     for (const arm of ARMS) {
       const [seb, ks, retail] = computePricing(arm.id).tiers;
-      const [sebPct, ksPct] = expected[arm.id]!;
-      expect([seb.discountPct, ks.discountPct]).toEqual([sebPct, ksPct]);
-      expect(retail.discountPct).toBeNull();
-      expect(discountBadge(seb)).toBe(`${sebPct}% off`);
+      expect(discountBadge(seb)).toBe("15% off");
+      expect(discountBadge(ks)).toBe("20% off");
       expect(discountBadge(retail)).toBeNull();
     }
   });

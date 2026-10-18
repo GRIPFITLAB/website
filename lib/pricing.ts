@@ -24,7 +24,8 @@ export interface PriceTier {
   label: string;
   /** One-line explanation shown under the price, if any. */
   note: string | null;
-  /** Whole-percent saving against the next tier up; `null` for retail. */
+  /** Advertised saving against the next tier up (flat, from admin);
+   *  `null` for no badge. */
   discountPct: number | null;
   /** Whole-dollar amount. */
   amount: number;
@@ -68,17 +69,17 @@ export function isValidArmId(n: unknown): n is number {
   return priceArm(n) !== null;
 }
 
-/** Rounded percent saved paying `price` instead of `reference`. */
+/** Exact percent saved paying `price` instead of `reference`. */
 export function savingPct(price: number, reference: number): number {
-  return Math.round((1 - price / reference) * 100);
+  return (1 - price / reference) * 100;
 }
 
-function tier(key: TierKey, amount: number, nextTierUp: number | null): PriceTier {
+function tier(key: TierKey, amount: number): PriceTier {
   return {
     key,
     label: campaignSettings.tierLabels[key],
     note: campaignSettings.tierNotes[key],
-    discountPct: nextTierUp === null ? null : savingPct(amount, nextTierUp),
+    discountPct: campaignSettings.discountBadgePct[key],
     amount,
     formatted: formatUSD(amount),
   };
@@ -100,9 +101,9 @@ export function computePricing(assignedArmId?: number | null): Pricing {
   const assigned = priceExperiment.enabled ? priceArm(assignedArmId) : null;
   const arm = assigned ?? defaultArm();
 
-  const superEarlyBird = tier("superEarlyBird", arm.emailLockUSD, arm.kickstarterCeilingUSD);
-  const kickstarter = tier("kickstarter", arm.kickstarterCeilingUSD, arm.retailUSD);
-  const retail = tier("retail", arm.retailUSD, null);
+  const superEarlyBird = tier("superEarlyBird", arm.emailLockUSD);
+  const kickstarter = tier("kickstarter", arm.kickstarterCeilingUSD);
+  const retail = tier("retail", arm.retailUSD);
 
   return {
     armId: arm.id,
