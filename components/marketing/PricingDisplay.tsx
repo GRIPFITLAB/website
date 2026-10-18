@@ -1,7 +1,7 @@
 "use client";
 
 import { usePricing } from "@/components/experiment/PricingContext";
-import type { PriceTier } from "@/lib/pricing";
+import { discountBadge, type PriceTier } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
 /**
@@ -11,8 +11,9 @@ import { cn } from "@/lib/utils";
  *   Kickstarter      (the ceiling)
  *   Expected retail  (struck through — the anchor)
  *
- * No percent-off badges. Prices come from `usePricing()` so the visitor's assigned arm flows
- * through automatically. No literals here.
+ * Early bird and Kickstarter each carry a rounded "% off" badge against
+ * the tier to their right. Prices come from `usePricing()` so the
+ * visitor's assigned arm flows through automatically. No literals here.
  *
  * Variants:
  *   - `full`    hero / kickstarter page — three columns with hairlines.
@@ -58,6 +59,7 @@ export function PricingDisplay({
 
 function Tier({ tier }: { tier: PriceTier }) {
   const isPromo = tier.key === "superEarlyBird";
+  const badge = discountBadge(tier);
   return (
     <div
       className={cn(
@@ -84,6 +86,16 @@ function Tier({ tier }: { tier: PriceTier }) {
             tier.formatted
           )}
         </span>
+        {badge ? (
+          <span
+            className={cn(
+              "rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em]",
+              isPromo ? "bg-promo/15 text-promo" : "bg-accent-soft text-accent-bright",
+            )}
+          >
+            {badge}
+          </span>
+        ) : null}
         {tier.note ? (
           <span className="text-right text-[12px] leading-[1.4] text-text-secondary sm:text-left">
             {tier.note}

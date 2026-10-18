@@ -24,6 +24,8 @@ export interface PriceTier {
   label: string;
   /** One-line explanation shown under the price, if any. */
   note: string | null;
+  /** Whole-percent saving against the next tier up; `null` for retail. */
+  discountPct: number | null;
   /** Whole-dollar amount. */
   amount: number;
   /** `$84` */
@@ -66,11 +68,17 @@ export function isValidArmId(n: unknown): n is number {
   return priceArm(n) !== null;
 }
 
-function tier(key: TierKey, amount: number): PriceTier {
+/** Rounded percent saved paying `price` instead of `reference`. */
+export function savingPct(price: number, reference: number): number {
+  return Math.round((1 - price / reference) * 100);
+}
+
+function tier(key: TierKey, amount: number, nextTierUp: number | null): PriceTier {
   return {
     key,
     label: campaignSettings.tierLabels[key],
     note: campaignSettings.tierNotes[key],
+    discountPct: nextTierUp === null ? null : savingPct(amount, nextTierUp),
     amount,
     formatted: formatUSD(amount),
   };
@@ -92,9 +100,9 @@ export function computePricing(assignedArmId?: number | null): Pricing {
   const assigned = priceExperiment.enabled ? priceArm(assignedArmId) : null;
   const arm = assigned ?? defaultArm();
 
-  const superEarlyBird = tier("superEarlyBird", arm.emailLockUSD);
-  const kickstarter = tier("kickstarter", arm.kickstarterCeilingUSD);
-  const retail = tier("retail", arm.retailUSD);
+  const superEarlyBird = tier("superEarlyBird", arm.emailLockUSD, arm.kickstarterCeilingUSD);
+  const kickstarter = tier("kickstarter", arm.kickstarterCeilingUSD, arm.retailUSD);
+  const retail = tier("retail", arm.retailUSD, null);
 
   return {
     armId: arm.id,
@@ -132,7 +140,14 @@ export function emailLockConfirmation(lockedAmount: number): string {
   return withPrice(emailDiscount.confirmationCopy, lockedAmount);
 }
 
-/** Site-wide banner sentence. */
+/** `"16% off"`, or `null` for a tier with nothing above it. */
+export function discountBadge(t: PriceTier): string | null {
+  return t.discountPct === null
+    ? null
+    : campaignSettings.discountBadge.replace("{pct}", String(t.discountPct));
+}
+
+/** One-line campaign summary (mobile menu). */
 export function campaignBannerCopy(p: Pricing): string {
   const parts = [
     `Kickstarter: never more than ${p.kickstarter.formatted}`,

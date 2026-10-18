@@ -22,7 +22,7 @@ Project-specific rules for AI assistants. Read these before the Next.js notes be
    `--bg-canvas` (`#0a1328`); the brand accent is `--accent` (`#3b82f6`, with
    `--accent-bright` for text/links on dark) — primary CTA fill, links, focus
    rings, the "G" mark. A separate **mint** `--promo` (`#34d399`) is reserved
-   for the Super Early Bird / discount UI only (banner, SEB tier, email CTA).
+   for the early bird / discount UI only (early bird card, "% off" badge, email CTA).
    The saturated-blue `bg-inverted` band is used once per page (the
    comparison). Do not add a light mode or a toggle. Do not use `--promo` for
    navigation, body emphasis, or dividers. The warm-cream direction was
@@ -31,16 +31,17 @@ Project-specific rules for AI assistants. Read these before the Next.js notes be
    URL in `lib/admin.ts` (`links.crowdfundingUrl`; `/kickstarter` holding page
    while it is `null`). The `lib/shopify/` client is parked for v2 — files
    stay, nothing imports from it (DECISIONS.md §7, §16 Q3). No customer
- accounts (§8). The pricing UI: a site-wide Kickstarter banner quoting the
- visitor's arm (Kickstarter ceiling + Super Early Bird lock), plus an
- email-capture flow that locks in the Super Early Bird price. No
- percentages, strike-throughs, or "% off" framing (DECISIONS.md §16 Q12).
+ accounts (§8). The pricing UI: the three-card `PricingDisplay` (Early bird
+ with "With email signup", Kickstarter, struck-through Expected retail; the
+ first two carry a rounded "% off" badge against the card to their right),
+ plus an email-capture flow that locks in the early bird price. There is no
+ site-wide banner (removed Oct 18, 2026 as repetitive).
    Three surfaces share one Server Action (`submitEmailDiscount`) and one
    `EMAIL_DISCOUNT_DISMISSED_KEY` localStorage flag: (a) `<EmailDiscountModal />`
    in `app/layout.tsx` (auto-opens once; re-open anywhere via the
    `gripfit:open-email-discount` event), (b) `<EmailDiscountForm
    variant="footer" source="footer" showConsent />` at the top of the footer,
-   (c) in the Hero, the primary `<EmailLockButton />` ("Lock in $[lock]")
+   (c) in the Hero, the primary `<EmailLockButton />` ("Get early bird pricing")
  with a "Follow on Kickstarter →" link to `campaign.href` beside it; in the
  mobile menu, `<EmailDiscountTeaser />` beside the "Back on Kickstarter" CTA
  (not in `ClosingCta` — the footer form sits right below).
@@ -60,7 +61,7 @@ Project-specific rules for AI assistants. Read these before the Next.js notes be
    self-hosted variable fonts under `/public/fonts`. No third font.
 8. **Server Components by default.** Add `"use client"` only for
    interactivity, browser APIs, or hooks. Client state is localStorage
-   (banner / modal / cookie-notice dismissal) plus the read-only
+   (modal / cookie-notice dismissal) plus the read-only
    `PricingProvider` context seeded from the server — no Redux / Zustand /
    SWR. Every page is dynamic because `app/layout.tsx` reads the visitor's
    price assignment; that is intentional.
@@ -71,7 +72,8 @@ Project-specific rules for AI assistants. Read these before the Next.js notes be
  `lib/config.ts` composes the typed `siteConfig`, `productConfig`,
  `discountConfig`, `trackingConfig`, `externalLinks`, `campaign` exports;
  **`lib/pricing.ts`** owns all pricing math (`computePricing(armId)`,
- `emailLock*` copy helpers, `campaignBannerCopy`). Components read prices
+ `savingPct` / `discountBadge`, `emailLock*` copy helpers, `campaignBannerCopy`
+ for the mobile menu). Components read prices
  through `usePricing()` (client) or `getVisitorPricing()` (server) — never
  from `admin.ts` directly — so the per-visitor arm flows everywhere. Sentences
    that quote a number are generated, not typed; `tests/copy.test.ts` checks

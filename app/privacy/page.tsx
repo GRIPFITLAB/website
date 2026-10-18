@@ -99,7 +99,7 @@ export default function PrivacyPage() {
           </p>
           <p>
             A few preferences, such as whether you have dismissed the email
-            sign-up pop-up, the Kickstarter banner, or the cookie notice, are kept in your browser&apos;s local
+            sign-up pop-up or the cookie notice, are kept in your browser&apos;s local
             storage on your own device and are never sent to us.
           </p>
 

@@ -589,13 +589,16 @@ replace the $75–$140 range:
 
 | Arm | Expected retail | Kickstarter ceiling | Email lock |
 | --- | --- | --- | --- |
-| 1 | $98 | $82 | $69 |
-| 2 | $118 | $99 | $84 |
-| 3 | $154 | $129 | $109 |
-| 4 | $190 | $159 | $135 |
-| 5 | $238 | $199 | $169 |
+| 1 | $103 | $82 | $69 |
+| 2 | $124 | $99 | $84 |
+| 3 | $162 | $129 | $109 |
+| 4 | $199 | $159 | $135 |
+| 5 | $249 | $199 | $169 |
 
-Arm 3 is `defaultArmId` — what a request with no assignment (or the
+Retail was re-set on Oct 18, 2026 so the Kickstarter price is a rounded
+20% under it in every arm (test-enforced); Kickstarter and lock prices
+are unchanged. The cards show rounded "% off" badges: early bird vs
+Kickstarter (15–16%) and Kickstarter vs retail (20%). Arm 3 is `defaultArmId` — what a request with no assignment (or the
 whole site, with the experiment off) shows; it is never recorded as an
 impression. Terms and Privacy (v1.2.0) describe the arm model: random
 price sets, the "no higher than" Kickstarter intent, one locked Super
@@ -622,10 +625,10 @@ or to identify people.
 | Assignment | `proxy.ts` (Next 16's middleware) runs on every page request. A new visitor gets `visitorId = randomUUID()` and one of `priceExperiment.arms`, each with probability 1/5 (`lib/experiment/assignment.ts → randomArmId`, rejection-sampled `crypto.getRandomValues`). Stateless, so splits are even in expectation, not exactly balanced. |
 | Persistence | First-party cookie **`gf_exp`** = `visitorId.experimentId.armId.hmac` — HMAC-SHA256 signed with `EXPERIMENT_SECRET`, httpOnly, SameSite=Lax, 180 days. The cookie carries only the arm id; prices are looked up server-side. A tampered, stale-experiment, or unknown-arm value is discarded and **randomly** reassigned, so a visitor cannot pick their arm. (Clearing cookies re-rolls the arm — unavoidable without fingerprinting; the email lock below stops it mattering for an existing signup.) |
 | First render | The proxy forwards `x-gf-exp` / `x-gf-attr` / `x-gf-new` request headers so the very first server render already knows the arm (no flash of default pricing). `lib/experiment/server.ts → getVisitorContext()` reads headers, falls back to cookies for Server Action POSTs. |
-| Impressions | `components/experiment/VisitorProvider.tsx` (in `app/layout.tsx`) records a `visitors/{visitorId}` doc (arm + its three prices) via `after()` on the request that minted the assignment — one impression per visitor, since the site-wide banner shows the arm on every page. Requests whose user agent looks like a crawler or link-preview fetcher (`isLikelyBot`, incl. `facebookexternalhit`) are not recorded. Pages are therefore dynamic (ƒ) — accepted. |
+| Impressions | `components/experiment/VisitorProvider.tsx` (in `app/layout.tsx`) records a `visitors/{visitorId}` doc (arm + its three prices) via `after()` on the request that minted the assignment — one impression per visitor, since the footer email form quotes the arm's lock price on every page. Requests whose user agent looks like a crawler or link-preview fetcher (`isLikelyBot`, incl. `facebookexternalhit`) are not recorded. Pages are therefore dynamic (ƒ) — accepted. |
 | Email lock | `submitEmailDiscount` locks the visitor's arm: Brevo `PRICE_ARM` + `PRICE_LOCKED` (+ `EXPERIMENT_ID`, `VISITOR_ID`, `UTM_CAMPAIGN`, `SIGNUP_TS`), written **once**. A returning email that already has `PRICE_LOCKED` keeps it — only `DISCOUNT_CODE` and list membership are re-asserted, and the confirmation + email quote the original lock. The price never comes from the form. Requires `node scripts/setup-brevo-attributes.mjs` once — Brevo silently drops unknown attributes. |
 | Attribution | First-touch only. `utm_*`, `campaign_id`, `adset_id`, `ad_id`, `placement`, `fbclid`, landing path, external referrer host → cookie **`gf_attr`** (base64url JSON, 1 year). Ads must use URL parameters — Ads Manager "URL parameters" field: `utm_source=facebook&utm_medium=paid&utm_campaign={{campaign.name}}&campaign_id={{campaign.id}}&adset_id={{adset.id}}&ad_id={{ad.id}}&placement={{placement}}`. |
-| Price in UI | `PricingProvider` (client context) seeded from the server context; every `PricingDisplay`, banner, teaser, and modal reads `usePricing()`; the Footer and `/kickstarter` (Server Components) read `getVisitorPricing()`. `lib/pricing.ts → computePricing(armId)` maps an arm to its three tiers. |
+| Price in UI | `PricingProvider` (client context) seeded from the server context; every `PricingDisplay`, teaser, and modal reads `usePricing()`; the Footer and `/kickstarter` (Server Components) read `getVisitorPricing()`. `lib/pricing.ts → computePricing(armId)` maps an arm to its three tiers. |
 | Lead DB | **Cloud Firestore** (same Firebase project as the iOS app), via `firebase-admin` in `lib/experiment/store.ts`. Collections `{FIRESTORE_COLLECTION_PREFIX}visitors`, `…leads` (doc id = sha256(email), one per email, `submitCount`), `…contacts`. Lead doc = email, code, visitorId, experimentId, `priceArm`, `lockedPrice`, `displayedArm`, attribution, source surface, eventId, timestamps; arm/lock fields are written on create only. `npm run export:leads` prints impressions, signups, and conversion per arm for the current experiment and writes both collections to CSV. **Without `FIREBASE_SERVICE_ACCOUNT_JSON` there are no impression counts** — only log lines. |
 | Meta Pixel | `components/tracking/MetaPixel.tsx` loads `fbevents.js` when `NEXT_PUBLIC_META_PIXEL_ID` is set; fires `PageView` (with `price_arm`, `assigned_price` = ceiling, `experiment_id`) on every route and `Lead` on signup success. Pixel id is public by design. |
 | Conversions API | `lib/tracking/meta-capi.ts` sends `Lead` server-side with the **same `event_id`** the browser generated (hidden form field), so Meta dedups Pixel + CAPI. `user_data` carries only a SHA-256 of the normalised email plus `fbp`/`fbc`/IP/UA. |

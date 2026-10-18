@@ -13,7 +13,7 @@ const STORAGE_KEY = "gripfit:cookie-notice:dismissed-v1";
  * Small, dismissible tracking notice (DECISIONS.md §12). Discloses the
  * first-party pricing cookie and the Meta Pixel; links to /privacy.
  *
- * Same external-store pattern as `DiscountBanner`: server snapshot is
+ * Reads dismissal via `useSyncExternalStore`: server snapshot is
  * "dismissed" so nothing renders on the server and hydration can't
  * mismatch.
  */

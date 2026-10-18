@@ -98,11 +98,11 @@ export const priceExperiment = {
    *  (`tests/pricing.test.ts` enforces both). Editing a live arm's numbers
    *  changes what its existing visitors see — change `id` instead. */
   arms: [
-    { id: 1, retailUSD: 98, kickstarterCeilingUSD: 82, emailLockUSD: 69 },
-    { id: 2, retailUSD: 118, kickstarterCeilingUSD: 99, emailLockUSD: 84 },
-    { id: 3, retailUSD: 154, kickstarterCeilingUSD: 129, emailLockUSD: 109 },
-    { id: 4, retailUSD: 190, kickstarterCeilingUSD: 159, emailLockUSD: 135 },
-    { id: 5, retailUSD: 238, kickstarterCeilingUSD: 199, emailLockUSD: 169 },
+    { id: 1, retailUSD: 103, kickstarterCeilingUSD: 82, emailLockUSD: 69 },
+    { id: 2, retailUSD: 124, kickstarterCeilingUSD: 99, emailLockUSD: 84 },
+    { id: 3, retailUSD: 162, kickstarterCeilingUSD: 129, emailLockUSD: 109 },
+    { id: 4, retailUSD: 199, kickstarterCeilingUSD: 159, emailLockUSD: 135 },
+    { id: 5, retailUSD: 249, kickstarterCeilingUSD: 199, emailLockUSD: 169 },
   ] satisfies readonly PriceArm[],
   /** Arm shown when the experiment is off, or to a request with no
    *  assignment (prefetches, link-preview bots). Never recorded. */
@@ -120,6 +120,8 @@ export const campaignSettings = {
   freeShipping: true,
   /** Button label used everywhere the campaign CTA appears. */
   ctaLabel: "Back on Kickstarter",
+  /** Hero primary button — opens the email signup. */
+  earlyBirdCtaLabel: "Get early bird pricing",
   /** Hero secondary link to the campaign / pre-launch page. */
   followLabel: "Follow on Kickstarter",
   /** Tier names shown in the pricing display. */
@@ -128,6 +130,9 @@ export const campaignSettings = {
     kickstarter: "Kickstarter",
     retail: "Expected retail",
   },
+  /** Badge on a tier showing its saving against the next tier up.
+   *  `{pct}` is the rounded whole percent. */
+  discountBadge: "{pct}% off",
   /** One-line explanation under each tier; `null` shows none. */
   tierNotes: {
     superEarlyBird: "With email signup",

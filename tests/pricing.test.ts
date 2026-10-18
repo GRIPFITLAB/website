@@ -4,9 +4,11 @@ import { priceExperiment } from "@/lib/admin";
 import {
   computePricing,
   defaultPricing,
+  discountBadge,
   formatUSD,
   isValidArmId,
   priceArm,
+  savingPct,
 } from "@/lib/pricing";
 
 /**
@@ -33,12 +35,18 @@ describe("formatUSD", () => {
 describe("arm table", () => {
   it("matches the agreed arms exactly", () => {
     expect(ARMS.map((a) => [a.id, a.retailUSD, a.kickstarterCeilingUSD, a.emailLockUSD])).toEqual([
-      [1, 98, 82, 69],
-      [2, 118, 99, 84],
-      [3, 154, 129, 109],
-      [4, 190, 159, 135],
-      [5, 238, 199, 169],
+      [1, 103, 82, 69],
+      [2, 124, 99, 84],
+      [3, 162, 129, 109],
+      [4, 199, 159, 135],
+      [5, 249, 199, 169],
     ]);
+  });
+
+  it("prices Kickstarter at a rounded 20% under retail in every arm", () => {
+    for (const arm of ARMS) {
+      expect(savingPct(arm.kickstarterCeilingUSD, arm.retailUSD)).toBe(20);
+    }
   });
 
   it("numbers arms 1..n in order", () => {
@@ -88,12 +96,21 @@ describe("computePricing", () => {
     }
   });
 
-  it("carries no percent-off framing", () => {
+  it("badges each tier with its rounded saving against the next tier up", () => {
+    const expected: Record<number, [number, number]> = {
+      1: [16, 20],
+      2: [15, 20],
+      3: [16, 20],
+      4: [15, 20],
+      5: [15, 20],
+    };
     for (const arm of ARMS) {
-      for (const tier of computePricing(arm.id).tiers) {
-        expect(tier.note ?? "").not.toMatch(/%|off\b/i);
-        expect(Object.keys(tier)).not.toContain("badge");
-      }
+      const [seb, ks, retail] = computePricing(arm.id).tiers;
+      const [sebPct, ksPct] = expected[arm.id]!;
+      expect([seb.discountPct, ks.discountPct]).toEqual([sebPct, ksPct]);
+      expect(retail.discountPct).toBeNull();
+      expect(discountBadge(seb)).toBe(`${sebPct}% off`);
+      expect(discountBadge(retail)).toBeNull();
     }
   });
 });

@@ -4,7 +4,6 @@ import type { Metadata, Viewport } from "next";
 import { VisitorProvider } from "@/components/experiment/VisitorProvider";
 import { Footer } from "@/components/layout/Footer";
 import { Nav } from "@/components/layout/Nav";
-import { DiscountBanner } from "@/components/marketing/DiscountBanner";
 import { EmailDiscountModal } from "@/components/marketing/EmailDiscountModal";
 import { CookieNotice } from "@/components/tracking/CookieNotice";
 import { MetaPixel } from "@/components/tracking/MetaPixel";
@@ -59,7 +58,6 @@ export default function RootLayout({
       </head>
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <VisitorProvider>
-          <DiscountBanner />
           <Nav />
           <main id="main" className="flex-1">
             {children}
