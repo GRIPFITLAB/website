@@ -33,6 +33,8 @@ const papers: ReadonlyArray<{
   year: number;
   journal: string;
   doi: string;
+  /** Override when doi.org resolves to a dead publisher URL. */
+  href?: string;
 }> = [
   {
     title:
@@ -75,6 +77,9 @@ const papers: ReadonlyArray<{
     year: 2015,
     journal: "Acta of Bioengineering and Biomechanics",
     doi: "10.5277/ABB-00124-2014-03",
+    // doi.org redirects to a publisher PDF that 404s. This is the
+    // journal's open-access copy of the same paper.
+    href: "https://bibliotekanauki.pl/articles/306407",
   },
   {
     title:
@@ -122,7 +127,7 @@ export default function SciencePage() {
               {papers.map((paper) => (
                 <li key={paper.doi}>
                   <a
-                    href={`https://doi.org/${paper.doi}`}
+                    href={paper.href ?? `https://doi.org/${paper.doi}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="group grid gap-2 py-7 transition-colors hover:bg-bg-elevated md:grid-cols-12 md:gap-6 md:py-8"
@@ -143,7 +148,7 @@ export default function SciencePage() {
               ))}
             </ul>
             <p className="mt-6 text-xs leading-[1.6] text-text-tertiary">
-              Each DOI links to the original peer-reviewed publication.
+              Each entry links to the original peer-reviewed publication.
             </p>
           </div>
         </div>
