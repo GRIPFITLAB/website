@@ -40,8 +40,7 @@ const cards: ReadonlyArray<Card> = [
   },
   {
     eyebrow: "Asymmetry",
-    stat: "1.62",
-    unit: "×",
+    stat: "1.62×",
     title: "L/R imbalance is a signal, not a quirk.",
     body: "Every 10% increase in left/right grip asymmetry was tied to 1.62× higher odds of poorer balance. Asymmetry and weakness together predicted future functional decline better than either one alone. Two-handed tracking shows both.",
     source: "Archives of Gerontology and Geriatrics · 2022",
