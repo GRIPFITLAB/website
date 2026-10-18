@@ -32,8 +32,7 @@ interface Card {
 const cards: ReadonlyArray<Card> = [
   {
     eyebrow: "Longevity",
-    stat: "16",
-    unit: "%",
+    stat: "16%",
     title: "A stronger predictor than blood pressure.",
     body: "Each 5 kg drop in grip strength was linked to a 16% higher risk of death from any cause across 140,000 adults in 17 countries. Grip outperformed systolic blood pressure as a predictor of all-cause and cardiovascular mortality.",
     source: "The Lancet · 2015",
