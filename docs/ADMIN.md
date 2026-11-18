@@ -97,6 +97,8 @@ feature rather than failing the build (R-014).
 | `EXPERIMENT_SECRET` | server | **before ads run** | ≥16 random chars; signs the `gf_exp` price cookie so visitors can't forge a price. Unset = public dev key (warned in prod) |
 | `FIREBASE_SERVICE_ACCOUNT_JSON` | server | before ads run | Firebase service-account JSON (raw or base64) with Firestore access — the lead / visitor DB. Unset = leads only logged + stored in Brevo |
 | `FIRESTORE_COLLECTION_PREFIX` | server | optional | defaults to `web_` → `web_visitors`, `web_leads`, `web_contacts` |
+| `ADMIN_EMAIL` | server | optional | the one address that can sign in to `/admin` (case-insensitive). Unset = sign-in disabled |
+| `ADMIN_PASSCODE` | server | optional | passcode for `/admin`. Also keys the session signature — changing it signs every session out |
 | `NEXT_PUBLIC_META_PIXEL_ID` | public | before ads run | Meta Pixel id from Events Manager; unset = no Pixel loaded |
 | `META_CAPI_ACCESS_TOKEN` | server | optional | Conversions API token (Events Manager → Settings). Enables server-side `Lead` with hashed email + dedup |
 | `META_TEST_EVENT_CODE` | server | optional | `TESTxxxxx` from the Events Manager test tool; remove in prod |

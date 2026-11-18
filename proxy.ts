@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { priceExperiment } from "@/lib/admin";
+import { ADMIN_SURFACE_HEADER, isAdminPath } from "@/lib/dashboard/session";
 import {
   assignmentCookieOptions,
   createAssignment,
@@ -44,6 +45,21 @@ import {
  */
 export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
+  // Only the proxy may claim the admin surface; never trust it from the client.
+  requestHeaders.delete(ADMIN_SURFACE_HEADER);
+
+  // `/admin` is not part of the experiment: no arm, no attribution, no
+  // impression. It is never indexed or cached.
+  if (isAdminPath(request.nextUrl.pathname)) {
+    requestHeaders.set(ADMIN_SURFACE_HEADER, "admin");
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
+    response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+    response.headers.set("Cache-Control", "private, no-store, max-age=0");
+    response.headers.set("Referrer-Policy", "no-referrer");
+    response.headers.set("X-Frame-Options", "DENY");
+    return response;
+  }
+
   const secure = request.nextUrl.protocol === "https:";
 
   let assignmentValue = request.cookies.get(ASSIGNMENT_COOKIE)?.value ?? null;

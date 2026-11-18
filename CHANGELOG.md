@@ -7,6 +7,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Nov 18, 2026 — admin dashboard
+
+#### Added
+
+- **`/admin` demand dashboard** (DECISIONS.md §6). KPI cards, a demand
+  curve (signup rate by Kickstarter price with Wilson 95% band, plus
+  revenue per 1,000 visitors), 30-day activity, signup surface / channel
+  breakdowns, and a collapsible subscriber table (search, sort, paging,
+  CSV export) over the Firestore leads. Charts use `recharts`.
+- **Admin sign-in** with `ADMIN_EMAIL` + `ADMIN_PASSCODE`: rate-limited
+  Server Action, constant-time compare, signed httpOnly `gf_admin` session
+  cookie (12 h, `SameSite=Strict`, `Path=/admin`). Unlinked, `noindex`,
+  `no-store`; the proxy keeps `/admin` out of the price experiment and the
+  root layout renders it without the marketing chrome or trackers.
+
 ### Oct 15, 2026 — launch revamp
 
 #### Added

@@ -1,5 +1,6 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 
 import { VisitorProvider } from "@/components/experiment/VisitorProvider";
 import { Footer } from "@/components/layout/Footer";
@@ -8,6 +9,7 @@ import { EmailDiscountModal } from "@/components/marketing/EmailDiscountModal";
 import { CookieNotice } from "@/components/tracking/CookieNotice";
 import { MetaPixel } from "@/components/tracking/MetaPixel";
 import { siteConfig, trackingConfig } from "@/lib/config";
+import { ADMIN_SURFACE_HEADER } from "@/lib/dashboard/session";
 import { themeColor } from "@/lib/theme";
 
 import "./globals.css";
@@ -40,11 +42,15 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // `/admin` gets a bare shell: no marketing chrome, no price context, no
+  // Pixel or analytics. The proxy is the only thing that sets this header.
+  const isAdminSurface = (await headers()).get(ADMIN_SURFACE_HEADER) === "admin";
+
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
@@ -56,20 +62,24 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
       </head>
-      <body className="flex min-h-full flex-col bg-background text-foreground">
-        <VisitorProvider>
-          <Nav />
-          <main id="main" className="flex-1">
-            {children}
-          </main>
-          <Footer />
-          {/* Mounted globally so any <EmailDiscountTeaser /> can open it. */}
-          <EmailDiscountModal />
-          <CookieNotice />
-          <MetaPixel pixelId={trackingConfig.metaPixelId} />
-        </VisitorProvider>
-        <Analytics />
-      </body>
+      {isAdminSurface ? (
+        <body className="min-h-full bg-bg-deep text-foreground">{children}</body>
+      ) : (
+        <body className="flex min-h-full flex-col bg-background text-foreground">
+          <VisitorProvider>
+            <Nav />
+            <main id="main" className="flex-1">
+              {children}
+            </main>
+            <Footer />
+            {/* Mounted globally so any <EmailDiscountTeaser /> can open it. */}
+            <EmailDiscountModal />
+            <CookieNotice />
+            <MetaPixel pixelId={trackingConfig.metaPixelId} />
+          </VisitorProvider>
+          <Analytics />
+        </body>
+      )}
     </html>
   );
 }

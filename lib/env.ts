@@ -132,6 +132,13 @@ const envSchema = z.object({
   /** Events Manager "Test events" code — set only while testing. */
   META_TEST_EVENT_CODE: z.string().min(1).optional(),
 
+  // ── Admin dashboard (/admin) ─────────────────────────────────────
+  /** The one address allowed to sign in to `/admin`. Server-only. */
+  ADMIN_EMAIL: z.string().email().optional(),
+  /** Passcode paired with `ADMIN_EMAIL`. Server-only. Also keys the
+   *  session signature, so changing it signs every session out. */
+  ADMIN_PASSCODE: z.string().min(1).optional(),
+
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
@@ -216,6 +223,9 @@ export const isContactEmailConfigured = Boolean(
 
 /** Firestore lead / visitor database is reachable. */
 export const isFirebaseConfigured = Boolean(env.FIREBASE_SERVICE_ACCOUNT_JSON);
+
+/** `/admin` sign-in is possible. Unset = the login form refuses everyone. */
+export const isAdminConfigured = Boolean(env.ADMIN_EMAIL && env.ADMIN_PASSCODE);
 
 /** Server-side Meta Conversions API can be called. */
 export const isMetaCapiConfigured = Boolean(

@@ -15,6 +15,7 @@ import { describe, expect, it } from "vitest";
  * not evidence for this class of defect, so the invariant is asserted here.
  */
 const ACTION_FILES = [
+  "components/admin/admin-actions.ts",
   "components/forms/contact-action.ts",
   "components/forms/unsubscribe-action.ts",
   "components/marketing/email-discount-action.ts",

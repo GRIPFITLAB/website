@@ -187,6 +187,118 @@ export async function recordLead(input: LeadRecordInput): Promise<void> {
   }
 }
 
+/* ── Reads (admin dashboard) ─────────────────────────────────────────── */
+
+type Data = Record<string, unknown>;
+
+function millis(v: unknown): number | null {
+  if (v && typeof (v as { toMillis?: unknown }).toMillis === "function") {
+    return (v as { toMillis: () => number }).toMillis();
+  }
+  return null;
+}
+
+function str(v: unknown): string | null {
+  return typeof v === "string" && v.length > 0 ? v : null;
+}
+
+function num(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+export interface VisitorRow {
+  priceArm: number | null;
+  firstSeenAt: number | null;
+}
+
+/**
+ * Every recorded impression for one experiment, projected to the two
+ * fields the dashboard aggregates. `null` = Firestore isn't configured.
+ * Throws on a Firestore error so the caller can surface it.
+ */
+export async function listExperimentVisitors(experimentId: string): Promise<VisitorRow[] | null> {
+  const store = firestore();
+  if (!store) return null;
+  const snap = await store
+    .collection(col("visitors"))
+    .where("experimentId", "==", experimentId)
+    .select("priceArm", "firstSeenAt")
+    .get();
+  return snap.docs.map((d) => {
+    const data = d.data() as Data;
+    return { priceArm: num(data.priceArm), firstSeenAt: millis(data.firstSeenAt) };
+  });
+}
+
+export interface LeadAttributionRow {
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampaign: string | null;
+  utmContent: string | null;
+  campaignId: string | null;
+  adsetId: string | null;
+  adId: string | null;
+  placement: string | null;
+  landingPath: string | null;
+  referrerHost: string | null;
+}
+
+export interface LeadRow extends LeadAttributionRow {
+  id: string;
+  email: string;
+  discountCode: string | null;
+  experimentId: string | null;
+  visitorId: string | null;
+  priceArm: number | null;
+  lockedPrice: number | null;
+  displayedArm: number | null;
+  isExperimentPrice: boolean;
+  firstSource: string | null;
+  lastSource: string | null;
+  submitCount: number;
+  createdAt: number | null;
+  lastSubmittedAt: number | null;
+}
+
+/** Every lead across all experiments, newest first. `null` = not configured. */
+export async function listLeads(): Promise<LeadRow[] | null> {
+  const store = firestore();
+  if (!store) return null;
+  const snap = await store.collection(col("leads")).get();
+  return snap.docs
+    .map((d): LeadRow => {
+      const l = d.data() as Data;
+      const a = (l.attribution ?? {}) as Data;
+      return {
+        id: d.id,
+        email: str(l.email) ?? "",
+        discountCode: str(l.discountCode),
+        experimentId: str(l.experimentId),
+        visitorId: str(l.visitorId),
+        priceArm: num(l.priceArm),
+        lockedPrice: num(l.lockedPrice),
+        displayedArm: num(l.displayedArm),
+        isExperimentPrice: l.isExperimentPrice === true,
+        firstSource: str(l.firstSource),
+        lastSource: str(l.lastSource),
+        submitCount: num(l.submitCount) ?? 1,
+        createdAt: millis(l.createdAt),
+        lastSubmittedAt: millis(l.lastSubmittedAt),
+        utmSource: str(a.utm_source),
+        utmMedium: str(a.utm_medium),
+        utmCampaign: str(a.utm_campaign),
+        utmContent: str(a.utm_content),
+        campaignId: str(a.campaign_id),
+        adsetId: str(a.adset_id),
+        adId: str(a.ad_id),
+        placement: str(a.placement),
+        landingPath: str(a.landing_path),
+        referrerHost: str(a.referrer_host),
+      };
+    })
+    .sort((x, y) => (y.createdAt ?? 0) - (x.createdAt ?? 0));
+}
+
 /* ── Contact messages ────────────────────────────────────────────────── */
 
 export interface ContactRecordInput {
