@@ -5,6 +5,10 @@ import {
   armStats,
   breakdown,
   dailySeries,
+  inRange,
+  parseDateRange,
+  parseExperimentSelection,
+  rangeBounds,
   summarize,
   wilsonInterval,
 } from "@/lib/dashboard/metrics";
@@ -109,19 +113,48 @@ function lead(overrides: Partial<LeadRow>): LeadRow {
 }
 
 describe("dashboard metrics", () => {
+  const current = { id: priceExperiment.id, arms: priceExperiment.arms };
+  const visitor = (visitorId: string, priceArm: number, overrides: Partial<VisitorRow> = {}): VisitorRow => ({
+    visitorId,
+    experimentId: priceExperiment.id,
+    priceArm,
+    kickstarterCeiling: null,
+    emailLockPrice: null,
+    expectedRetail: null,
+    firstSeenAt: Date.now(),
+    ...overrides,
+  });
   const visitors: VisitorRow[] = [
-    ...Array.from({ length: 100 }, (_, i) => ({ visitorId: `v1-${i}`, priceArm: 1, firstSeenAt: Date.now() })),
-    ...Array.from({ length: 50 }, (_, i) => ({ visitorId: `v5-${i}`, priceArm: 5, firstSeenAt: Date.now() })),
+    ...Array.from({ length: 100 }, (_, i) => visitor(`v1-${i}`, 1)),
+    ...Array.from({ length: 50 }, (_, i) => visitor(`v5-${i}`, 5)),
   ];
   const leads: LeadRow[] = [
     ...Array.from({ length: 10 }, () => lead({ priceArm: 1 })),
     ...Array.from({ length: 4 }, () => lead({ priceArm: 5 })),
-    // Not counted toward an arm: default-arm visitor, and an old experiment.
+    // Not counted: a default-arm visitor, and an arm with no known prices.
     lead({ priceArm: 3, isExperimentPrice: false }),
     lead({ priceArm: 2, experimentId: "older-experiment" }),
   ];
 
-  const stats = armStats(priceExperiment.arms, visitors, leads, priceExperiment.id);
+  const stats = armStats(current, visitors, leads, true);
+
+  it("merges experiments by the Kickstarter price each arm actually showed", () => {
+    const old = [
+      // Old arm 7 showed $99 — the same price as current arm 2.
+      ...Array.from({ length: 20 }, (_, i) =>
+        visitor(`old-${i}`, 7, { experimentId: "old", kickstarterCeiling: 99, emailLockPrice: 80, expectedRetail: 120 }),
+      ),
+    ];
+    const oldLeads = [lead({ experimentId: "old", priceArm: 7 }), lead({ priceArm: 2 })];
+    const merged = armStats(current, [...old, visitor("c2", 2)], oldLeads, true).find((s) => s.key === 99);
+    expect(merged).toMatchObject({ impressions: 21, signups: 2, armId: null });
+    expect(merged?.experimentIds).toEqual(["old", priceExperiment.id].sort());
+  });
+
+  it("omits current arms with no traffic when the current experiment isn't selected", () => {
+    expect(armStats(current, [], [], false)).toEqual([]);
+    expect(armStats(current, [], [], true)).toHaveLength(priceExperiment.arms.length);
+  });
 
   it("counts impressions and experiment signups per arm", () => {
     const byId = new Map(stats.map((s) => [s.armId, s]));
@@ -133,7 +166,7 @@ describe("dashboard metrics", () => {
 
   it("drops an excluded signup and its visitor's impression", () => {
     const withExcluded = [...leads, lead({ priceArm: 1, visitorId: "v1-0", excludedFromExperiment: true })];
-    const arm1 = armStats(priceExperiment.arms, visitors, withExcluded, priceExperiment.id).find(
+    const arm1 = armStats(current, visitors, withExcluded, true).find(
       (s) => s.armId === 1,
     );
     expect(arm1).toMatchObject({ impressions: 99, signups: 10 });
@@ -160,8 +193,9 @@ describe("dashboard metrics", () => {
     expect(kpis.experimentSignups).toBe(14);
   });
 
-  it("zero-fills the daily series", () => {
-    const series = dailySeries(visitors, leads, 30);
+  it("zero-fills the daily series across the range", () => {
+    const now = Date.now();
+    const series = dailySeries(visitors, leads, now - 29 * 86_400_000, now);
     expect(series).toHaveLength(30);
     expect(series.at(-1)).toMatchObject({ visitors: 150, signups: leads.length });
     expect(series[0]).toMatchObject({ visitors: 0, signups: 0 });
@@ -172,5 +206,30 @@ describe("dashboard metrics", () => {
     const items = breakdown(rows, (l) => l.firstSource ?? "", 3);
     expect(items).toHaveLength(4);
     expect(items.at(-1)).toEqual({ label: "Other", count: 4 });
+  });
+});
+
+describe("dashboard filters", () => {
+  it("keeps only known experiment ids; empty means no filter", () => {
+    const known = ["a", "b"];
+    expect(parseExperimentSelection(undefined, known)).toBeNull();
+    expect(parseExperimentSelection(["a", "zzz", "a"], known)).toEqual(["a"]);
+    expect(parseExperimentSelection("a,b", known)).toEqual(["a", "b"]);
+    expect(parseExperimentSelection("zzz", known)).toBeNull();
+  });
+
+  it("validates and orders the date range", () => {
+    expect(parseDateRange("2026-11-01", "2026-11-18")).toEqual({ from: "2026-11-01", to: "2026-11-18" });
+    expect(parseDateRange("2026-11-18", "2026-11-01")).toEqual({ from: "2026-11-01", to: "2026-11-18" });
+    expect(parseDateRange("2026-02-30", "nope")).toEqual({ from: null, to: null });
+  });
+
+  it("treats `to` as inclusive of the whole UTC day", () => {
+    const bounds = rangeBounds({ from: "2026-11-01", to: "2026-11-01" });
+    expect(inRange(Date.parse("2026-11-01T00:00:00Z"), bounds)).toBe(true);
+    expect(inRange(Date.parse("2026-11-01T23:59:59Z"), bounds)).toBe(true);
+    expect(inRange(Date.parse("2026-11-02T00:00:00Z"), bounds)).toBe(false);
+    expect(inRange(null, bounds)).toBe(false);
+    expect(inRange(null, rangeBounds({ from: null, to: null }))).toBe(true);
   });
 });

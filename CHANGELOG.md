@@ -21,6 +21,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   cookie (12 h, `SameSite=Strict`, `Path=/admin`). Unlinked, `noindex`,
   `no-store`; the proxy keeps `/admin` out of the price experiment and the
   root layout renders it without the marketing chrome or trackers.
+- **Dashboard filters:** experiment multi-select and date range (presets +
+  custom, UTC) drive every panel via `?exp=` / `?from=` / `?to=`. Price
+  points merge across experiments by the Kickstarter price each showed.
+- **Exclude from experiment** checkbox per subscriber (test / team
+  signups); honoured by the dashboard and `npm run export:leads`.
 
 ### Oct 15, 2026 — launch revamp
 

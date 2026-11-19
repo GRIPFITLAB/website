@@ -6,7 +6,7 @@ import { Logo } from "@/components/layout/Logo";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { Eyebrow, Meta } from "@/components/ui/typography";
-import { ACTIVITY_DAYS, type DashboardData } from "@/lib/dashboard/data";
+import type { DashboardData } from "@/lib/dashboard/data";
 import { ADMIN_PATH } from "@/lib/dashboard/session";
 import { formatUSD } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,8 @@ import { ActivityChart } from "./ActivityChart";
 import { signOutAdmin } from "./admin-actions";
 import { BreakdownList } from "./BreakdownList";
 import { DemandCurveChart } from "./DemandCurveChart";
-import { formatPct } from "./format";
+import { FilterBar } from "./FilterBar";
+import { adminHref, formatPct } from "./format";
 import { KpiCard } from "./KpiCard";
 import { SubscribersPanel } from "./SubscribersPanel";
 
@@ -29,6 +30,16 @@ export function Dashboard({ data }: { data: DashboardData }) {
     timeStyle: "short",
     timeZone: "UTC",
   }).format(data.generatedAt);
+  const ranged = data.range.from !== null || data.range.to !== null;
+  const scope = [
+    data.selected === null
+      ? null
+      : data.selected.length === 1
+        ? data.selected[0]
+        : `${data.selected.length} experiments`,
+    ranged ? "selected dates" : null,
+  ].filter(Boolean);
+  const scopeText = scope.length > 0 ? `Filtered to ${scope.join(" · ")}.` : "All experiments, all time.";
 
   return (
     <div className="relative min-h-dvh">
@@ -57,7 +68,7 @@ export function Dashboard({ data }: { data: DashboardData }) {
               variant="outline"
               size="sm"
               nativeButton={false}
-              render={<Link href={ADMIN_PATH} prefetch={false} />}
+              render={<Link href={adminHref(ADMIN_PATH, data.selected, data.range)} prefetch={false} />}
             >
               <RefreshCw /> Refresh
             </Button>
@@ -85,13 +96,22 @@ export function Dashboard({ data }: { data: DashboardData }) {
                   data.experimentEnabled ? "bg-state-success" : "bg-text-disabled",
                 )}
               />
-              {data.experimentEnabled ? "Experiment live" : "Experiment off"}
-            </Chip>
-            <Chip>
-              <span className="font-mono text-[12px]">{data.experimentId}</span>
+              {data.experimentEnabled ? "Live:" : "Off:"}
+              <span className="font-mono text-[12px]">{data.currentExperimentId}</span>
             </Chip>
             <span>Updated {updated} UTC</span>
           </div>
+        </div>
+
+        {/* ── Filters ───────────────────────────────────────────────── */}
+        <div className="flex flex-col gap-3 rounded-2xl border border-border-hairline bg-bg-elevated/60 px-4 py-3 backdrop-blur md:flex-row md:items-center md:justify-between">
+          <FilterBar
+            key={`${(data.selected ?? []).join(",")}|${data.range.from}|${data.range.to}`}
+            experiments={data.experiments}
+            selected={data.selected}
+            range={data.range}
+          />
+          <p className="text-[12.5px] text-text-tertiary">{scopeText} Every panel below follows these filters.</p>
         </div>
 
         {data.status !== "ok" && <StatusBanner status={data.status} />}
@@ -103,14 +123,14 @@ export function Dashboard({ data }: { data: DashboardData }) {
             label="Email subscribers"
             value={kpis.totalSubscribers.toLocaleString("en-US")}
             delta={weekDelta}
-            hint={`${kpis.last7Days.toLocaleString("en-US")} in the last 7 days`}
+            hint={`${kpis.last7Days.toLocaleString("en-US")} in the ${data.range.to ? "range’s last" : "last"} 7 days`}
             spark={data.daily.map((d) => d.signups)}
           />
           <KpiCard
             index={1}
-            label="Visitors in experiment"
+            label="Visitors"
             value={kpis.impressions.toLocaleString("en-US")}
-            hint={`Across ${arms.length} price arms`}
+            hint={`Across ${arms.length} price point${arms.length === 1 ? "" : "s"}`}
             spark={data.daily.map((d) => d.visitors)}
           />
           <KpiCard
@@ -125,7 +145,7 @@ export function Dashboard({ data }: { data: DashboardData }) {
             value={kpis.bestArm ? formatUSD(kpis.bestArm.kickstarterPrice) : "—"}
             hint={
               kpis.bestArm
-                ? `Arm ${kpis.bestArm.armId} · ${formatPct(kpis.bestArm.rate ?? 0)} signup rate`
+                ? `${kpis.bestArm.armId === null ? "Mixed arms" : `Arm ${kpis.bestArm.armId}`} · ${formatPct(kpis.bestArm.rate ?? 0)} signup rate`
                 : "Waiting for signups"
             }
             highlight
@@ -142,7 +162,10 @@ export function Dashboard({ data }: { data: DashboardData }) {
             <DemandCurveChart arms={arms} />
           </Panel>
 
-          <Panel title="Price arms" description="Impressions → signups, per arm.">
+          <Panel
+            title="Price points"
+            description="Impressions → signups at each Kickstarter price, across the selected experiments."
+          >
             <ArmList data={data} />
           </Panel>
         </section>
@@ -152,11 +175,11 @@ export function Dashboard({ data }: { data: DashboardData }) {
           <Panel
             className="xl:col-span-2"
             title="Activity"
-            description={`New visitors and subscribers per day, last ${ACTIVITY_DAYS} days (UTC).`}
+            description={`New visitors and subscribers per day (UTC), ${ranged ? "over the selected dates" : "since the first record"}.`}
           >
             <ActivityChart points={data.daily} />
           </Panel>
-          <Panel title="Where signups come from" description="All subscribers, first touch.">
+          <Panel title="Where signups come from" description="Subscribers in scope, first touch.">
             <div className="flex flex-col gap-7">
               <BreakdownList title="Signup surface" items={data.sources} total={kpis.totalSubscribers} />
               <BreakdownList title="Channel" items={data.channels} total={kpis.totalSubscribers} />
@@ -224,21 +247,26 @@ function Panel({
 }
 
 function ArmList({ data }: { data: DashboardData }) {
-  const best = data.kpis.bestArm?.armId ?? null;
+  const best = data.kpis.bestArm?.key ?? null;
   const maxRate = Math.max(0, ...data.arms.map((a) => a.rate ?? 0));
+  if (data.arms.length === 0) {
+    return <p className="text-[13px] text-text-tertiary">No price points in this selection.</p>;
+  }
   return (
     <ul className="flex flex-col divide-y divide-border-hairline">
       {data.arms.map((arm) => {
         const width = maxRate > 0 && arm.rate !== null ? (arm.rate / maxRate) * 100 : 0;
         return (
-          <li key={arm.armId} className="py-3 first:pt-0 last:pb-0">
+          <li key={arm.key} className="py-3 first:pt-0 last:pb-0">
             <div className="flex items-baseline justify-between gap-3">
               <div className="flex items-baseline gap-2">
-                <span className="text-[12px] font-medium text-text-tertiary">Arm {arm.armId}</span>
+                <span className="text-[12px] font-medium text-text-tertiary">
+                  {arm.armId === null ? "Mixed" : `Arm ${arm.armId}`}
+                </span>
                 <span className="font-display text-[17px] font-medium tabular-nums text-text-primary">
                   {formatUSD(arm.kickstarterPrice)}
                 </span>
-                {best === arm.armId && (
+                {best === arm.key && (
                   <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-accent-bright">
                     Best
                   </span>

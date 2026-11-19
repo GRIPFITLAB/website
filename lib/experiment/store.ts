@@ -208,26 +208,39 @@ function num(v: unknown): number | null {
 
 export interface VisitorRow {
   visitorId: string;
+  experimentId: string | null;
   priceArm: number | null;
+  /** Prices shown to this visitor, as recorded at assignment — so an
+   *  older experiment's arms still plot at the prices they actually had. */
+  kickstarterCeiling: number | null;
+  emailLockPrice: number | null;
+  expectedRetail: number | null;
   firstSeenAt: number | null;
 }
 
 /**
- * Every recorded impression for one experiment, projected to the two
+ * Every recorded impression, across all experiments, projected to the
  * fields the dashboard aggregates. `null` = Firestore isn't configured.
  * Throws on a Firestore error so the caller can surface it.
  */
-export async function listExperimentVisitors(experimentId: string): Promise<VisitorRow[] | null> {
+export async function listVisitors(): Promise<VisitorRow[] | null> {
   const store = firestore();
   if (!store) return null;
   const snap = await store
     .collection(col("visitors"))
-    .where("experimentId", "==", experimentId)
-    .select("priceArm", "firstSeenAt")
+    .select("experimentId", "priceArm", "kickstarterCeiling", "emailLockPrice", "expectedRetail", "firstSeenAt")
     .get();
   return snap.docs.map((d) => {
     const data = d.data() as Data;
-    return { visitorId: d.id, priceArm: num(data.priceArm), firstSeenAt: millis(data.firstSeenAt) };
+    return {
+      visitorId: d.id,
+      experimentId: str(data.experimentId),
+      priceArm: num(data.priceArm),
+      kickstarterCeiling: num(data.kickstarterCeiling),
+      emailLockPrice: num(data.emailLockPrice),
+      expectedRetail: num(data.expectedRetail),
+      firstSeenAt: millis(data.firstSeenAt),
+    };
   });
 }
 

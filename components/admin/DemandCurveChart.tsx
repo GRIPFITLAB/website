@@ -18,7 +18,8 @@ import { formatPct } from "./format";
 
 interface Datum {
   price: number;
-  armId: number;
+  armId: number | null;
+  experimentIds: string[];
   lock: number;
   retail: number;
   impressions: number;
@@ -36,6 +37,7 @@ export function DemandCurveChart({ arms }: { arms: ArmStat[] }) {
     .map((a) => ({
       price: a.kickstarterPrice,
       armId: a.armId,
+      experimentIds: a.experimentIds,
       lock: a.lockPrice,
       retail: a.retailPrice,
       impressions: a.impressions,
@@ -48,8 +50,9 @@ export function DemandCurveChart({ arms }: { arms: ArmStat[] }) {
 
   const hasData = data.some((d) => d.impressions > 0);
   const prices = data.map((d) => d.price);
-  const span = Math.max(1, Math.max(...prices) - Math.min(...prices));
-  const pad = Math.round(span * 0.06);
+  const lo = prices.length > 0 ? Math.min(...prices) : 0;
+  const hi = prices.length > 0 ? Math.max(...prices) : 100;
+  const pad = Math.max(5, Math.round((hi - lo) * 0.06));
 
   return (
     <div className="relative">
@@ -67,7 +70,7 @@ export function DemandCurveChart({ arms }: { arms: ArmStat[] }) {
             <XAxis
               dataKey="price"
               type="number"
-              domain={[Math.min(...prices) - pad, Math.max(...prices) + pad]}
+              domain={[Math.max(0, lo - pad), hi + pad]}
               ticks={prices}
               tickFormatter={(v: number) => formatUSD(v)}
               tick={AXIS_TICK}
@@ -166,7 +169,7 @@ function DemandTooltip({ d }: { d: Datum }) {
     <div className="min-w-[200px] rounded-xl border border-border-default bg-bg-raised/95 p-3 text-[12.5px] shadow-[var(--shadow-card)] backdrop-blur">
       <div className="mb-2 flex items-baseline justify-between gap-4">
         <span className="font-display text-[15px] font-medium text-text-primary">{formatUSD(d.price)}</span>
-        <span className="text-text-tertiary">Arm {d.armId}</span>
+        <span className="text-text-tertiary">{d.armId === null ? "Mixed arms" : `Arm ${d.armId}`}</span>
       </div>
       <Row label="Signup rate" value={d.rate === null ? "—" : formatPct(d.rate / 100)} />
       <Row
@@ -177,6 +180,9 @@ function DemandTooltip({ d }: { d: Datum }) {
       <Row label="Signups / visitors" value={`${d.signups} / ${d.impressions}`} />
       <div className="mt-2 border-t border-border-hairline pt-2 text-text-tertiary">
         Lock {formatUSD(d.lock)} · Retail {formatUSD(d.retail)}
+        {d.experimentIds.length > 1 && (
+          <span className="mt-1 block font-mono text-[11px]">{d.experimentIds.join(", ")}</span>
+        )}
       </div>
     </div>
   );
