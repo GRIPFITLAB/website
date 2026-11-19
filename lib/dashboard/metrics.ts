@@ -188,8 +188,11 @@ export function experimentOptions(
     return o;
   };
   get(currentId);
-  for (const v of visitors) if (v.experimentId) get(v.experimentId).visitors += 1;
-  for (const l of leads) if (l.experimentId) get(l.experimentId).subscribers += 1;
+  const excluded = new Set(
+    leads.filter((l) => l.excludedFromExperiment && l.visitorId).map((l) => l.visitorId!),
+  );
+  for (const v of visitors) if (v.experimentId && !excluded.has(v.visitorId)) get(v.experimentId).visitors += 1;
+  for (const l of leads) if (l.experimentId && !l.excludedFromExperiment) get(l.experimentId).subscribers += 1;
   return [...map.values()].sort(
     (a, b) => Number(b.isCurrent) - Number(a.isCurrent) || b.id.localeCompare(a.id),
   );

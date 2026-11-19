@@ -81,7 +81,14 @@ export async function getDashboardData(params: DashboardSearchParams): Promise<D
     (v) =>
       inExperiments(v.experimentId) && inRange(v.firstSeenAt, bounds) && !excludedVisitors.has(v.visitorId),
   );
-  const scopedLeads = leads.filter((l) => inExperiments(l.experimentId) && inRange(l.createdAt, bounds));
+  // With an experiment filter, excluded leads are out of scope entirely; with none,
+  // they stay listed so the exclusion can be undone.
+  const scopedLeads = leads.filter(
+    (l) =>
+      inExperiments(l.experimentId) &&
+      inRange(l.createdAt, bounds) &&
+      (selected === null || !l.excludedFromExperiment),
+  );
 
   const now = Date.now();
   const endMs = Math.min(bounds.endMs ?? now, now);
