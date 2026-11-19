@@ -1,11 +1,13 @@
 "use server";
 
+import { refresh } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { endAdminSession, startAdminSession } from "@/lib/dashboard/auth";
+import { endAdminSession, isAdminAuthenticated, startAdminSession } from "@/lib/dashboard/auth";
 import { ADMIN_PATH, credentialsMatch } from "@/lib/dashboard/session";
 import { env, isAdminConfigured } from "@/lib/env";
+import { LEAD_ID_RE, setLeadExcluded } from "@/lib/experiment/store";
 import { checkRateLimit, clientKey } from "@/lib/rate-limit";
 
 import { adminSignInSchema, type AdminSignInState } from "./admin-schema";
@@ -50,6 +52,25 @@ export async function signInAdmin(
   const proto = (await headers()).get("x-forwarded-proto");
   await startAdminSession(proto === "https" || env.NODE_ENV === "production");
   redirect(ADMIN_PATH);
+}
+
+/** Toggle whether a subscriber counts toward the price experiment. */
+export async function setSubscriberExcluded(
+  leadId: string,
+  excluded: boolean,
+): Promise<{ ok: boolean }> {
+  if (!(await isAdminAuthenticated())) return { ok: false };
+  if (typeof leadId !== "string" || !LEAD_ID_RE.test(leadId) || typeof excluded !== "boolean") {
+    return { ok: false };
+  }
+  try {
+    const ok = await setLeadExcluded(leadId, excluded);
+    if (ok) refresh();
+    return { ok };
+  } catch (error) {
+    console.error("[admin] setSubscriberExcluded failed", error);
+    return { ok: false };
+  }
 }
 
 export async function signOutAdmin(): Promise<void> {

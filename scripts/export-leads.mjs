@@ -87,6 +87,13 @@ async function fetchAll(name) {
 
 const [visitors, leads] = await Promise.all([fetchAll("visitors"), fetchAll("leads")]);
 
+// Subscribers ticked "Exclude" in /admin (tests, team) stay in the CSVs but
+// drop out of the conversion table with their visitor's impression — the
+// same rule as lib/dashboard/metrics.ts.
+const excludedVisitorIds = new Set(
+  leads.filter((l) => l.excludedFromExperiment === true && l.visitorId).map((l) => l.visitorId),
+);
+
 const flatAttr = (a = {}) => ({
   utm_source: a.utm_source ?? "",
   utm_medium: a.utm_medium ?? "",
@@ -121,6 +128,7 @@ const leadRows = leads.map((l) => ({
   lockedPrice: l.lockedPrice ?? "",
   displayedArm: l.displayedArm ?? "",
   isExperimentPrice: l.isExperimentPrice ?? "",
+  excludedFromExperiment: l.excludedFromExperiment === true,
   firstSource: l.firstSource ?? "",
   submitCount: l.submitCount ?? "",
   createdAt: ts(l.createdAt),
@@ -151,13 +159,13 @@ function row(v) {
   return fresh;
 }
 for (const v of visitorRows) {
-  if (v.priceArm === "") continue;
+  if (v.priceArm === "" || excludedVisitorIds.has(v.visitorId)) continue;
   row(v).impressions += 1;
 }
 // Only count signups that came from a visitor actually assigned in this
 // experiment — a lead with no assignment saw the default arm, not a test arm.
 for (const l of leadRows) {
-  if (l.priceArm === "" || l.isExperimentPrice !== true) continue;
+  if (l.priceArm === "" || l.isExperimentPrice !== true || l.excludedFromExperiment) continue;
   row(l).signups += 1;
 }
 const table = [...byArm.values()]

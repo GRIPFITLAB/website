@@ -207,6 +207,7 @@ function num(v: unknown): number | null {
 }
 
 export interface VisitorRow {
+  visitorId: string;
   priceArm: number | null;
   firstSeenAt: number | null;
 }
@@ -226,7 +227,7 @@ export async function listExperimentVisitors(experimentId: string): Promise<Visi
     .get();
   return snap.docs.map((d) => {
     const data = d.data() as Data;
-    return { priceArm: num(data.priceArm), firstSeenAt: millis(data.firstSeenAt) };
+    return { visitorId: d.id, priceArm: num(data.priceArm), firstSeenAt: millis(data.firstSeenAt) };
   });
 }
 
@@ -253,6 +254,9 @@ export interface LeadRow extends LeadAttributionRow {
   lockedPrice: number | null;
   displayedArm: number | null;
   isExperimentPrice: boolean;
+  /** Set from `/admin` for test / team signups: dropped from every
+   *  experiment count, along with the visitor that produced it. */
+  excludedFromExperiment: boolean;
   firstSource: string | null;
   lastSource: string | null;
   submitCount: number;
@@ -279,6 +283,7 @@ export async function listLeads(): Promise<LeadRow[] | null> {
         lockedPrice: num(l.lockedPrice),
         displayedArm: num(l.displayedArm),
         isExperimentPrice: l.isExperimentPrice === true,
+        excludedFromExperiment: l.excludedFromExperiment === true,
         firstSource: str(l.firstSource),
         lastSource: str(l.lastSource),
         submitCount: num(l.submitCount) ?? 1,
@@ -297,6 +302,22 @@ export async function listLeads(): Promise<LeadRow[] | null> {
       };
     })
     .sort((x, y) => (y.createdAt ?? 0) - (x.createdAt ?? 0));
+}
+
+/** Lead doc ids are the first 40 hex chars of sha256(email). */
+export const LEAD_ID_RE = /^[0-9a-f]{40}$/;
+
+/** `false` when Firestore isn't configured or the lead doesn't exist. */
+export async function setLeadExcluded(leadId: string, excluded: boolean): Promise<boolean> {
+  const store = firestore();
+  if (!store || !LEAD_ID_RE.test(leadId)) return false;
+  const ref = store.collection(col("leads")).doc(leadId);
+  if (!(await ref.get()).exists) return false;
+  await ref.update({
+    excludedFromExperiment: excluded,
+    excludedAt: excluded ? FieldValue.serverTimestamp() : FieldValue.delete(),
+  });
+  return true;
 }
 
 /* ── Contact messages ────────────────────────────────────────────────── */

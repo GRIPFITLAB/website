@@ -5,7 +5,8 @@
  * Counting rules match `scripts/export-leads.mjs` (DECISIONS.md §17):
  * impressions are visitor docs in the current experiment; a signup counts
  * toward an arm only if it came from a visitor assigned in this experiment
- * (`isExperimentPrice`), keyed by the arm the email is locked at.
+ * (`isExperimentPrice`), keyed by the arm the email is locked at. Leads
+ * excluded from `/admin` drop out, together with their visitor's impression.
  */
 
 import type { PriceArm } from "@/lib/admin";
@@ -42,7 +43,12 @@ export function wilsonInterval(successes: number, n: number, z = 1.96): [number,
 }
 
 export function isExperimentSignup(lead: LeadRow, experimentId: string): boolean {
-  return lead.experimentId === experimentId && lead.isExperimentPrice && lead.priceArm !== null;
+  return (
+    lead.experimentId === experimentId &&
+    lead.isExperimentPrice &&
+    !lead.excludedFromExperiment &&
+    lead.priceArm !== null
+  );
 }
 
 export function armStats(
@@ -51,9 +57,13 @@ export function armStats(
   leads: readonly LeadRow[],
   experimentId: string,
 ): ArmStat[] {
+  // An excluded signup's impression goes too, or its arm's rate drops.
+  const excludedVisitors = new Set(
+    leads.filter((l) => l.excludedFromExperiment && l.visitorId).map((l) => l.visitorId!),
+  );
   const impressions = new Map<number, number>();
   for (const v of visitors) {
-    if (v.priceArm === null) continue;
+    if (v.priceArm === null || excludedVisitors.has(v.visitorId)) continue;
     impressions.set(v.priceArm, (impressions.get(v.priceArm) ?? 0) + 1);
   }
   const signups = new Map<number, number>();

@@ -88,6 +88,7 @@ function lead(overrides: Partial<LeadRow>): LeadRow {
     lockedPrice: 69,
     displayedArm: 1,
     isExperimentPrice: true,
+    excludedFromExperiment: false,
     firstSource: "modal",
     lastSource: "modal",
     submitCount: 1,
@@ -109,8 +110,8 @@ function lead(overrides: Partial<LeadRow>): LeadRow {
 
 describe("dashboard metrics", () => {
   const visitors: VisitorRow[] = [
-    ...Array.from({ length: 100 }, () => ({ priceArm: 1, firstSeenAt: Date.now() })),
-    ...Array.from({ length: 50 }, () => ({ priceArm: 5, firstSeenAt: Date.now() })),
+    ...Array.from({ length: 100 }, (_, i) => ({ visitorId: `v1-${i}`, priceArm: 1, firstSeenAt: Date.now() })),
+    ...Array.from({ length: 50 }, (_, i) => ({ visitorId: `v5-${i}`, priceArm: 5, firstSeenAt: Date.now() })),
   ];
   const leads: LeadRow[] = [
     ...Array.from({ length: 10 }, () => lead({ priceArm: 1 })),
@@ -128,6 +129,14 @@ describe("dashboard metrics", () => {
     expect(byId.get(5)).toMatchObject({ impressions: 50, signups: 4, rate: 0.08 });
     expect(byId.get(2)).toMatchObject({ impressions: 0, signups: 0, rate: null, revenueIndex: null });
     expect(byId.get(3)?.signups).toBe(0);
+  });
+
+  it("drops an excluded signup and its visitor's impression", () => {
+    const withExcluded = [...leads, lead({ priceArm: 1, visitorId: "v1-0", excludedFromExperiment: true })];
+    const arm1 = armStats(priceExperiment.arms, visitors, withExcluded, priceExperiment.id).find(
+      (s) => s.armId === 1,
+    );
+    expect(arm1).toMatchObject({ impressions: 99, signups: 10 });
   });
 
   it("brackets the rate with the Wilson interval", () => {

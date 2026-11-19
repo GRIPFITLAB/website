@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ChevronDown, ChevronLeft, ChevronRight, Download, Search, Users } from "lucide-react";
-import { useId, useMemo, useState, type ReactNode } from "react";
+import { ArrowDown, ArrowUp, ChevronDown, Download, Search, Users } from "lucide-react";
+import { useId, useMemo, useState, useTransition, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import type { LeadRow } from "@/lib/experiment/store";
 import { formatUSD } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
+import { setSubscriberExcluded } from "./admin-actions";
 import { formatDateTime } from "./format";
 
 type SortValue = string | number | null;
@@ -25,7 +26,6 @@ interface Column {
 
 const COLUMNS: Column[] = [
   { key: "email", label: "Email", value: (r) => r.email },
-  { key: "createdAt", label: "Signed up", value: (r) => r.createdAt, render: (r) => formatDateTime(r.createdAt) },
   {
     key: "lockedPrice",
     label: "Locked price",
@@ -38,6 +38,7 @@ const COLUMNS: Column[] = [
   { key: "firstSource", label: "First surface", value: (r) => r.firstSource },
   { key: "lastSource", label: "Last surface", value: (r) => r.lastSource },
   { key: "submitCount", label: "Submits", value: (r) => r.submitCount, className: "text-right" },
+  { key: "createdAt", label: "Signed up", value: (r) => r.createdAt, render: (r) => formatDateTime(r.createdAt) },
   {
     key: "lastSubmittedAt",
     label: "Last activity",
@@ -64,7 +65,7 @@ const COLUMNS: Column[] = [
   { key: "visitorId", label: "Visitor ID", value: (r) => r.visitorId, mono: true },
 ];
 
-const PAGE_SIZE = 25;
+const EXCLUDE_KEY = "excluded";
 
 function compare(a: SortValue, b: SortValue): number {
   if (a === b) return 0;
@@ -74,7 +75,7 @@ function compare(a: SortValue, b: SortValue): number {
   return String(a).localeCompare(String(b));
 }
 
-function toCsv(rows: LeadRow[]): string {
+function toCsv(rows: LeadRow[], isExcluded: (r: LeadRow) => boolean): string {
   const esc = (v: SortValue) => {
     const s = v === null ? "" : String(v);
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
@@ -87,8 +88,10 @@ function toCsv(rows: LeadRow[]): string {
     return v;
   };
   return [
-    COLUMNS.map((c) => esc(c.label)).join(","),
-    ...rows.map((r) => COLUMNS.map((c) => esc(exportValue(c, r))).join(",")),
+    ["Excluded", ...COLUMNS.map((c) => c.label)].map(esc).join(","),
+    ...rows.map((r) =>
+      [isExcluded(r) ? "Yes" : "No", ...COLUMNS.map((c) => exportValue(c, r))].map(esc).join(","),
+    ),
   ].join("\n");
 }
 
@@ -96,8 +99,14 @@ export function SubscribersPanel({ subscribers }: { subscribers: LeadRow[] }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<{ key: string; dir: "asc" | "desc" }>({ key: "createdAt", dir: "desc" });
-  const [page, setPage] = useState(0);
+  /** Optimistic exclusion state until the server refresh lands. */
+  const [overrides, setOverrides] = useState<Record<string, boolean>>({});
+  const [error, setError] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
   const bodyId = useId();
+
+  const isExcluded = (r: LeadRow) => overrides[r.id] ?? r.excludedFromExperiment;
+  const excludedCount = subscribers.filter(isExcluded).length;
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -109,28 +118,42 @@ export function SubscribersPanel({ subscribers }: { subscribers: LeadRow[] }) {
           }),
         )
       : subscribers;
-    const col = COLUMNS.find((c) => c.key === sort.key) ?? COLUMNS[1]!;
+    const value =
+      sort.key === EXCLUDE_KEY
+        ? (r: LeadRow) => ((overrides[r.id] ?? r.excludedFromExperiment) ? 1 : 0)
+        : (COLUMNS.find((c) => c.key === sort.key) ?? COLUMNS[0]!).value;
     const sign = sort.dir === "asc" ? 1 : -1;
     return [...rows].sort((a, b) => {
-      const va = col.value(a);
-      const vb = col.value(b);
+      const va = value(a);
+      const vb = value(b);
       // Blanks sink to the bottom in either direction.
       if (va === null || vb === null) return compare(va, vb);
       return sign * compare(va, vb);
     });
-  }, [subscribers, query, sort]);
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const current = Math.min(page, pageCount - 1);
-  const visible = filtered.slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE);
+  }, [subscribers, query, sort, overrides]);
 
   function toggleSort(key: string) {
     setSort((s) => (s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" }));
-    setPage(0);
+  }
+
+  function toggleExcluded(r: LeadRow, excluded: boolean) {
+    setError(null);
+    setOverrides((o) => ({ ...o, [r.id]: excluded }));
+    startTransition(async () => {
+      const result = await setSubscriberExcluded(r.id, excluded);
+      if (!result.ok) {
+        setError(`Couldn’t update ${r.email}. Refresh and try again.`);
+      }
+      setOverrides((o) => {
+        const next = { ...o };
+        delete next[r.id];
+        return next;
+      });
+    });
   }
 
   function exportCsv() {
-    const blob = new Blob([toCsv(filtered)], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob([toCsv(filtered, isExcluded)], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -138,6 +161,9 @@ export function SubscribersPanel({ subscribers }: { subscribers: LeadRow[] }) {
     a.click();
     URL.revokeObjectURL(url);
   }
+
+  const headerCell =
+    "sticky top-0 z-10 border-b border-border-default bg-bg-raised px-4 py-2.5 text-left font-medium text-text-secondary";
 
   return (
     <Surface padding="none" className="overflow-hidden">
@@ -184,10 +210,7 @@ export function SubscribersPanel({ subscribers }: { subscribers: LeadRow[] }) {
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-tertiary" />
                 <Input
                   value={query}
-                  onChange={(e) => {
-                    setQuery(e.target.value);
-                    setPage(0);
-                  }}
+                  onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search email, code, campaign…"
                   aria-label="Search subscribers"
                   className="h-10 pl-9"
@@ -196,6 +219,7 @@ export function SubscribersPanel({ subscribers }: { subscribers: LeadRow[] }) {
               <div className="flex items-center gap-3">
                 <span className="text-[13px] tabular-nums text-text-tertiary">
                   {filtered.length.toLocaleString("en-US")} result{filtered.length === 1 ? "" : "s"}
+                  {excludedCount > 0 && ` · ${excludedCount.toLocaleString("en-US")} excluded from experiment`}
                 </span>
                 <Button variant="outline" size="sm" onClick={exportCsv} disabled={filtered.length === 0}>
                   <Download /> Export CSV
@@ -203,10 +227,29 @@ export function SubscribersPanel({ subscribers }: { subscribers: LeadRow[] }) {
               </div>
             </div>
 
-            <div className="max-h-[640px] overflow-auto border-t border-border-hairline">
+            {error && (
+              <p role="alert" className="mx-4 mb-3 rounded-lg border border-state-danger/30 bg-state-danger/10 px-3 py-2 text-[13px] text-state-danger md:mx-6">
+                {error}
+              </p>
+            )}
+
+            <div className="max-h-[75vh] overflow-auto border-t border-border-hairline">
               <table className="w-full min-w-max border-separate border-spacing-0 text-[13px]">
                 <thead>
                   <tr>
+                    <th
+                      scope="col"
+                      aria-sort={sort.key === EXCLUDE_KEY ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+                      className={cn(headerCell, "left-0 z-20 w-24 min-w-24")}
+                    >
+                      <SortButton
+                        label="Exclude"
+                        title="Excluded subscribers (and their visit) don’t count toward the price experiment"
+                        active={sort.key === EXCLUDE_KEY}
+                        dir={sort.dir}
+                        onClick={() => toggleSort(EXCLUDE_KEY)}
+                      />
+                    </th>
                     {COLUMNS.map((c, i) => {
                       const active = sort.key === c.key;
                       return (
@@ -214,101 +257,98 @@ export function SubscribersPanel({ subscribers }: { subscribers: LeadRow[] }) {
                           key={c.key}
                           scope="col"
                           aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
-                          className={cn(
-                            "sticky top-0 z-10 border-b border-border-default bg-bg-raised px-4 py-2.5 text-left font-medium text-text-secondary",
-                            i === 0 && "left-0 z-20",
-                            c.className,
-                          )}
+                          className={cn(headerCell, i === 0 && "left-24 z-20", c.className)}
                         >
-                          <button
-                            type="button"
-                            onClick={() => toggleSort(c.key)}
-                            className={cn(
-                              "inline-flex items-center gap-1 whitespace-nowrap transition-colors hover:text-text-primary",
-                              active && "text-text-primary",
-                            )}
-                          >
-                            {c.label}
-                            {active ? (
-                              sort.dir === "asc" ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />
-                            ) : null}
-                          </button>
+                          <SortButton label={c.label} active={active} dir={sort.dir} onClick={() => toggleSort(c.key)} />
                         </th>
                       );
                     })}
                   </tr>
                 </thead>
                 <tbody>
-                  {visible.length === 0 ? (
+                  {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={COLUMNS.length} className="px-6 py-14 text-center text-text-tertiary">
+                      <td colSpan={COLUMNS.length + 1} className="px-6 py-14 text-center text-text-tertiary">
                         {subscribers.length === 0 ? "No subscribers yet." : "No subscribers match that search."}
                       </td>
                     </tr>
                   ) : (
-                    visible.map((r) => (
-                      <tr key={r.id} className="group">
-                        {COLUMNS.map((c, i) => {
-                          const content = c.render ? c.render(r) : c.value(r);
-                          return (
-                            <td
-                              key={c.key}
-                              className={cn(
-                                "whitespace-nowrap border-b border-border-hairline bg-bg-elevated px-4 py-2.5 text-text-secondary transition-colors group-hover:bg-bg-raised",
-                                i === 0 && "sticky left-0 z-[1] font-medium text-text-primary",
-                                c.mono && "font-mono text-[12px]",
-                                c.className,
-                              )}
-                            >
-                              {content === null || content === "" ? (
-                                <span className="text-text-disabled">—</span>
-                              ) : (
-                                content
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))
+                    filtered.map((r) => {
+                      const excluded = isExcluded(r);
+                      const cell =
+                        "whitespace-nowrap border-b border-border-hairline bg-bg-elevated px-4 py-2.5 transition-colors group-hover:bg-bg-raised";
+                      return (
+                        <tr key={r.id} className="group">
+                          <td className={cn(cell, "sticky left-0 z-[1] w-24 min-w-24")}>
+                            <input
+                              type="checkbox"
+                              checked={excluded}
+                              onChange={(e) => toggleExcluded(r, e.target.checked)}
+                              aria-label={`Exclude ${r.email} from the experiment`}
+                              className="size-4 accent-accent"
+                            />
+                          </td>
+                          {COLUMNS.map((c, i) => {
+                            const content = c.render ? c.render(r) : c.value(r);
+                            return (
+                              <td
+                                key={c.key}
+                                className={cn(
+                                  cell,
+                                  "text-text-secondary",
+                                  i === 0 && "sticky left-24 z-[1] font-medium text-text-primary",
+                                  c.mono && "font-mono text-[12px]",
+                                  excluded && "text-text-disabled",
+                                  c.className,
+                                )}
+                              >
+                                {content === null || content === "" ? (
+                                  <span className="text-text-disabled">—</span>
+                                ) : (
+                                  content
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
             </div>
-
-            {pageCount > 1 && (
-              <div className="flex items-center justify-between gap-3 border-t border-border-hairline px-4 py-3 text-[13px] text-text-tertiary md:px-6">
-                <span className="tabular-nums">
-                  {current * PAGE_SIZE + 1}–{Math.min(filtered.length, (current + 1) * PAGE_SIZE)} of{" "}
-                  {filtered.length.toLocaleString("en-US")}
-                </span>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label="Previous page"
-                    disabled={current === 0}
-                    onClick={() => setPage(current - 1)}
-                  >
-                    <ChevronLeft />
-                  </Button>
-                  <span className="px-2 tabular-nums">
-                    {current + 1} / {pageCount}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label="Next page"
-                    disabled={current >= pageCount - 1}
-                    onClick={() => setPage(current + 1)}
-                  >
-                    <ChevronRight />
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
     </Surface>
+  );
+}
+
+function SortButton({
+  label,
+  title,
+  active,
+  dir,
+  onClick,
+}: {
+  label: string;
+  title?: string;
+  active: boolean;
+  dir: "asc" | "desc";
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={cn(
+        "inline-flex items-center gap-1 whitespace-nowrap transition-colors hover:text-text-primary",
+        active && "text-text-primary",
+      )}
+    >
+      {label}
+      {active ? dir === "asc" ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" /> : null}
+    </button>
   );
 }
